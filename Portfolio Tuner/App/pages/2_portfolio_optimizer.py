@@ -10,7 +10,7 @@ from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user
 from user_input import get_backtest_settings, get_optimization_methods
-from core.optimizer import run_optimizers 
+from optimizer import run_optimizers 
 from plots import (
     plot_asset_cumulative_returns,
     plot_cumulative_returns,  # ← this one is already built for result dicts
