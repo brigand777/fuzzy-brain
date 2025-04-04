@@ -45,6 +45,32 @@ def show_my_portfolio():
         portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
         st.session_state.editable_portfolio.to_csv(portfolio_path, index=False)
 
+    # --- Date range selector for dashboard metrics ---
+    with st.expander("📅 Dashboard Date Range"):
+        max_date = data.index.max()
+        min_date = data.index.min()
+        default_start = max_date - pd.Timedelta(days=100)
+        date_range = st.date_input(
+            "Select date range for Portfolio Dashboard calculations:",
+            value=(default_start, max_date),
+            min_value=min_date,
+            max_value=max_date
+        )
+
+    # --- Dashboard Section ---
+    selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
+    if selected_assets:
+        st.subheader("📊 Portfolio Dashboard")
+        needle_fig, heatmap_fig = plot_portfolio_dashboard(
+            data, selected_assets, date_range=date_range
+        )
+        if needle_fig:
+            st.plotly_chart(needle_fig, use_container_width=True)
+        if heatmap_fig:
+            st.plotly_chart(heatmap_fig, use_container_width=True)
+    else:
+        st.warning("No assets found in your portfolio to calculate dashboard.")
+
     # --- Plotting toggle ---
     if "show_plot" not in st.session_state:
         st.session_state.show_plot = False
@@ -53,8 +79,6 @@ def show_my_portfolio():
         st.session_state.show_plot = not st.session_state.show_plot
 
     if st.session_state.show_plot:
-        # Extract selected assets from the portfolio
-        selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
         if selected_assets:
             plot_historical_assets(data, selected_assets, portfolio_df=portfolio_df)
         else:
