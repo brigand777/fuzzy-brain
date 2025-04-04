@@ -1,8 +1,105 @@
 import altair as alt
 import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
 from datetime import datetime
+import numpy as np
+import plotly.graph_objects as go
+import plotly.express as px
+from plotly.subplots import make_subplots
+from datetime import timedelta
+
+# ----- Metric Calculation Function -----
+def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
+    returns = price_data.pct_change().dropna()
+    cumulative_returns = (1 + returns).prod() - 1
+    volatility = returns.std() * np.sqrt(252)
+    sharpe_ratio = returns.mean() / returns.std() * np.sqrt(252)
+    max_drawdown = (price_data / price_data.cummax() - 1).min()
+    rolling_max = price_data.cummax()
+    drawdown = price_data / rolling_max - 1
+    calmar_ratio = returns.mean() * 252 / abs(drawdown.min())
+    var_95 = returns.quantile(0.05)
+
+    return {
+        "Cumulative Returns": cumulative_returns.mean(),
+        "Volatility": volatility.mean(),
+        "Sharpe Ratio": sharpe_ratio.mean(),
+        "Max Drawdown": max_drawdown.mean(),
+        "Calmar Ratio": calmar_ratio.mean(),
+        "Value at Risk (95%)": var_95.mean()
+    }
+
+# ----- Needle Chart Plotting -----
+def plot_single_needle(title: str, value: float) -> go.Indicator:
+    return go.Indicator(
+        mode="gauge+number",
+        value=value,
+        title={'text': title},
+        gauge={
+            'axis': {'visible': True, 'range': [None, None]},
+            'bar': {'color': "steelblue"}
+        }
+    )
+
+def plot_needle_charts(metrics: dict):
+    fig = make_subplots(rows=3, cols=2, specs=[[{'type': 'indicator'}]*2]*3)
+    titles = list(metrics.keys())
+    values = list(metrics.values())
+
+    for i, (title, value) in enumerate(zip(titles, values)):
+        row = i // 2 + 1
+        col = i % 2 + 1
+        indicator = plot_single_needle(title, value)
+        fig.add_trace(indicator, row=row, col=col)
+
+    fig.update_layout(
+        height=800,
+        title_text="📊 Portfolio Dashboard Metrics",
+        margin=dict(t=50, b=30)
+    )
+    return fig
+
+
+# ----- Correlation Heatmap Plotting -----
+def plot_correlation_heatmap(price_data: pd.DataFrame):
+    returns = price_data.pct_change().dropna()
+    corr = returns.corr()
+    fig = px.imshow(
+        corr,
+        text_auto=True,
+        aspect="auto",
+        title="📈 Correlation Heatmap of Portfolio Holdings",
+        color_continuous_scale='RdBu_r',
+        labels=dict(color="Correlation")
+    )
+    fig.update_layout(margin=dict(t=50, b=30))
+    return fig
+
+# ----- Master Dashboard Plotter -----
+def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, date_range: tuple = None):
+    if not selected_assets:
+        return None, None
+
+    asset_data = price_data[selected_assets]
+
+    # Default to last 100 days
+    if date_range is None:
+        end_date = asset_data.index.max()
+        start_date = end_date - timedelta(days=100)
+    else:
+        start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+
+    filtered_data = asset_data[(asset_data.index >= start_date) & (asset_data.index <= end_date)]
+
+    if filtered_data.empty:
+        return None, None
+
+    metrics = calculate_portfolio_metrics(filtered_data)
+    needle_fig = plot_needle_charts(metrics)
+    heatmap_fig = plot_correlation_heatmap(filtered_data)
+
+    return needle_fig, heatmap_fig
+
 def plot_historical_assets(data, selected_assets, portfolio_df=None):
     import altair as alt
     import streamlit as st

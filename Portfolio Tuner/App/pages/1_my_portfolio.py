@@ -9,7 +9,8 @@ from plots import (
     plot_asset_prices,
     add_interactivity,
     plot_portfolio_allocation_3d,
-    plot_historical_assets
+    plot_historical_assets,
+    plot_portfolio_dashboard
 )
 
 st.set_page_config(page_title="My Portfolio", layout="wide")
