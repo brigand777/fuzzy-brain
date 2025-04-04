@@ -54,7 +54,7 @@ def plot_needle_charts(metrics: dict):
 
     fig.update_layout(
         height=800,
-        title_text="📊 Portfolio Dashboard Metrics",
+        #title_text="📊 Portfolio Dashboard Metrics",
         margin=dict(t=50, b=30)
     )
     return fig
@@ -64,16 +64,29 @@ def plot_needle_charts(metrics: dict):
 def plot_correlation_heatmap(price_data: pd.DataFrame):
     returns = price_data.pct_change().dropna()
     corr = returns.corr()
+
+    # Sophisticated single-color red scale
+    red_scale = [
+        [0.0, "rgba(255,245,245,1)"],  # near-white
+        [0.2, "rgba(255,200,200,1)"],  # pale red
+        [0.4, "rgba(240,120,120,1)"],  # salmon
+        [0.6, "rgba(200,70,70,1)"],    # medium red
+        [0.8, "rgba(160,30,30,1)"],    # blood red
+        [1.0, "rgba(120,0,0,1)"],      # dark red
+    ]
+
+
     fig = px.imshow(
         corr,
         text_auto=True,
         aspect="auto",
         title="📈 Correlation Heatmap of Portfolio Holdings",
-        color_continuous_scale='RdBu_r',
+        color_continuous_scale=red_scale,
         labels=dict(color="Correlation")
     )
     fig.update_layout(margin=dict(t=50, b=30))
     return fig
+
 
 # ----- Master Dashboard Plotter -----
 def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, date_range: tuple = None):
