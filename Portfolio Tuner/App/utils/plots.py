@@ -34,12 +34,18 @@ def plot_single_needle(title: str, value: float) -> go.Indicator:
     return go.Indicator(
         mode="gauge+number",
         value=value,
-        title={'text': title},
+        title={
+            'text': title,
+            'font': {'size': 14},
+            'align': 'center'
+        },
+        domain={'x': [0, 1], 'y': [0.1, 1]},  # Shift chart content upward
         gauge={
             'axis': {'visible': True, 'range': [None, None]},
             'bar': {'color': "steelblue"}
         }
     )
+
 
 def plot_needle_charts(metrics: dict):
     fig = make_subplots(rows=3, cols=2, specs=[[{'type': 'indicator'}]*2]*3)
@@ -66,14 +72,20 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
     corr = returns.corr()
 
     # Sophisticated single-color red scale
-    red_scale = [
-        [0.0, "rgba(255,245,245,1)"],  # near-white
-        [0.2, "rgba(255,200,200,1)"],  # pale red
-        [0.4, "rgba(240,120,120,1)"],  # salmon
-        [0.6, "rgba(200,70,70,1)"],    # medium red
-        [0.8, "rgba(160,30,30,1)"],    # blood red
-        [1.0, "rgba(120,0,0,1)"],      # dark red
-    ]
+    red_blue_scale = [
+    [0.0, "rgba(0,0,120,1)"],        # deep blue (strong negative correlation)
+    [0.1, "rgba(30,30,160,1)"],      # darkish blue
+    [0.2, "rgba(70,70,200,1)"],      # medium blue
+    [0.3, "rgba(120,120,240,1)"],    # pale blue
+    [0.4, "rgba(200,200,255,1)"],    # very pale blue
+    [0.5, "rgba(255,255,255,1)"],    # white (neutral correlation)
+    [0.6, "rgba(255,200,200,1)"],    # pale red
+    [0.7, "rgba(240,120,120,1)"],    # salmon
+    [0.8, "rgba(200,70,70,1)"],      # medium red
+    [0.9, "rgba(160,30,30,1)"],      # blood red
+    [1.0, "rgba(120,0,0,1)"],        # dark red (strong positive correlation)
+]
+
 
 
     fig = px.imshow(
@@ -81,7 +93,8 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
         text_auto=True,
         aspect="auto",
         title="📈 Correlation Heatmap of Portfolio Holdings",
-        color_continuous_scale=red_scale,
+        color_continuous_scale=red_blue_scale,
+        zmin=-1, zmax=1,
         labels=dict(color="Correlation")
     )
     fig.update_layout(margin=dict(t=50, b=30))
