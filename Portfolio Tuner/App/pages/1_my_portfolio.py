@@ -21,7 +21,7 @@ def show_my_portfolio():
     # --- Load available assets from price data ---
     @st.cache_data
     def load_data():
-        return pd.read_parquet("Data/prices.parquet")
+        return pd.read_parquet("data/prices.parquet")
 
     data = load_data()
     available_assets = data.columns.tolist()
