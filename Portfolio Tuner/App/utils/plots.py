@@ -88,6 +88,9 @@ def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, da
         start_date = end_date - timedelta(days=100)
     else:
         start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
+    
+    start_date = pd.to_datetime(start_date).tz_localize("UTC") if pd.to_datetime(start_date).tzinfo is None else pd.to_datetime(start_date)
+    end_date = pd.to_datetime(end_date).tz_localize("UTC") if pd.to_datetime(end_date).tzinfo is None else pd.to_datetime(end_date)
 
     filtered_data = asset_data[(asset_data.index >= start_date) & (asset_data.index <= end_date)]
 
