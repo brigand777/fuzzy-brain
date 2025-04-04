@@ -66,7 +66,7 @@ def call_fastapi_optimizer(price_df, asset_weights, lookback_days, nonnegative):
 
 # --- HOME PAGE ---
 
-display_video("assets/homepage_video.mp4", height=600)
+display_video("Portfolio Tuner/App/assets/homepage_video.mp4", height=600)
 st.info("Select a page from the sidebar to begin exploring the optimization tools.")
 
 st.markdown("## Welcome to the Crypto Portfolio Optimizer")
