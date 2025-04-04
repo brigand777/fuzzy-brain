@@ -42,7 +42,7 @@ narrative("Welcome to the Portfolio Optimizer! Log in to access your saved portf
 # --- Load data ---
 @st.cache_data
 def load_data():
-    return pd.read_parquet("Data/prices.parquet")
+    return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
 
 data = load_data()
 available_dates = data.index.sort_values()
@@ -56,7 +56,7 @@ persistent = False
 
 if input_mode == "Use My Portfolio":
     if authentication_status:
-        portfolio_path = f"portfolios/{username}_portfolio.csv"
+        portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
         if os.path.exists(portfolio_path):
             portfolio_df = pd.read_csv(portfolio_path)
             st.success("Loaded your saved portfolio.")
