@@ -3,7 +3,7 @@
 import streamlit as st
 import pandas as pd
 import os
-from plots import plot_portfolio_allocation_3d
+from utils.plots import plot_portfolio_allocation_3d
 
 def edit_portfolio(available_assets, persistent=True):
     if "editable_portfolio" not in st.session_state:

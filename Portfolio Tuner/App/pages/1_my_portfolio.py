@@ -4,7 +4,7 @@ import os
 
 from auth import login_and_get_status
 from components.portfolio_input import edit_portfolio
-from plots import (
+from utils.plots import (
     plot_asset_returns,
     plot_asset_prices,
     add_interactivity,

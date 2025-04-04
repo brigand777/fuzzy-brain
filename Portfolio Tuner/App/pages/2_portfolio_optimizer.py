@@ -11,7 +11,7 @@ from utils.api_client import call_fastapi_optimizer
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user
 from user_input import get_backtest_settings, get_optimization_methods
 from optimizer import run_optimizers 
-from plots import (
+from utils.plots import (
     plot_asset_cumulative_returns,
     plot_cumulative_returns,  # ← this one is already built for result dicts
     plot_rolling_sharpe,
