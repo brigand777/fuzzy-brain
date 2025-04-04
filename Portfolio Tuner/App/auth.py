@@ -5,7 +5,7 @@ import os
 import streamlit as st
 
 # File to store users
-USERS_FILE = "users.csv"
+USERS_FILE = "Portfolio Tuner/App/users.csv"
 
 def load_users():
     if os.path.exists(USERS_FILE):
