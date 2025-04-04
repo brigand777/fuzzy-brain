@@ -10,6 +10,7 @@ from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user
 from user_input import get_backtest_settings, get_optimization_methods
+from core.optimizer import run_optimizers 
 from plots import (
     plot_asset_cumulative_returns,
     plot_cumulative_returns,  # ← this one is already built for result dicts
@@ -33,6 +34,10 @@ def narrative(text):
         </div>""",
         unsafe_allow_html=True
     )
+def run_optimizer_locally(price_df, asset_weights, lookback_days, nonnegative):
+    lookback = price_df.tail(lookback_days)
+    allocations = run_optimizers(lookback, nonnegative_mvo=nonnegative)
+    return {method: alloc.to_dict() for method, alloc in allocations.items()}
 
 # --- Auth ---
 authenticator, authentication_status, username = login_and_get_status()
@@ -121,7 +126,7 @@ if optimize_button:
                   "3. Including your own portfolio for direct comparison.")
         
         # Call external optimizer for other methods.
-        initial_allocations = call_fastapi_optimizer(
+        initial_allocations = run_optimizer_locally(
             price_df=lookback_window[selected_assets],
             asset_weights=user_weights,
             lookback_days=lookback_days,
