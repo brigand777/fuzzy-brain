@@ -28,7 +28,7 @@ def show_my_portfolio():
 
     # --- Load saved portfolio or initialize empty ---
     if authentication_status:
-        portfolio_path = f"portfolios/{username}_portfolio.csv"
+        portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
         if os.path.exists(portfolio_path):
             st.success("Loaded saved portfolio.")
             st.session_state.editable_portfolio = pd.read_csv(portfolio_path)
@@ -42,7 +42,7 @@ def show_my_portfolio():
 
     # --- Save updated portfolio if logged in ---
     if authentication_status and "editable_portfolio" in st.session_state:
-        portfolio_path = f"portfolios/{username}_portfolio.csv"
+        portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
         st.session_state.editable_portfolio.to_csv(portfolio_path, index=False)
 
     # --- Plotting toggle ---
