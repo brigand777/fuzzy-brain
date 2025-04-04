@@ -6,3 +6,4 @@ altair
 scikit-learn
 cvxpy
 scipy
+plotly
