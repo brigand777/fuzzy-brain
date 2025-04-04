@@ -48,7 +48,7 @@ def edit_portfolio(available_assets, persistent=True):
                 if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                     username = st.session_state["username"]
                     os.makedirs("portfolios", exist_ok=True)
-                    pd.DataFrame(df).to_csv(f"portfolios/{username}_portfolio.csv", index=False)
+                    pd.DataFrame(df).to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
                 st.rerun()
 
         if not df.empty:
@@ -59,7 +59,7 @@ def edit_portfolio(available_assets, persistent=True):
 
                 if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                     username = st.session_state["username"]
-                    pd.DataFrame(df).to_csv(f"portfolios/{username}_portfolio.csv", index=False)
+                    pd.DataFrame(df).to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
                 st.rerun()
         else:
             st.info("No assets in your portfolio yet.")
