@@ -1,0 +1,8 @@
+streamlit-authenticator
+streamlit
+pandas
+numpy
+altair
+scikit-learn
+cvxpy
+scipy
