@@ -142,8 +142,8 @@ def hrp(prices):
 def run_optimizers(prices, nonnegative_mvo=True):
     equal = equal_weight(prices)
     mvo = mean_variance_opt(prices, nonnegative=nonnegative_mvo)
-    hrb = hrb(prices)
-    return {"Equal Weight": equal, "Mean Variance": mvo, "HRB": hrb}
+    hrp = hrb(prices)
+    return {"Equal Weight": equal, "Mean Variance": mvo, "HRB": hrp}
 def mean_variance_opt(prices, nonnegative=True):
 
     # Compute returns and drop any rows with missing values
