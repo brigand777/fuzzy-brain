@@ -96,58 +96,22 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
                     try:
+                        st.write("🧪 Attempting to write to:", file_path)
+                        st.write("🧾 Data to write:")
+                        st.dataframe(df)
                         df[["Asset", "Amount"]].to_csv(file_path, index=False)
+
+                        if os.path.exists(file_path):
+                            st.write("📁 File exists:", file_path)
+                            with open(file_path, "r") as f:
+                                content = f.read()
+                            st.code(content, language="csv")
+
                         st.session_state["portfolio_saved"] = True
                     except Exception as e:
                         st.error(f"❌ Failed to save portfolio: {e}")
                 else:
                     st.toast("⚠️ Changes saved for session only (not persistent).")
                 st.rerun()
-
-        # --- Portfolio rescaling ---
-        if not df.empty:
-            st.markdown("### 🧮 Rescale Portfolio")
-            rescale_value = st.number_input("Target total portfolio value ($):", min_value=0.0, step=100.0, format="%.2f")
-            if st.button("Rescale Portfolio"):
-                current_total = (df["Asset"].map(latest_prices) * df["Amount"]).sum()
-                if current_total > 0:
-                    scale_factor = rescale_value / current_total
-                    df["Amount"] *= scale_factor
-                    df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
-                    st.session_state.editable_portfolio = df[["Asset", "Amount"]]
-
-                    if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                        username = st.session_state["username"]
-                        file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-                        try:
-                            df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                            st.session_state["portfolio_saved"] = True
-                        except Exception as e:
-                            st.error(f"❌ Failed to save rescaled portfolio: {e}")
-                    else:
-                        st.toast("⚠️ Rescale saved in session only (not persistent).")
-                    st.rerun()
-                else:
-                    st.warning("Current portfolio value is zero. Cannot rescale.")
-
-            # --- Delete assets ---
-            selected_to_delete = st.multiselect("Select rows to delete", df["Asset"].tolist(), key="delete_selection")
-            if st.button("Delete Selected"):
-                df = df[~df["Asset"].isin(selected_to_delete)].reset_index(drop=True)
-                st.session_state.editable_portfolio = df[["Asset", "Amount"]]
-
-                if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                    username = st.session_state["username"]
-                    file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-                    try:
-                        df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                        st.session_state["portfolio_saved"] = True
-                    except Exception as e:
-                        st.error(f"❌ Failed to save deleted portfolio: {e}")
-                else:
-                    st.toast("⚠️ Deletion saved in session only.")
-                st.rerun()
-        else:
-            st.info("No assets in your portfolio yet.")
 
     return st.session_state.editable_portfolio
