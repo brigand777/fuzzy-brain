@@ -8,6 +8,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
 
     df = st.session_state.editable_portfolio.copy()
+    st.info("✅ edit_portfolio() loaded with rebalancing fix.")
 
     if "show_edit" not in st.session_state:
         st.session_state.show_edit = False
