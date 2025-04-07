@@ -2,6 +2,62 @@
 import numpy as np
 import pandas as pd
 from optimizer import run_optimizers  # Make sure this function incorporates exponential weighting if desired
+
+def dynamic_backtest_portfolio_user_fixed_shares(simulation_data, asset_amounts):
+    """
+    Backtest a portfolio with fixed share counts (not percent weights).
+
+    Parameters:
+        simulation_data (pd.DataFrame): Historical price data for each asset.
+        asset_amounts (dict): Fixed number of shares per asset (e.g., {"BTC": 1.0, "ETH": 5.0}).
+        rebalance_days (int): Frequency to reset to original share counts (set high to disable).
+
+    Returns:
+        dict: {
+            "cumulative": Series of cumulative portfolio value,
+            "drawdowns": Series of daily drawdowns,
+            "drawdown": Float of max drawdown,
+            "rolling_sharpe": Series of rolling Sharpe ratio,
+            "allocations": DataFrame of implied percent weights over time
+        }
+    """
+    # Create portfolio value over time using fixed number of shares
+    prices = simulation_data.copy()
+    assets = list(asset_amounts.keys())
+    prices = prices[assets]
+
+    # Calculate position values per asset (price * fixed share count)
+    position_values = prices.multiply([asset_amounts[a] for a in assets], axis=1)
+    portfolio_value = position_values.sum(axis=1)
+
+    # Implied dynamic percent weights
+    allocations = position_values.divide(portfolio_value, axis=0)
+
+    # Calculate daily returns
+    returns = portfolio_value.pct_change().fillna(0)
+
+    # Cumulative returns
+    cumulative = (1 + returns).cumprod()
+
+    # Rolling Sharpe (30-day window)
+    rolling_sharpe = returns.rolling(30).apply(
+        lambda r: (r.mean() / r.std()) * np.sqrt(365.0) if r.std() != 0 else 0,
+        raw=True
+    )
+
+    # Drawdowns
+    rolling_max = portfolio_value.cummax()
+    drawdowns = (portfolio_value - rolling_max) / rolling_max
+    max_drawdown = drawdowns.min()
+
+    return {
+        "cumulative": cumulative,
+        "rolling_sharpe": rolling_sharpe,
+        "drawdowns": drawdowns,
+        "drawdown": max_drawdown,
+        "allocations": allocations
+    }
+
 def dynamic_backtest_portfolio_user(simulation_data, user_weights, lookback_days, rebalance_days, nonnegative_toggle):
     """
     Perform a dynamic backtest for the user’s portfolio using fixed, normalized weights.
