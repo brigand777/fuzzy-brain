@@ -15,6 +15,11 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "input_mode" not in st.session_state:
         st.session_state.input_mode = "Absolute"
 
+    # --- DEBUG LOG ---
+    st.write("🔍 persistent:", persistent)
+    st.write("🔍 auth_status:", st.session_state.get("auth_status"))
+    st.write("🔍 username:", st.session_state.get("username"))
+
     # --- Get latest prices per asset ---
     latest_prices = prices.iloc[-1]
 
@@ -84,9 +89,10 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
                 if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                     username = st.session_state["username"]
+                    file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
-                    df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
-                    st.toast("✅ Portfolio saved.")
+                    df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                    st.success(f"✅ Portfolio saved to: {file_path}")
                 else:
                     st.toast("⚠️ Changes saved for session only (not persistent).")
                 st.rerun()
@@ -105,8 +111,9 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
                     if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                         username = st.session_state["username"]
-                        df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
-                        st.toast("✅ Portfolio rescaled and saved.")
+                        file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+                        df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                        st.success(f"✅ Portfolio rescaled and saved to: {file_path}")
                     else:
                         st.toast("⚠️ Rescale saved in session only (not persistent).")
                     st.rerun()
@@ -121,8 +128,9 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
                 if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                     username = st.session_state["username"]
-                    df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
-                    st.toast("✅ Deleted selected assets and saved.")
+                    file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+                    df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                    st.success(f"✅ Deleted selected assets and saved to: {file_path}")
                 else:
                     st.toast("⚠️ Deletion saved in session only.")
                 st.rerun()
