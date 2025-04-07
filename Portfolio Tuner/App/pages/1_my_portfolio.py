@@ -41,11 +41,6 @@ def show_my_portfolio():
     # --- Portfolio input section ---
     portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_status)
 
-    # --- Save updated portfolio if logged in ---
-    if authentication_status and "editable_portfolio" in st.session_state:
-        portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-        st.session_state.editable_portfolio.to_csv(portfolio_path, index=False)
-
     # --- Date range selector for dashboard metrics ---
     with st.expander("📅 Dashboard Date Range"):
         max_date = data.index.max()
