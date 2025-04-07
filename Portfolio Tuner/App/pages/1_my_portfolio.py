@@ -39,7 +39,7 @@ def show_my_portfolio():
         st.info("Using temporary portfolio (not saved).")
 
     # --- Portfolio input section ---
-    portfolio_df = edit_portfolio(available_assets, data)
+    portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_status)
 
     # --- Save updated portfolio if logged in ---
     if authentication_status and "editable_portfolio" in st.session_state:
