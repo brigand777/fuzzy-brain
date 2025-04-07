@@ -49,14 +49,20 @@ def dynamic_backtest_portfolio_user_fixed_shares(simulation_data, asset_amounts)
     rolling_max = portfolio_value.cummax()
     drawdowns = (portfolio_value - rolling_max) / rolling_max
     max_drawdown = drawdowns.min()
+    # Annualized Sharpe Ratio
+    daily_std = returns.std()
+    daily_mean = returns.mean()
+    sharpe_ratio = np.sqrt(365.0) * (daily_mean / daily_std) if daily_std > 0 else 0
 
     return {
         "cumulative": cumulative,
         "rolling_sharpe": rolling_sharpe,
         "drawdowns": drawdowns,
         "drawdown": max_drawdown,
-        "allocations": allocations
+        "allocations": allocations,
+        "sharpe": sharpe_ratio  
     }
+
 
 def dynamic_backtest_portfolio_user(simulation_data, user_weights, lookback_days, rebalance_days, nonnegative_toggle):
     """
