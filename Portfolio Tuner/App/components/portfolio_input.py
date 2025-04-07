@@ -1,5 +1,3 @@
-# components/portfolio_input.py
-
 import streamlit as st
 import pandas as pd
 import os
@@ -42,7 +40,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
     if st.session_state.show_edit:
         st.markdown("### Manage Your Portfolio")
-        
+
         st.radio("Select Input Mode:", ["Absolute", "Percentage"], key="input_mode", horizontal=True)
 
         with st.form("add_asset_form"):
@@ -55,27 +53,58 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
             submitted = st.form_submit_button("Add / Update Asset")
             if submitted:
                 price = latest_prices.get(asset, 0)
+
                 if st.session_state.input_mode == "Percentage":
-                    amount = (user_input / 100) * total_value / price if price > 0 else 0
+                    if price > 0 and total_value > 0:
+                        pct = user_input / 100
+                        value_x = pct * total_value
+                        amount_x = value_x / price
+
+                        # Scale down existing amounts
+                        df["Amount"] *= (1 - pct)
+
+                        # Add or update the new asset
+                        if asset in df["Asset"].values:
+                            df.loc[df["Asset"] == asset, "Amount"] += amount_x
+                        else:
+                            df = pd.concat([df, pd.DataFrame([[asset, amount_x]], columns=["Asset", "Amount"])], ignore_index=True)
+                    else:
+                        st.warning("Invalid price or portfolio value. Cannot add by percentage.")
                 else:
                     amount = user_input
-
-                if asset in df["Asset"].values:
-                    df.loc[df["Asset"] == asset, "Amount"] = amount
-                else:
-                    df = pd.concat([df, pd.DataFrame([[asset, amount]], columns=["Asset", "Amount"])], ignore_index=True)
+                    if asset in df["Asset"].values:
+                        df.loc[df["Asset"] == asset, "Amount"] = amount
+                    else:
+                        df = pd.concat([df, pd.DataFrame([[asset, amount]], columns=["Asset", "Amount"])], ignore_index=True)
 
                 df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
                 st.session_state.editable_portfolio = df[["Asset", "Amount"]]
 
-                # Save only if allowed
                 if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                     username = st.session_state["username"]
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
                     df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
                 st.rerun()
 
+        # --- Portfolio rescaling ---
         if not df.empty:
+            st.markdown("### 🧮 Rescale Portfolio")
+            rescale_value = st.number_input("Target total portfolio value ($):", min_value=0.0, step=100.0, format="%.2f")
+            if st.button("Rescale Portfolio"):
+                current_total = (df["Asset"].map(latest_prices) * df["Amount"]).sum()
+                if current_total > 0:
+                    scale_factor = rescale_value / current_total
+                    df["Amount"] *= scale_factor
+                    st.session_state.editable_portfolio = df[["Asset", "Amount"]]
+
+                    if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
+                        username = st.session_state["username"]
+                        df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
+                    st.rerun()
+                else:
+                    st.warning("Current portfolio value is zero. Cannot rescale.")
+
+            # --- Delete assets ---
             selected_to_delete = st.multiselect("Select rows to delete", df["Asset"].tolist(), key="delete_selection")
             if st.button("Delete Selected"):
                 df = df[~df["Asset"].isin(selected_to_delete)].reset_index(drop=True)

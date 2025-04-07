@@ -6,7 +6,7 @@ from datetime import timedelta
 
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
-from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user
+from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user, dynamic_backtest_portfolio_user_fixed_shares
 from user_input import get_backtest_settings, get_optimization_methods
 from optimizer import run_optimizers 
 from utils.plots import (
