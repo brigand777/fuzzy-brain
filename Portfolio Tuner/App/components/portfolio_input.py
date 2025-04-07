@@ -7,9 +7,12 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "editable_portfolio" not in st.session_state:
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
 
-    if st.session_state.get("portfolio_saved"):
+    if "last_saved_debug" in st.session_state:
+        saved_info = st.session_state.pop("last_saved_debug")
         st.success("✅ Portfolio saved successfully!")
-        del st.session_state["portfolio_saved"]
+        st.write("📁 File saved to:", saved_info.get("path"))
+        st.write("🕒 File last modified:", saved_info.get("timestamp"))
+        st.code(saved_info.get("content", ""), language="csv")
 
     df = st.session_state.editable_portfolio.copy()
 
@@ -97,12 +100,14 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
                     try:
                         df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                        st.session_state["portfolio_saved"] = True
-                        st.write("📁 File saved to:", file_path)
-                        st.write("🕒 File last modified:", os.path.getmtime(file_path))
+                        timestamp = os.path.getmtime(file_path)
                         with open(file_path, "r") as f:
                             content = f.read()
-                        st.code(content, language="csv")
+                        st.session_state["last_saved_debug"] = {
+                            "path": file_path,
+                            "timestamp": timestamp,
+                            "content": content
+                        }
                     except Exception as e:
                         st.error(f"❌ Failed to save portfolio: {e}")
                 else:
