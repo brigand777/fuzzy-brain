@@ -96,18 +96,13 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
                     try:
-                        st.write("🧪 Attempting to write to:", file_path)
-                        st.write("🧾 Data to write:")
-                        st.dataframe(df)
                         df[["Asset", "Amount"]].to_csv(file_path, index=False)
-
-                        if os.path.exists(file_path):
-                            st.write("📁 File exists:", file_path)
-                            with open(file_path, "r") as f:
-                                content = f.read()
-                            st.code(content, language="csv")
-
                         st.session_state["portfolio_saved"] = True
+                        st.write("📁 File saved to:", file_path)
+                        st.write("🕒 File last modified:", os.path.getmtime(file_path))
+                        with open(file_path, "r") as f:
+                            content = f.read()
+                        st.code(content, language="csv")
                     except Exception as e:
                         st.error(f"❌ Failed to save portfolio: {e}")
                 else:
