@@ -86,13 +86,26 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                 if st.session_state.input_mode == "Percentage":
                     if price > 0 and total_value > 0:
                         pct = user_input / 100
-                        value_x = pct * total_value
-                        amount_x = value_x / price
-                        df["Amount"] *= (1 - pct)
+                        new_value = pct * total_value
+                        new_amount = new_value / price
+
+                        # Remove existing value for asset if present, and redistribute
                         if asset in df["Asset"].values:
-                            df.loc[df["Asset"] == asset, "Amount"] += amount_x
+                            current_value = df.loc[df["Asset"] == asset, "Value"].values[0]
+                            remaining_value = total_value - current_value
+                            df = df[df["Asset"] != asset].copy()
                         else:
-                            df = pd.concat([df, pd.DataFrame([[asset, amount_x]], columns=["Asset", "Amount"])], ignore_index=True)
+                            remaining_value = total_value
+
+                        # Scale down all other assets
+                        if remaining_value > 0:
+                            df["Amount"] *= (1 - pct / (1 - (current_value / total_value) if asset in df["Asset"].values else 1))
+
+                        # Add or update the new asset
+                        df = pd.concat([
+                            df,
+                            pd.DataFrame([[asset, new_amount]], columns=["Asset", "Amount"])
+                        ], ignore_index=True)
                     else:
                         st.warning("Invalid price or portfolio value. Cannot add by percentage.")
                         return
