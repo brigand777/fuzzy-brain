@@ -16,6 +16,9 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "input_mode" not in st.session_state:
         st.session_state.input_mode = "Absolute"
 
+    if "portfolio_base_value" not in st.session_state:
+        st.session_state.portfolio_base_value = 10000.0
+
     # --- Upload portfolio ---
     st.markdown("### 📤 Upload Portfolio CSV")
     uploaded_file = st.file_uploader("Upload a CSV file with columns: Asset,Amount", type=["csv"])
@@ -82,24 +85,25 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
             submitted = st.form_submit_button("Add / Update Asset")
             if submitted:
                 price = latest_prices.get(asset, 0)
+                base_value = st.session_state.portfolio_base_value
 
                 if st.session_state.input_mode == "Percentage":
-                    if price > 0 and total_value > 0:
+                    if price > 0 and base_value > 0:
                         pct = user_input / 100
-                        new_value = pct * total_value
+                        new_value = pct * base_value
                         new_amount = new_value / price
 
-                        # Remove existing value for asset if present, and redistribute
+                        # Remove the existing asset if present
                         if asset in df["Asset"].values:
-                            current_value = df.loc[df["Asset"] == asset, "Value"].values[0]
-                            remaining_value = total_value - current_value
                             df = df[df["Asset"] != asset].copy()
-                        else:
-                            remaining_value = total_value
 
-                        # Scale down all other assets
-                        if remaining_value > 0:
-                            df["Amount"] *= (1 - pct / (1 - (current_value / total_value) if asset in df["Asset"].values else 1))
+                        # Scale all other assets
+                        df["Price"] = df["Asset"].map(latest_prices)
+                        df["Value"] = df["Amount"] * df["Price"]
+                        remaining_value = base_value - new_value
+                        old_total = df["Value"].sum()
+                        if old_total > 0:
+                            df["Amount"] *= (remaining_value / old_total)
 
                         # Add or update the new asset
                         df = pd.concat([
@@ -130,5 +134,32 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                 else:
                     st.toast("⚠️ Changes saved for session only (not persistent).")
                 st.rerun()
+
+        # --- Portfolio rescaling ---
+        if not df.empty:
+            st.markdown("### 🧮 Rescale Portfolio")
+            rescale_value = st.number_input("Target total portfolio value ($):", value=st.session_state.portfolio_base_value, min_value=0.0, step=100.0, format="%.2f")
+            if st.button("Rescale Portfolio"):
+                df["Price"] = df["Asset"].map(latest_prices)
+                current_value = (df["Amount"] * df["Price"]).sum()
+                if current_value > 0:
+                    scale_factor = rescale_value / current_value
+                    df["Amount"] *= scale_factor
+                    st.session_state.portfolio_base_value = rescale_value
+                    df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
+                    st.session_state.editable_portfolio = df[["Asset", "Amount"]]
+                    if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
+                        username = st.session_state["username"]
+                        file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+                        os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
+                        try:
+                            df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                        except Exception as e:
+                            st.error(f"❌ Failed to save portfolio: {e}")
+                    else:
+                        st.toast("⚠️ Rescale saved in session only (not persistent).")
+                    st.rerun()
+                else:
+                    st.warning("Current portfolio value is zero. Cannot rescale.")
 
     return st.session_state.editable_portfolio
