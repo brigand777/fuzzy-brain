@@ -7,6 +7,10 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "editable_portfolio" not in st.session_state:
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
 
+    if st.session_state.get("portfolio_saved"):
+        st.success("✅ Portfolio saved successfully!")
+        del st.session_state["portfolio_saved"]
+
     df = st.session_state.editable_portfolio.copy()
 
     if "show_edit" not in st.session_state:
@@ -93,7 +97,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
                     try:
                         df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                        st.success(f"✅ Portfolio saved to: {file_path}")
+                        st.session_state["portfolio_saved"] = True
                     except Exception as e:
                         st.error(f"❌ Failed to save portfolio: {e}")
                 else:
@@ -117,7 +121,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                         file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
                         try:
                             df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                            st.success(f"✅ Portfolio rescaled and saved to: {file_path}")
+                            st.session_state["portfolio_saved"] = True
                         except Exception as e:
                             st.error(f"❌ Failed to save rescaled portfolio: {e}")
                     else:
@@ -137,7 +141,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
                     try:
                         df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                        st.success(f"✅ Deleted selected assets and saved to: {file_path}")
+                        st.session_state["portfolio_saved"] = True
                     except Exception as e:
                         st.error(f"❌ Failed to save deleted portfolio: {e}")
                 else:
