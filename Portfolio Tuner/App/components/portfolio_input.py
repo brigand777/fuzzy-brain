@@ -1,132 +1,88 @@
 import streamlit as st
 import pandas as pd
 import os
-from utils.plots import plot_portfolio_allocation_3d
+from auth import login_and_get_status
+from components.portfolio_input import edit_portfolio
+from utils.plots import (
+    plot_asset_returns,
+    plot_asset_prices,
+    add_interactivity,
+    plot_portfolio_allocation_3d,
+    plot_historical_assets,
+    plot_portfolio_dashboard
+)
 
-def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
-    if "editable_portfolio" not in st.session_state:
-        st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
+st.set_page_config(page_title="My Portfolio", layout="wide")
+authenticator, authentication_status, username = login_and_get_status()
 
-    df = st.session_state.editable_portfolio.copy()
+st.title("My Portfolio")
 
-    if "show_edit" not in st.session_state:
-        st.session_state.show_edit = False
+def show_my_portfolio():
+    # --- Load available assets from price data ---
+    @st.cache_data
+    def load_data():
+        return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
 
-    if "input_mode" not in st.session_state:
-        st.session_state.input_mode = "Absolute"
+    data = load_data()
+    available_assets = data.columns.tolist()
 
-    # --- Get latest prices per asset ---
-    latest_prices = prices.iloc[-1]
-
-    # --- Compute derived value columns ---
-    df["Price"] = df["Asset"].map(latest_prices)
-    df["Value"] = df["Amount"] * df["Price"]
-    total_value = df["Value"].sum()
-    df["Percent"] = df["Value"] / total_value * 100 if total_value > 0 else 0
-
-    # --- Display value summary and table/chart ---
-    col1, col2 = st.columns([1, 1.4])
-    with col1:
-        st.markdown("### Your Portfolio")
-        st.markdown(f"**💰 Total Portfolio Value:** `${total_value:,.2f}`")
-        st.dataframe(df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
-            "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:.2f}", "Percent": "{:.2f}%"
-        }), use_container_width=True, height=300)
-    with col2:
-        plot_portfolio_allocation_3d(df)
-
-    # --- Toggle edit ---
-    if st.button("✏️ Edit My Holdings"):
-        st.session_state.show_edit = not st.session_state.show_edit
-
-    if st.session_state.show_edit:
-        st.markdown("### Manage Your Portfolio")
-
-        st.radio("Select Input Mode:", ["Absolute", "Percentage"], key="input_mode", horizontal=True)
-
-        with st.form("add_asset_form"):
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                asset = st.selectbox("Select Asset", options=sorted(available_assets))
-            with col2:
-                label = "Amount" if st.session_state.input_mode == "Absolute" else "Portfolio %"
-                user_input = st.number_input(label, min_value=0.0, step=0.01, format="%.4f")
-            submitted = st.form_submit_button("Add / Update Asset")
-            if submitted:
-                price = latest_prices.get(asset, 0)
-
-                if st.session_state.input_mode == "Percentage":
-                    if price > 0 and total_value > 0:
-                        pct = user_input / 100
-                        value_x = pct * total_value
-                        amount_x = value_x / price
-
-                        # Scale down existing amounts
-                        df["Amount"] *= (1 - pct)
-
-                        # Add or update the new asset
-                        if asset in df["Asset"].values:
-                            df.loc[df["Asset"] == asset, "Amount"] += amount_x
-                        else:
-                            df = pd.concat([df, pd.DataFrame([[asset, amount_x]], columns=["Asset", "Amount"])], ignore_index=True)
-                    else:
-                        st.warning("Invalid price or portfolio value. Cannot add by percentage.")
-                        return
-                else:
-                    amount = user_input
-                    if asset in df["Asset"].values:
-                        df.loc[df["Asset"] == asset, "Amount"] = amount
-                    else:
-                        df = pd.concat([df, pd.DataFrame([[asset, amount]], columns=["Asset", "Amount"])], ignore_index=True)
-
-                df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
-                st.session_state.editable_portfolio = df[["Asset", "Amount"]]
-
-                if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                    username = st.session_state["username"]
-                    os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
-                    df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
-                    st.toast("✅ Portfolio saved.")
-                else:
-                    st.toast("⚠️ Changes saved for session only (not persistent).")
-                st.rerun()
-
-        # --- Portfolio rescaling ---
-        if not df.empty:
-            st.markdown("### 🧮 Rescale Portfolio")
-            rescale_value = st.number_input("Target total portfolio value ($):", min_value=0.0, step=100.0, format="%.2f")
-            if st.button("Rescale Portfolio"):
-                current_total = (df["Asset"].map(latest_prices) * df["Amount"]).sum()
-                if current_total > 0:
-                    scale_factor = rescale_value / current_total
-                    df["Amount"] *= scale_factor
-                    df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
-                    st.session_state.editable_portfolio = df[["Asset", "Amount"]]
-
-                    if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                        username = st.session_state["username"]
-                        df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
-                        st.toast("✅ Portfolio rescaled and saved.")
-                    else:
-                        st.toast("⚠️ Rescale saved in session only (not persistent).")
-                    st.rerun()
-                else:
-                    st.warning("Current portfolio value is zero. Cannot rescale.")
-
-            # --- Delete assets ---
-            selected_to_delete = st.multiselect("Select rows to delete", df["Asset"].tolist(), key="delete_selection")
-            if st.button("Delete Selected"):
-                df = df[~df["Asset"].isin(selected_to_delete)].reset_index(drop=True)
-                st.session_state.editable_portfolio = df[["Asset", "Amount"]]
-
-                if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                    username = st.session_state["username"]
-                    df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
-                    st.toast("✅ Deleted selected assets and saved.")
-                else:
-                    st.toast("⚠️ Deletion saved in session only.")
-                st.rerun()
+    # --- Load saved portfolio or initialize empty ---
+    if authentication_status:
+        portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+        if os.path.exists(portfolio_path):
+            st.success("Loaded saved portfolio.")
+            st.session_state.editable_portfolio = pd.read_csv(portfolio_path)
         else:
-            st.info("No assets in your portfolio yet.")
+            os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
+    else:
+        st.info("Using temporary portfolio (not saved).")
 
-    return st.session_state.editable_portfolio
+    # --- Portfolio input section ---
+    portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_status)
+
+    # --- Save updated portfolio if logged in ---
+    if authentication_status and "editable_portfolio" in st.session_state:
+        portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+        st.session_state.editable_portfolio.to_csv(portfolio_path, index=False)
+
+    # --- Date range selector for dashboard metrics ---
+    with st.expander("📅 Dashboard Date Range"):
+        max_date = data.index.max()
+        min_date = data.index.min()
+        default_start = max_date - pd.Timedelta(days=100)
+        date_range = st.date_input(
+            "Select date range for Portfolio Dashboard calculations:",
+            value=(default_start, max_date),
+            min_value=min_date,
+            max_value=max_date
+        )
+
+    # --- Dashboard Section ---
+    selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
+    if selected_assets:
+        st.subheader("📊 Portfolio Dashboard")
+        needle_fig, heatmap_fig = plot_portfolio_dashboard(
+            data, selected_assets, date_range=date_range
+        )
+        if needle_fig:
+            st.plotly_chart(needle_fig, use_container_width=True)
+        if heatmap_fig:
+            st.plotly_chart(heatmap_fig, use_container_width=True)
+    else:
+        st.warning("No assets found in your portfolio to calculate dashboard.")
+
+    # --- Plotting toggle ---
+    if "show_plot" not in st.session_state:
+        st.session_state.show_plot = False
+
+    if st.button("📊 Plot Historical Assets"):
+        st.session_state.show_plot = not st.session_state.show_plot
+
+    if st.session_state.show_plot:
+        if selected_assets:
+            plot_historical_assets(data, selected_assets, portfolio_df=portfolio_df)
+        else:
+            st.warning("No assets found in your portfolio to plot.")
+
+# Run the page
+show_my_portfolio()
