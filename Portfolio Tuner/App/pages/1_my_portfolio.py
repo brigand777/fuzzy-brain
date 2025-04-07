@@ -34,12 +34,12 @@ def show_my_portfolio():
             st.success("Loaded saved portfolio.")
             st.session_state.editable_portfolio = pd.read_csv(portfolio_path)
         else:
-            os.makedirs("portfolios", exist_ok=True)
+            os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
     else:
         st.info("Using temporary portfolio (not saved).")
 
     # --- Portfolio input section ---
-    portfolio_df = edit_portfolio(available_assets)
+    portfolio_df = edit_portfolio(available_assets, data)
 
     # --- Save updated portfolio if logged in ---
     if authentication_status and "editable_portfolio" in st.session_state:
