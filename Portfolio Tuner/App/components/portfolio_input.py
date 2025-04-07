@@ -8,7 +8,6 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
 
     df = st.session_state.editable_portfolio.copy()
-    st.info("✅ edit_portfolio() loaded with rebalancing fix.")
 
     if "show_edit" not in st.session_state:
         st.session_state.show_edit = False
@@ -25,10 +24,11 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     total_value = df["Value"].sum()
     df["Percent"] = df["Value"] / total_value * 100 if total_value > 0 else 0
 
-    # --- Display table and chart ---
+    # --- Display value summary and table/chart ---
     col1, col2 = st.columns([1, 1.4])
     with col1:
         st.markdown("### Your Portfolio")
+        st.markdown(f"**💰 Total Portfolio Value:** `${total_value:,.2f}`")
         st.dataframe(df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
             "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:.2f}", "Percent": "{:.2f}%"
         }), use_container_width=True, height=300)
@@ -69,6 +69,15 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                             df.loc[df["Asset"] == asset, "Amount"] += amount_x
                         else:
                             df = pd.concat([df, pd.DataFrame([[asset, amount_x]], columns=["Asset", "Amount"])], ignore_index=True)
+
+                        df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
+                        st.session_state.editable_portfolio = df[["Asset", "Amount"]]  # ✅ persist properly
+
+                        if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
+                            username = st.session_state["username"]
+                            os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
+                            df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
+                        st.rerun()
                     else:
                         st.warning("Invalid price or portfolio value. Cannot add by percentage.")
                 else:
@@ -78,14 +87,14 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     else:
                         df = pd.concat([df, pd.DataFrame([[asset, amount]], columns=["Asset", "Amount"])], ignore_index=True)
 
-                df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
-                st.session_state.editable_portfolio = df[["Asset", "Amount"]]
+                    df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
+                    st.session_state.editable_portfolio = df[["Asset", "Amount"]]
 
-                if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                    username = st.session_state["username"]
-                    os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
-                    df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
-                st.rerun()
+                    if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
+                        username = st.session_state["username"]
+                        os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
+                        df[["Asset", "Amount"]].to_csv(f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv", index=False)
+                    st.rerun()
 
         # --- Portfolio rescaling ---
         if not df.empty:
