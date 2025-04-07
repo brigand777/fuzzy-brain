@@ -271,52 +271,21 @@ def plot_historical_assets(data, selected_assets, portfolio_df=None):
         st.warning("No data available in the selected range.")
 
 
-def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portfolio Allocation") -> None:
-    """
-    Vertical bar chart showing asset allocations, with the largest highlighted.
-    """
-    if portfolio_df.empty or "Asset" not in portfolio_df.columns or "Amount" not in portfolio_df.columns:
-        st.warning("No portfolio data available to plot.")
+def plot_portfolio_allocation_3d(portfolio_df):
+    import plotly.express as px
+
+    if portfolio_df.empty or "Percent" not in portfolio_df.columns:
         return
 
-    df = portfolio_df.copy()
-    df = df[df["Amount"] > 0]
-
-    if df.empty:
-        st.warning("All portfolio holdings are 0.")
-        return
-
-    total = df["Amount"].sum()
-    df["Percentage"] = df["Amount"] / total * 100
-
-    # Identify the asset with the highest allocation
-    max_index = df["Percentage"].idxmax()
-
-    # Color palette: colorblind-friendly
-    base_color = "rgb(100, 143, 255)"  # muted blue
-    highlight_color = "rgb(255, 140, 0)"  # warm orange
-
-    bar_colors = [highlight_color if i == max_index else base_color for i in df.index]
-
-    fig = go.Figure(data=[go.Bar(
-        x=df["Asset"],
-        y=df["Percentage"],
-        marker=dict(color=bar_colors),
-        hovertemplate="%{x}: %{y:.2f}%"
-    )])
-
-    fig.update_layout(
-        title=title,
-        yaxis_title="Allocation (%)",
-        xaxis_title="Asset",
-        margin=dict(l=40, r=20, t=50, b=40),
-        height=400,
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
+    fig = px.pie(
+        portfolio_df,
+        names="Asset",
+        values="Percent",
+        title="Portfolio Allocation by Value (%)",
+        hole=0.3
     )
-
+    fig.update_traces(textinfo="percent+label")
     st.plotly_chart(fig, use_container_width=True)
-
 
 
 def add_interactivity(
