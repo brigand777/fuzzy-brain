@@ -2,17 +2,11 @@ import streamlit as st
 import pandas as pd
 import os
 from utils.plots import plot_portfolio_allocation_3d
+from io import StringIO
 
 def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "editable_portfolio" not in st.session_state:
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
-
-    if "last_saved_debug" in st.session_state:
-        saved_info = st.session_state.pop("last_saved_debug")
-        st.success("✅ Portfolio saved successfully!")
-        st.write("📁 File saved to:", saved_info.get("path"))
-        st.write("🕒 File last modified:", saved_info.get("timestamp"))
-        st.code(saved_info.get("content", ""), language="csv")
 
     df = st.session_state.editable_portfolio.copy()
 
@@ -22,10 +16,28 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "input_mode" not in st.session_state:
         st.session_state.input_mode = "Absolute"
 
-    # --- DEBUG LOG ---
-    st.write("🔍 persistent:", persistent)
-    st.write("🔍 auth_status:", st.session_state.get("auth_status"))
-    st.write("🔍 username:", st.session_state.get("username"))
+    # --- Upload portfolio ---
+    st.markdown("### 📤 Upload Portfolio CSV")
+    uploaded_file = st.file_uploader("Upload a CSV file with columns: Asset,Amount", type=["csv"])
+    if uploaded_file is not None:
+        try:
+            uploaded_df = pd.read_csv(uploaded_file)
+            if set(["Asset", "Amount"]).issubset(uploaded_df.columns):
+                st.session_state.editable_portfolio = uploaded_df[["Asset", "Amount"]].drop_duplicates().reset_index(drop=True)
+                if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
+                    username = st.session_state["username"]
+                    file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+                    os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
+                    uploaded_df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                    st.success("✅ Portfolio uploaded and saved.")
+                    st.rerun()
+                else:
+                    st.success("✅ Portfolio uploaded for this session.")
+                    st.rerun()
+            else:
+                st.error("CSV must contain 'Asset' and 'Amount' columns.")
+        except Exception as e:
+            st.error(f"Error reading uploaded file: {e}")
 
     # --- Get latest prices per asset ---
     latest_prices = prices.iloc[-1]
@@ -44,6 +56,11 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         st.dataframe(df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
             "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:.2f}", "Percent": "{:.2f}%"
         }), use_container_width=True, height=300)
+
+        # --- Download portfolio button ---
+        csv = df[["Asset", "Amount"]].to_csv(index=False)
+        st.download_button("📥 Download Portfolio CSV", csv, "portfolio.csv", "text/csv")
+
     with col2:
         plot_portfolio_allocation_3d(df)
 
@@ -53,7 +70,6 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
     if st.session_state.show_edit:
         st.markdown("### Manage Your Portfolio")
-
         st.radio("Select Input Mode:", ["Absolute", "Percentage"], key="input_mode", horizontal=True)
 
         with st.form("add_asset_form"):
@@ -72,11 +88,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                         pct = user_input / 100
                         value_x = pct * total_value
                         amount_x = value_x / price
-
-                        # Scale down existing amounts
                         df["Amount"] *= (1 - pct)
-
-                        # Add or update the new asset
                         if asset in df["Asset"].values:
                             df.loc[df["Asset"] == asset, "Amount"] += amount_x
                         else:
@@ -100,14 +112,6 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
                     try:
                         df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                        timestamp = os.path.getmtime(file_path)
-                        with open(file_path, "r") as f:
-                            content = f.read()
-                        st.session_state["last_saved_debug"] = {
-                            "path": file_path,
-                            "timestamp": timestamp,
-                            "content": content
-                        }
                     except Exception as e:
                         st.error(f"❌ Failed to save portfolio: {e}")
                 else:
