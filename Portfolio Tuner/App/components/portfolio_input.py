@@ -91,8 +91,11 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     username = st.session_state["username"]
                     file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
                     os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
-                    df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                    st.success(f"✅ Portfolio saved to: {file_path}")
+                    try:
+                        df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                        st.success(f"✅ Portfolio saved to: {file_path}")
+                    except Exception as e:
+                        st.error(f"❌ Failed to save portfolio: {e}")
                 else:
                     st.toast("⚠️ Changes saved for session only (not persistent).")
                 st.rerun()
@@ -112,8 +115,11 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                     if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                         username = st.session_state["username"]
                         file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-                        df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                        st.success(f"✅ Portfolio rescaled and saved to: {file_path}")
+                        try:
+                            df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                            st.success(f"✅ Portfolio rescaled and saved to: {file_path}")
+                        except Exception as e:
+                            st.error(f"❌ Failed to save rescaled portfolio: {e}")
                     else:
                         st.toast("⚠️ Rescale saved in session only (not persistent).")
                     st.rerun()
@@ -129,8 +135,11 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
                 if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
                     username = st.session_state["username"]
                     file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-                    df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                    st.success(f"✅ Deleted selected assets and saved to: {file_path}")
+                    try:
+                        df[["Asset", "Amount"]].to_csv(file_path, index=False)
+                        st.success(f"✅ Deleted selected assets and saved to: {file_path}")
+                    except Exception as e:
+                        st.error(f"❌ Failed to save deleted portfolio: {e}")
                 else:
                     st.toast("⚠️ Deletion saved in session only.")
                 st.rerun()
