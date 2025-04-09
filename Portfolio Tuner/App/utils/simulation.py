@@ -96,14 +96,12 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     )
 
     return {
-        "chart": fig,
-        "ci_low": df["ci_low"].iloc[-1] - 1,
-        "ci_high": df["ci_high"].iloc[-1] - 1,
-        "min": df.drop(columns=["mean", "ci_high", "ci_low"]).iloc[-1].min() - 1,
-        "max": df.drop(columns=["mean", "ci_high", "ci_low"]).iloc[-1].max() - 1,
-        "distribution_used_per_asset": {
-            asset: list(Fitter(log_returns[asset].values, distributions=['norm', 't', 'johnsonsu'], timeout=5).get_best().keys())[0]
-            for asset in assets
-        },
-        "correlation_strategy": correlation_strategy
-    }
+    "chart": fig,
+    "ci_low": df["ci_low"].iloc[-1] - 1,
+    "ci_high": df["ci_high"].iloc[-1] - 1,
+    "min": df.drop(columns=["mean", "ci_high", "ci_low"]).iloc[-1].min() - 1,
+    "max": df.drop(columns=["mean", "ci_high", "ci_low"]).iloc[-1].max() - 1,
+    "distribution_used_per_asset": distribution_used_per_asset,
+    "correlation_strategy": correlation_strategy
+}
+
