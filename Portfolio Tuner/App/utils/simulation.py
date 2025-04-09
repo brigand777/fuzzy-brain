@@ -23,9 +23,11 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     log_returns = np.log(price_data / price_data.shift(1)).dropna()
     assets = price_data.columns.tolist()
     weights_array = np.array([weights.get(asset, 0) for asset in assets])
+    
 
     # --- Step 2: Fit Best Distribution Per Asset ---
     dist_map = {'norm': norm, 't': t, 'johnsonsu': johnsonsu}
+    distribution_used_per_asset = {}
     asset_distributions = {}
 
     for asset in assets:
@@ -34,6 +36,8 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
         best_name = list(f.get_best().keys())[0]
         best_params = f.fitted_param[best_name]
         asset_distributions[asset] = (dist_map[best_name], best_params)
+        distribution_used_per_asset[asset] = best_name
+
 
     # --- Step 3: Determine Correlation Structure ---
     if corr_matrix is None:
