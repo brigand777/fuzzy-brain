@@ -5,7 +5,8 @@ import os
 from auth import login_and_get_status
 from utils.plots import (
     plot_portfolio_dashboard,
-    plot_historical_assets
+    plot_historical_assets,
+    plot_asset_cumulative_returns
 )
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
@@ -51,9 +52,31 @@ if selected_assets:
     needle_fig, heatmap_fig = plot_portfolio_dashboard(
         data, selected_assets, date_range=date_range
     )
-    if needle_fig:
-        st.plotly_chart(needle_fig, use_container_width=True)
+
+    # Create a 2-column layout
+    col1, col2 = st.columns([0.35, 0.65])
+
+    with col1:
+        st.subheader("📌 Portfolio Allocation Needle")
+        if needle_fig:
+            st.plotly_chart(needle_fig, use_container_width=True)
+
+    with col2:
+        st.subheader("📈 Cumulative Returns vs. Benchmark")
+        start_date, end_date = date_range
+        benchmark = "BTC" if "BTC" in data.columns else data.columns[0]
+        if benchmark not in selected_assets:
+            cumulative_chart = plot_asset_cumulative_returns(
+                data, selected_assets, benchmark=benchmark,
+                start=start_date, end=end_date,
+                portfolio_df=portfolio_df
+            )
+            st.altair_chart(cumulative_chart, use_container_width=True)
+        else:
+            st.info("Benchmark is part of the portfolio — excluded from comparison.")
+
     if heatmap_fig:
+        st.subheader("📉 Correlation Heatmap")
         st.plotly_chart(heatmap_fig, use_container_width=True)
 else:
     st.warning("No valid assets found in your portfolio.")
@@ -73,4 +96,4 @@ if st.session_state.show_plot:
 
 # --- Navigation ---
 st.markdown("---")
-st.markdown("[← Back to Portfolio Editor](1_My_Portfolio.py)")
+st.markdown("[← Back to Portfolio Editor](1_Portfolio_Editor.py)")
