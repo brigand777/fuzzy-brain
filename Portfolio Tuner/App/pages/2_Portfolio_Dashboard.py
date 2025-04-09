@@ -73,7 +73,7 @@ if selected_assets:
     # --- Cumulative Portfolio Value Chart (Centered) ---
     st.markdown("### 📊 Portfolio Value Over Time")
     with st.container():
-        st.markdown("<div style='width:80%; margin:auto;'>", unsafe_allow_html=True)
+        st.markdown("<div style='width:70%; margin:auto;'>", unsafe_allow_html=True)
         cumulative_chart = plot_asset_cumulative_returns(
             data, selected_assets,
             benchmark=None,  # This chart is just total value, no benchmark
@@ -84,7 +84,7 @@ if selected_assets:
         st.markdown("</div>", unsafe_allow_html=True)
 
     # --- Needle Charts (6 stacked vertically) ---
-    st.markdown("### 📌 Portfolio Metrics")
+    st.markdown("### Portfolio Metrics")
     if needle_fig:
         st.plotly_chart(needle_fig, use_container_width=True)
 

@@ -65,27 +65,56 @@ def plot_single_needle(title: str, value: float) -> go.Indicator:
 
 from plotly.subplots import make_subplots
 
+from plotly.subplots import make_subplots
+import plotly.graph_objects as go
+
 def plot_needle_charts(metrics: dict):
     fig = make_subplots(
-        rows=6,
-        cols=1,
-        specs=[[{'type': 'indicator'}]] * 6,
-        vertical_spacing=0.02  # tighter vertical spacing
+        rows=1,
+        cols=6,
+        specs=[[{'type': 'indicator'}] * 6],
+        horizontal_spacing=0.05  # adjust spacing between gauges
     )
 
     titles = list(metrics.keys())
     values = list(metrics.values())
 
     for i, (title, value) in enumerate(zip(titles, values)):
-        row = i + 1
-        indicator = plot_single_needle(title, value)
-        fig.add_trace(indicator, row=row, col=1)
+        col = i + 1
+        fig.add_trace(go.Indicator(
+            mode="gauge+number+delta",
+            value=value,
+            title={
+                'text': f"<b>{title}</b>",
+                'font': {'size': 14}
+            },
+            delta={'reference': 0, 'increasing': {'color': "lime"}, 'decreasing': {'color': "red"}},
+            gauge={
+                'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "gray"},
+                'bar': {'color': "steelblue", 'thickness': 0.25},
+                'bgcolor': "white",
+                'borderwidth': 1,
+                'bordercolor': "gray",
+                'steps': [
+                    {'range': [0, 0.33], 'color': '#d6e685'},
+                    {'range': [0.33, 0.66], 'color': '#fdae61'},
+                    {'range': [0.66, 1], 'color': '#f46d43'}
+                ],
+                'threshold': {
+                    'line': {'color': "black", 'width': 4},
+                    'thickness': 0.75,
+                    'value': value
+                }
+            },
+            domain={'row': 0, 'column': i}  # optional, but safe
+        ), row=1, col=col)
 
     fig.update_layout(
-        height=1200,  # taller to accommodate stacked layout
-        margin=dict(t=40, b=30, l=10, r=10)
+        height=300,  # compact height
+        margin=dict(t=40, b=20, l=10, r=10)
     )
     return fig
+
 
 
 
