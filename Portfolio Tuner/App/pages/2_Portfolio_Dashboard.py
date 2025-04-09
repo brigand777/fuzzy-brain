@@ -19,6 +19,10 @@ st.title("📊 Portfolio Dashboard")
 def load_data():
     return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
 
+def ensure_utc(dt):
+    dt = pd.to_datetime(dt)
+    return dt if dt.tzinfo else dt.tz_localize("UTC")
+
 data = load_data()
 available_assets = data.columns.tolist()
 
@@ -72,6 +76,8 @@ if selected_assets:
     with col2:
         st.subheader("📈 Cumulative Returns vs. Benchmark")
         start_date, end_date = date_range
+        start_date = ensure_utc(start_date)
+        end_date = ensure_utc(end_date)
         cumulative_chart = plot_asset_cumulative_returns(
             data, selected_assets,
             benchmark=benchmark,
