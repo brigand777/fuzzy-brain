@@ -90,7 +90,7 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     fig.add_trace(go.Scatter(x=df.index, y=df["ci_low"], name="10% Confidence Lower",
                              line=dict(color="lightblue", dash="dot"),
                              fill="tonexty", fillcolor="rgba(173,216,230,0.2)"))
-    fig.add_trace(go.Scatter(x=df.index, y=df["median"], name="Mean Path", line=dict(color="blue")))
+    fig.add_trace(go.Scatter(x=df.index, y=df["median"], name="Median Path", line=dict(color="blue")))
 
     fig.update_layout(
         title="Monte Carlo Portfolio Forecast (Correlated, Distribution-Fitted)",
@@ -104,8 +104,8 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     "chart": fig,
     "ci_low": df["ci_low"].iloc[-1] - 1,
     "ci_high": df["ci_high"].iloc[-1] - 1,
-    "min": df.drop(columns=["mean", "ci_high", "ci_low"]).iloc[-1].min() - 1,
-    "max": df.drop(columns=["mean", "ci_high", "ci_low"]).iloc[-1].max() - 1,
+    "min": df.drop(columns=["median", "ci_high", "ci_low"]).iloc[-1].min() - 1,
+    "max": df.drop(columns=["median", "ci_high", "ci_low"]).iloc[-1].max() - 1,
     "distribution_used_per_asset": distribution_used_per_asset,
     "correlation_strategy": correlation_strategy
 }
