@@ -50,13 +50,6 @@ with st.expander("📅 Select Date Range"):
         max_value=max_date
     )
 
-# --- Benchmark selection ---
-benchmark = st.selectbox(
-    "Select a benchmark for comparison:",
-    options=["None"] + available_assets,
-    index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
-)
-benchmark = None if benchmark == "None" else benchmark
 
 # --- Dashboard Visualization ---
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
@@ -65,32 +58,60 @@ if selected_assets:
         data, selected_assets, date_range=date_range
     )
 
-    # Create a 2-column layout
-    col1, col2 = st.columns([0.4, 0.6])
+    # --- Benchmark selection ---
+    benchmark = st.selectbox(
+        "Select a benchmark for comparison:",
+        options=["None"] + available_assets,
+        index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
+    )
+    benchmark = None if benchmark == "None" else benchmark
 
-    with col1:
-        st.subheader("📌 Portfolio Allocation Needle")
-        if needle_fig:
-            st.plotly_chart(needle_fig, use_container_width=True)
+    start_date, end_date = date_range
+    start_date = ensure_utc(start_date)
+    end_date = ensure_utc(end_date)
 
-    with col2:
-        st.subheader("📈 Cumulative Returns vs. Benchmark")
-        start_date, end_date = date_range
-        start_date = ensure_utc(start_date)
-        end_date = ensure_utc(end_date)
+    # --- Cumulative Portfolio Value Chart (Centered) ---
+    st.markdown("### 📊 Portfolio Value Over Time")
+    with st.container():
+        st.markdown("<div style='width:80%; margin:auto;'>", unsafe_allow_html=True)
         cumulative_chart = plot_asset_cumulative_returns(
             data, selected_assets,
-            benchmark=benchmark,
+            benchmark=None,  # This chart is just total value, no benchmark
             start=start_date, end=end_date,
             portfolio_df=portfolio_df
         )
         st.altair_chart(cumulative_chart, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
-    if heatmap_fig:
-        st.subheader("📉 Correlation Heatmap")
-        st.plotly_chart(heatmap_fig, use_container_width=True)
+    # --- Needle Charts (6 stacked vertically) ---
+    st.markdown("### 📌 Portfolio Metrics")
+    if needle_fig:
+        st.plotly_chart(needle_fig, use_container_width=True)
+
+    # --- Comparison Charts (2-column layout) ---
+    st.markdown("### 🔍 Portfolio Comparison")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("Correlation Heatmap")
+        if heatmap_fig:
+            st.plotly_chart(heatmap_fig, use_container_width=True)
+
+    with col2:
+        st.subheader("Cumulative Return vs. Benchmark")
+        if benchmark:
+            benchmark_chart = plot_asset_cumulative_returns(
+                data, selected_assets,
+                benchmark=benchmark,
+                start=start_date, end=end_date,
+                portfolio_df=portfolio_df
+            )
+            st.altair_chart(benchmark_chart, use_container_width=True)
+        else:
+            st.info("Select a benchmark to display comparison.")
 else:
     st.warning("No valid assets found in your portfolio.")
+
 
 # --- Optional historical charts toggle ---
 if "show_plot" not in st.session_state:

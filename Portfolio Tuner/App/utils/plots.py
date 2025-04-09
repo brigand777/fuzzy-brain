@@ -29,20 +29,36 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
         "Value at Risk (95%)": var_95.mean()
     }
 
+import plotly.graph_objects as go
+
 # ----- Needle Chart Plotting -----
 def plot_single_needle(title: str, value: float) -> go.Indicator:
     return go.Indicator(
-        mode="gauge+number",
+        mode="gauge+number+delta",
         value=value,
         title={
-            'text': title,
-            'font': {'size': 14},
+            'text': f"<b>{title}</b>",
+            'font': {'size': 16},
             'align': 'center'
         },
-        domain={'x': [0, 1], 'y': [0.1, 1]},  # Shift chart content upward
+        domain={'x': [0, 1], 'y': [0.1, 1]},
+        delta={'reference': 0, 'increasing': {'color': "lime"}, 'decreasing': {'color': "red"}},
         gauge={
-            'axis': {'visible': True, 'range': [None, None]},
-            'bar': {'color': "steelblue"}
+            'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "darkgray"},
+            'bar': {'color': "steelblue", 'thickness': 0.25},
+            'bgcolor': "white",
+            'borderwidth': 2,
+            'bordercolor': "gray",
+            'steps': [
+                {'range': [0, 0.33], 'color': '#d6e685'},
+                {'range': [0.33, 0.66], 'color': '#fdae61'},
+                {'range': [0.66, 1], 'color': '#f46d43'}
+            ],
+            'threshold': {
+                'line': {'color': "black", 'width': 4},
+                'thickness': 0.75,
+                'value': value
+            }
         }
     )
 
@@ -51,24 +67,22 @@ from plotly.subplots import make_subplots
 
 def plot_needle_charts(metrics: dict):
     fig = make_subplots(
-        rows=3,
-        cols=2,
-        specs=[[{'type': 'indicator'}]*2]*3,
-        row_heights=[1, 1, 1],             # Equal height per row
-        vertical_spacing=0.05              # Reduce spacing between rows
+        rows=6,
+        cols=1,
+        specs=[[{'type': 'indicator'}]] * 6,
+        vertical_spacing=0.02  # tighter vertical spacing
     )
 
     titles = list(metrics.keys())
     values = list(metrics.values())
 
     for i, (title, value) in enumerate(zip(titles, values)):
-        row = i // 2 + 1
-        col = i % 2 + 1
+        row = i + 1
         indicator = plot_single_needle(title, value)
-        fig.add_trace(indicator, row=row, col=col)
+        fig.add_trace(indicator, row=row, col=1)
 
     fig.update_layout(
-        height=700,  # Optional: reduce overall height for tighter layout
+        height=1200,  # taller to accommodate stacked layout
         margin=dict(t=40, b=30, l=10, r=10)
     )
     return fig
