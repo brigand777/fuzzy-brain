@@ -64,7 +64,6 @@ def plot_single_needle(title: str, value: float) -> go.Indicator:
 
 
 from plotly.subplots import make_subplots
-
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 
@@ -73,23 +72,24 @@ def plot_needle_charts(metrics: dict):
         rows=1,
         cols=6,
         specs=[[{'type': 'indicator'}] * 6],
-        horizontal_spacing=0.05  # adjust spacing between gauges
+        horizontal_spacing=0.05
     )
 
-    titles = list(metrics.keys())
-    values = list(metrics.values())
-
-    for i, (title, value) in enumerate(zip(titles, values)):
+    for i, (title, value) in enumerate(metrics.items()):
         col = i + 1
+
+        # Add custom tooltip text
+        tooltip_text = f"{title}: {value:.2f}"
+
         fig.add_trace(go.Indicator(
-            mode="gauge+number+delta",
+            mode="gauge+number",
             value=value,
             title={
                 'text': f"<b>{title}</b>",
                 'font': {'size': 14}
             },
-            delta={'reference': 0, 'increasing': {'color': "lime"}, 'decreasing': {'color': "red"}},
             gauge={
+                'shape': "angular",
                 'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "gray"},
                 'bar': {'color': "steelblue", 'thickness': 0.25},
                 'bgcolor': "white",
@@ -106,14 +106,18 @@ def plot_needle_charts(metrics: dict):
                     'value': value
                 }
             },
-            domain={'row': 0, 'column': i}  # optional, but safe
+            domain={'row': 0, 'column': i},
+            customdata=[[tooltip_text]],
+            hovertemplate="%{customdata[0]}<extra></extra>"
         ), row=1, col=col)
 
     fig.update_layout(
-        height=300,  # compact height
+        height=300,
         margin=dict(t=40, b=20, l=10, r=10)
     )
+
     return fig
+
 
 
 
