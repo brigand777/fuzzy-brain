@@ -69,6 +69,21 @@ cumulative_df = pd.DataFrame({
     "cumulative": cumulative_returns
 })
 
+# --- Portfolio Performance Metrics ---
+st.markdown("### 📊 Portfolio Stats (Past 365 Days)")
+
+# Daily returns already calculated
+mean_daily_return = portfolio_returns.mean()
+volatility = portfolio_returns.std()
+sharpe_ratio = mean_daily_return / volatility if volatility > 0 else 0
+
+cumulative_return = cumulative_returns.iloc[-1] - 1
+annualized_volatility = volatility * np.sqrt(252)
+
+st.metric("Cumulative Return", f"{cumulative_return:.2%}")
+st.metric("Annualized Volatility", f"{annualized_volatility:.2%}")
+st.metric("Sharpe Ratio", f"{sharpe_ratio:.2f}")
+
 chart = plot_cumulative_returns({
     "Playground Portfolio": {
         "cumulative": cumulative_returns
