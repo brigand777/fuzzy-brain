@@ -46,6 +46,14 @@ with st.expander("📅 Select Date Range"):
         max_value=max_date
     )
 
+# --- Benchmark selection ---
+benchmark = st.selectbox(
+    "Select a benchmark for comparison:",
+    options=["None"] + available_assets,
+    index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
+)
+benchmark = None if benchmark == "None" else benchmark
+
 # --- Dashboard Visualization ---
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 if selected_assets:
@@ -54,7 +62,7 @@ if selected_assets:
     )
 
     # Create a 2-column layout
-    col1, col2 = st.columns([0.35, 0.65])
+    col1, col2 = st.columns([0.4, 0.6])
 
     with col1:
         st.subheader("📌 Portfolio Allocation Needle")
@@ -64,16 +72,13 @@ if selected_assets:
     with col2:
         st.subheader("📈 Cumulative Returns vs. Benchmark")
         start_date, end_date = date_range
-        benchmark = "BTC" if "BTC" in data.columns else data.columns[0]
-        if benchmark not in selected_assets:
-            cumulative_chart = plot_asset_cumulative_returns(
-                data, selected_assets, benchmark=benchmark,
-                start=start_date, end=end_date,
-                portfolio_df=portfolio_df
-            )
-            st.altair_chart(cumulative_chart, use_container_width=True)
-        else:
-            st.info("Benchmark is part of the portfolio — excluded from comparison.")
+        cumulative_chart = plot_asset_cumulative_returns(
+            data, selected_assets,
+            benchmark=benchmark,
+            start=start_date, end=end_date,
+            portfolio_df=portfolio_df
+        )
+        st.altair_chart(cumulative_chart, use_container_width=True)
 
     if heatmap_fig:
         st.subheader("📉 Correlation Heatmap")
@@ -96,4 +101,4 @@ if st.session_state.show_plot:
 
 # --- Navigation ---
 st.markdown("---")
-st.markdown("[← Back to Portfolio Editor](1_Portfolio_Editor.py)")
+st.markdown("[← Back to Portfolio Editor](1_My_Portfolio.py)")

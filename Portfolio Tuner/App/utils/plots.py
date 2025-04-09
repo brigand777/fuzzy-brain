@@ -47,8 +47,17 @@ def plot_single_needle(title: str, value: float) -> go.Indicator:
     )
 
 
+from plotly.subplots import make_subplots
+
 def plot_needle_charts(metrics: dict):
-    fig = make_subplots(rows=3, cols=2, specs=[[{'type': 'indicator'}]*2]*3)
+    fig = make_subplots(
+        rows=3,
+        cols=2,
+        specs=[[{'type': 'indicator'}]*2]*3,
+        row_heights=[1, 1, 1],             # Equal height per row
+        vertical_spacing=0.05              # Reduce spacing between rows
+    )
+
     titles = list(metrics.keys())
     values = list(metrics.values())
 
@@ -59,11 +68,11 @@ def plot_needle_charts(metrics: dict):
         fig.add_trace(indicator, row=row, col=col)
 
     fig.update_layout(
-        height=800,
-        #title_text="📊 Portfolio Dashboard Metrics",
-        margin=dict(t=50, b=30)
+        height=700,  # Optional: reduce overall height for tighter layout
+        margin=dict(t=40, b=30, l=10, r=10)
     )
     return fig
+
 
 
 # ----- Correlation Heatmap Plotting -----
@@ -437,7 +446,7 @@ def pie_chart_allocation(initial_weights, method):
         height=200
     )
     return chart
-
+'''
 def plot_asset_cumulative_returns(price_data: pd.DataFrame):
     """
     Compute and plot cumulative returns for each asset from price data.
@@ -473,7 +482,65 @@ def plot_asset_cumulative_returns(price_data: pd.DataFrame):
     )
 
     return chart
+'''
 
+def plot_asset_cumulative_returns(price_data: pd.DataFrame,
+                                   selected_assets: list,
+                                   portfolio_df: pd.DataFrame,
+                                   benchmark: str = None,
+                                   start=None,
+                                   end=None):
+    """
+    Plot cumulative return of the portfolio (and optionally vs a benchmark) over a date range.
+    """
+    # --- Filter by date ---
+    if start and end:
+        price_data = price_data.loc[start:end]
+
+    # --- Compute weights from portfolio_df ---
+    latest_prices = price_data.iloc[-1]
+    values = portfolio_df.apply(
+        lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
+    total_value = values.sum()
+    weights = {
+        row["Asset"]: (row["Amount"] * latest_prices.get(row["Asset"], 0)) / total_value
+        for _, row in portfolio_df.iterrows()
+        if row["Asset"] in price_data.columns
+    }
+
+    # --- Compute returns ---
+    returns = price_data.pct_change().fillna(0)
+    portfolio_returns = returns[list(weights.keys())].dot(pd.Series(weights))
+
+    # --- Build cumulative return DataFrame ---
+    cumulative_df = pd.DataFrame({
+        "date": price_data.index,
+        "Portfolio": (1 + portfolio_returns).cumprod()
+    })
+
+    if benchmark and benchmark in price_data.columns:
+        benchmark_returns = returns[benchmark]
+        cumulative_df[benchmark] = (1 + benchmark_returns).cumprod()
+
+    # --- Melt for Altair ---
+    melted = pd.melt(
+        cumulative_df,
+        id_vars="date",
+        var_name="Asset",
+        value_name="Cumulative Return"
+    )
+
+    chart = alt.Chart(melted).mark_line().encode(
+        x="date:T",
+        y=alt.Y("Cumulative Return:Q", title="Cumulative Return"),
+        color="Asset:N"
+    ).properties(
+        width=700,
+        height=400,
+        title="Cumulative Return"
+    )
+
+    return chart
 
 
 
