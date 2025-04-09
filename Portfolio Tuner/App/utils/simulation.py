@@ -5,7 +5,7 @@ from fitter import Fitter
 from scipy.stats import norm, t, johnsonsu
 from sklearn.covariance import LedoitWolf
 
-def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_sims=1000, 
+def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_sims=100, 
                                       corr_matrix=None, correlation_strategy="shrinkage"):
     """
     Smart Monte Carlo simulation with per-asset distribution fitting and flexible correlation structure.
