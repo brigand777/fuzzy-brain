@@ -73,10 +73,10 @@ st.markdown("### 📊 Portfolio Stats (Past 365 Days)")
 
 mean_daily_return = portfolio_returns.mean()
 volatility = portfolio_returns.std()
-sharpe_ratio = mean_daily_return / volatility if volatility > 0 else 0
+sharpe_ratio = (mean_daily_return / volatility)* np.sqrt(365.0) if volatility > 0 else 0
 
 cumulative_return = cumulative_returns.iloc[-1] - 1
-annualized_volatility = volatility * np.sqrt(252)
+annualized_volatility = volatility * np.sqrt(365.0)
 
 # Format colored value for HTML
 def styled_percent(value, red_if_high=False, threshold=0.2):
