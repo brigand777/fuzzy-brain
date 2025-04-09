@@ -62,7 +62,7 @@ chart = plot_cumulative_returns({
         "cumulative": cumulative_returns
     }
 })
-st.altair_chart(add_interactivity(chart), use_container_width=True)
+st.altair_chart(add_interactivity(chart, x_field="date", y_field="cumulative"), use_container_width=True)
 
 # --- Optional Monte Carlo Simulation ---
 st.markdown("## 🔮 Monte Carlo Future Simulator")

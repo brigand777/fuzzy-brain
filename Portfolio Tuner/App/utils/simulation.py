@@ -7,6 +7,12 @@ import plotly.graph_objects as go
 from fitter import Fitter
 from scipy.stats import norm, t, johnsonsu
 
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from fitter import Fitter
+from scipy.stats import norm, t, johnsonsu
+
 def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_sims=1000):
     # --- Compute portfolio returns ---
     log_returns = np.log(price_data / price_data.shift(1)).dropna()
@@ -14,37 +20,53 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     portfolio_returns = log_returns.dot(weights_array)
 
     # --- Fit best distribution using fitter ---
-    f = Fitter(portfolio_returns.values, 
-               distributions=['norm', 't', 'johnsonsu'],
-               timeout=5)
+    f = Fitter(portfolio_returns.values, distributions=['norm', 't', 'johnsonsu'], timeout=5)
     f.fit()
     best_dist_name = list(f.get_best().keys())[0]
     best_params = f.fitted_param[best_dist_name]
 
-    # --- Simulate future returns based on best fit ---
-    if best_dist_name == 'norm':
-        sim_returns = norm.rvs(*best_params, size=(horizon_days, n_sims))
-    elif best_dist_name == 't':
-        sim_returns = t.rvs(*best_params, size=(horizon_days, n_sims))
-    elif best_dist_name == 'johnsonsu':
-        sim_returns = johnsonsu.rvs(*best_params, size=(horizon_days, n_sims))
-    else:
-        raise ValueError("Unsupported distribution selected")
-
-    # --- Convert returns to price paths ---
+    # --- Simulate future returns ---
+    dist_map = {'norm': norm, 't': t, 'johnsonsu': johnsonsu}
+    dist = dist_map[best_dist_name]
+    sim_returns = dist.rvs(*best_params, size=(horizon_days, n_sims))
     simulated_paths = np.cumprod(1 + sim_returns, axis=0)
+
+    # --- Prepare DataFrame ---
     df = pd.DataFrame(simulated_paths)
     df.index.name = "Day"
     df["mean"] = df.mean(axis=1)
     df["ci_high"] = df.quantile(0.90, axis=1)
     df["ci_low"] = df.quantile(0.10, axis=1)
 
-    # --- Plotly fan chart ---
+    # --- Plotly Interactive Chart ---
     fig = go.Figure()
-    fig.add_trace(go.Scatter(y=df["ci_high"], name="90% CI", line=dict(color="lightblue")))
-    fig.add_trace(go.Scatter(y=df["ci_low"], name="10% CI", fill="tonexty",
-                             fillcolor="rgba(173,216,230,0.2)", line=dict(color="lightblue")))
-    fig.add_trace(go.Scatter(y=df["mean"], name="Mean Path", line=dict(color="blue")))
+
+    fig.add_trace(go.Scatter(
+        x=df.index, y=df["ci_high"], name="90% Confidence Upper",
+        line=dict(color="lightblue", dash="dot"),
+        hovertemplate="Day %{x}<br>90% Upper: %{y:.2f}<extra></extra>"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df.index, y=df["ci_low"], name="10% Confidence Lower",
+        line=dict(color="lightblue", dash="dot"),
+        fill="tonexty", fillcolor="rgba(173,216,230,0.2)",
+        hovertemplate="Day %{x}<br>10% Lower: %{y:.2f}<extra></extra>"
+    ))
+
+    fig.add_trace(go.Scatter(
+        x=df.index, y=df["mean"], name="Mean Path",
+        line=dict(color="blue"),
+        hovertemplate="Day %{x}<br>Mean: %{y:.2f}<extra></extra>"
+    ))
+
+    fig.update_layout(
+        title="Monte Carlo Portfolio Forecast",
+        xaxis_title="Day",
+        yaxis_title="Portfolio Value (Indexed)",
+        hovermode="x unified",  # <- this mimics Altair-style vertical hover rule
+        template="plotly_white"
+    )
 
     return {
         "chart": fig,
