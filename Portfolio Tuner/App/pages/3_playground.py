@@ -56,10 +56,12 @@ cumulative_df = pd.DataFrame({
     "cumulative": cumulative_returns
 })
 
-chart = plot_cumulative_returns({"Playground Portfolio": {
-    "returns": cumulative_df.set_index("date")["cumulative"],
-    "allocations": None
-}})
+# Pass to plot_cumulative_returns
+chart = plot_cumulative_returns({
+    "Playground Portfolio": {
+        "cumulative": cumulative_returns
+    }
+})
 st.altair_chart(add_interactivity(chart), use_container_width=True)
 
 # --- Optional Monte Carlo Simulation ---
