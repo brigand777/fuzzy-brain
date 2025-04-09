@@ -54,5 +54,3 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
         "max": df.drop(columns=["mean", "ci_high", "ci_low"]).iloc[-1].max() - 1,
         "distribution_used": best_dist_name
     }
-
-    }
