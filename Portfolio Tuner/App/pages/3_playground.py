@@ -72,7 +72,10 @@ st.markdown("## 🔮 Monte Carlo Future Simulator")
 if st.button("🔮 Run Smart Monte Carlo Simulation"):
     result = run_smart_monte_carlo_simulation(weights, data[playground_assets])
     st.plotly_chart(result["chart"], use_container_width=True)
-    st.markdown(f"**Distribution Used:** {result['distribution_used']}")
+    st.markdown("### 📈 Distribution Used per Asset")
+    for asset, dist in result["distribution_used_per_asset"].items():
+        st.markdown(f"- **{asset}**: `{dist}`")
+
     st.markdown(f"""
         **90% CI:** {result['ci_low']:.1%} to {result['ci_high']:.1%}  
         **Best Path:** {result['max']:.1%}  

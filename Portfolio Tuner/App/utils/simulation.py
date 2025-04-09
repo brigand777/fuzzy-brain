@@ -73,13 +73,14 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     initial_prices = price_data.iloc[-1].values
     position_values = weights_array * initial_prices
     portfolio_paths = np.sum(asset_price_paths * position_values[np.newaxis, np.newaxis, :], axis=2)
+    portfolio_paths = portfolio_paths / portfolio_paths[0, :]
 
     # --- Step 7: Create DataFrame with Statistics ---
     df = pd.DataFrame(portfolio_paths)
     df.index.name = "Day"
-    df["mean"] = df.mean(axis=1)
-    df["ci_high"] = df.quantile(0.90, axis=1)
-    df["ci_low"] = df.quantile(0.10, axis=1)
+    df["median"] = df.median(axis=1)
+    df["ci_high"] = df.quantile(0.75, axis=1)
+    df["ci_low"] = df.quantile(0.25, axis=1)
 
     # --- Step 8: Plotly Interactive Chart ---
     fig = go.Figure()
@@ -89,12 +90,12 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     fig.add_trace(go.Scatter(x=df.index, y=df["ci_low"], name="10% Confidence Lower",
                              line=dict(color="lightblue", dash="dot"),
                              fill="tonexty", fillcolor="rgba(173,216,230,0.2)"))
-    fig.add_trace(go.Scatter(x=df.index, y=df["mean"], name="Mean Path", line=dict(color="blue")))
+    fig.add_trace(go.Scatter(x=df.index, y=df["median"], name="Mean Path", line=dict(color="blue")))
 
     fig.update_layout(
         title="Monte Carlo Portfolio Forecast (Correlated, Distribution-Fitted)",
         xaxis_title="Day",
-        yaxis_title="Portfolio Value (Relative)",
+        yaxis_title="Portfolio Value",
         hovermode="x unified",
         template="plotly_white"
     )
