@@ -17,16 +17,29 @@ def load_data():
 
 data = load_data()
 available_assets = data.columns.tolist()
-playground_assets = available_assets[:6]  # Limit to 5–6 assets to keep UI simple
+
+# --- Asset selection ---
+st.markdown("### 🗂️ Select Assets to Include")
+selected_assets = st.multiselect(
+    "Choose up to 10 assets to simulate:", 
+    options=available_assets, 
+    default=available_assets[:5],
+    max_selections=10
+)
+
+if not selected_assets:
+    st.warning("Please select at least one asset to proceed.")
+    st.stop()
+
+playground_assets = selected_assets
 latest_prices = data.iloc[-1]
 
-st.markdown("## 🧰 Adjust Your Hypothetical Portfolio")
-
 # --- Sliders for asset weights ---
+st.markdown("## 🧰 Adjust Your Hypothetical Portfolio")
 weights = {}
 total_weight = 0
 for asset in playground_assets:
-    weight = st.slider(f"{asset}", 0.0, 1.0, 0.2, 0.05)
+    weight = st.slider(f"{asset} weight", 0.0, 1.0, 0.05, 0.005)
     weights[asset] = weight
     total_weight += weight
 
@@ -56,7 +69,6 @@ cumulative_df = pd.DataFrame({
     "cumulative": cumulative_returns
 })
 
-# Pass to plot_cumulative_returns
 chart = plot_cumulative_returns({
     "Playground Portfolio": {
         "cumulative": cumulative_returns
@@ -67,11 +79,10 @@ st.altair_chart(add_interactivity(chart, x_field="date", y_field="cumulative"), 
 # --- Optional Monte Carlo Simulation ---
 st.markdown("## 🔮 Monte Carlo Future Simulator")
 
-
-
 if st.button("🔮 Run Smart Monte Carlo Simulation"):
     result = run_smart_monte_carlo_simulation(weights, data[playground_assets])
     st.plotly_chart(result["chart"], use_container_width=True)
+
     st.markdown("### 📈 Distribution Used per Asset")
     for asset, dist in result["distribution_used_per_asset"].items():
         st.markdown(f"- **{asset}**: `{dist}`")
@@ -81,7 +92,6 @@ if st.button("🔮 Run Smart Monte Carlo Simulation"):
         **Best Path:** {result['max']:.1%}  
         **Worst Path:** {result['min']:.1%}
     """)
-
 
 st.markdown("---")
 st.info("Try tweaking weights to see how your portfolio changes! Future simulations are based on historical volatility.")
