@@ -78,26 +78,31 @@ sharpe_ratio = mean_daily_return / volatility if volatility > 0 else 0
 cumulative_return = cumulative_returns.iloc[-1] - 1
 annualized_volatility = volatility * np.sqrt(252)
 
-# Define colored labels
-def colored_metric(label, value, suffix, is_positive_good=True, threshold=None):
-    if threshold is not None:
-        color = "green" if value <= threshold else "red"
+# Format colored value for HTML
+def styled_percent(value, red_if_high=False, threshold=0.2):
+    pct = value * 100
+    if red_if_high:
+        color = "red" if value > threshold else "green"
     else:
-        color = "green" if (value >= 0 if is_positive_good else value < 0) else "red"
-    styled_value = f"<span style='color:{color}'>{value:.2f}{suffix}</span>"
-    return f"**{label}**  \n{styled_value}"
+        color = "green" if pct >= 0 else "red"
+    return f"<span style='color:{color}'>{pct:.2f}%</span>"
 
-# Layout: side by side using columns
+def styled_number(value):
+    color = "green" if value >= 0 else "red"
+    return f"<span style='color:{color}'>{value:.2f}</span>"
+
+# Display in columns
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.markdown(colored_metric("Cumulative Return", cumulative_return * 100, "%"))
+    st.markdown(f"**Cumulative Return**<br>{styled_percent(cumulative_return)}", unsafe_allow_html=True)
 
 with col2:
-    st.markdown(colored_metric("Annualized Volatility", annualized_volatility * 100, "%", threshold=20))
+    st.markdown(f"**Annualized Volatility**<br>{styled_percent(annualized_volatility, red_if_high=True)}", unsafe_allow_html=True)
 
 with col3:
-    st.markdown(colored_metric("Sharpe Ratio", sharpe_ratio, "", is_positive_good=True), unsafe_allow_html=True)
+    st.markdown(f"**Sharpe Ratio**<br>{styled_number(sharpe_ratio)}", unsafe_allow_html=True)
+
 
 chart = plot_cumulative_returns({
     "Playground Portfolio": {
