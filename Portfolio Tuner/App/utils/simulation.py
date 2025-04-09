@@ -71,8 +71,7 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     # --- Step 6: Simulate Portfolio Value Paths ---
     asset_price_paths = np.cumprod(1 + sim_returns, axis=0)
     initial_prices = price_data.iloc[-1].values
-    position_values = weights_array * initial_prices
-    portfolio_paths = np.sum(asset_price_paths * position_values[np.newaxis, np.newaxis, :], axis=2)
+    portfolio_paths = np.sum(asset_price_paths * weights_array[np.newaxis, np.newaxis, :], axis=2)
     portfolio_paths = portfolio_paths / portfolio_paths[0, :]
 
     # --- Step 7: Create DataFrame with Statistics ---
@@ -85,9 +84,9 @@ def run_smart_monte_carlo_simulation(weights, price_data, horizon_days=180, n_si
     # --- Step 8: Plotly Interactive Chart ---
     fig = go.Figure()
 
-    fig.add_trace(go.Scatter(x=df.index, y=df["ci_high"], name="90% Confidence Upper",
+    fig.add_trace(go.Scatter(x=df.index, y=df["ci_high"], name="75% Confidence Upper",
                              line=dict(color="lightblue", dash="dot")))
-    fig.add_trace(go.Scatter(x=df.index, y=df["ci_low"], name="10% Confidence Lower",
+    fig.add_trace(go.Scatter(x=df.index, y=df["ci_low"], name="25% Confidence Lower",
                              line=dict(color="lightblue", dash="dot"),
                              fill="tonexty", fillcolor="rgba(173,216,230,0.2)"))
     fig.add_trace(go.Scatter(x=df.index, y=df["median"], name="Median Path", line=dict(color="blue")))

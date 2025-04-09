@@ -77,7 +77,7 @@ if st.button("🔮 Run Smart Monte Carlo Simulation"):
         st.markdown(f"- **{asset}**: `{dist}`")
 
     st.markdown(f"""
-        **90% CI:** {result['ci_low']:.1%} to {result['ci_high']:.1%}  
+        **50% CI:** {result['ci_low']:.1%} to {result['ci_high']:.1%}  
         **Best Path:** {result['max']:.1%}  
         **Worst Path:** {result['min']:.1%}
     """)
