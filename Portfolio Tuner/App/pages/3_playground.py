@@ -55,8 +55,7 @@ elif risk_score > 0.03:
 else:
     st.markdown("**Portfolio Risk Level:** 🧊 Low")
 
-# --- Portfolio preview ---
-st.subheader("📊 Cumulative Returns")
+
 lookback_days = 365
 simulation_data = data[playground_assets].tail(lookback_days)
 pct_returns = simulation_data.pct_change().dropna()
@@ -72,7 +71,6 @@ cumulative_df = pd.DataFrame({
 # --- Portfolio Performance Metrics ---
 st.markdown("### 📊 Portfolio Stats (Past 365 Days)")
 
-# Daily returns already calculated
 mean_daily_return = portfolio_returns.mean()
 volatility = portfolio_returns.std()
 sharpe_ratio = mean_daily_return / volatility if volatility > 0 else 0
@@ -80,15 +78,35 @@ sharpe_ratio = mean_daily_return / volatility if volatility > 0 else 0
 cumulative_return = cumulative_returns.iloc[-1] - 1
 annualized_volatility = volatility * np.sqrt(252)
 
-st.metric("Cumulative Return", f"{cumulative_return:.2%}")
-st.metric("Annualized Volatility", f"{annualized_volatility:.2%}")
-st.metric("Sharpe Ratio", f"{sharpe_ratio:.2f}")
+# Define colored labels
+def colored_metric(label, value, suffix, is_positive_good=True, threshold=None):
+    if threshold is not None:
+        color = "green" if value <= threshold else "red"
+    else:
+        color = "green" if (value >= 0 if is_positive_good else value < 0) else "red"
+    styled_value = f"<span style='color:{color}'>{value:.2f}{suffix}</span>"
+    return f"**{label}**  \n{styled_value}"
+
+# Layout: side by side using columns
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown(colored_metric("Cumulative Return", cumulative_return * 100, "%"))
+
+with col2:
+    st.markdown(colored_metric("Annualized Volatility", annualized_volatility * 100, "%", threshold=20))
+
+with col3:
+    st.markdown(colored_metric("Sharpe Ratio", sharpe_ratio, "", is_positive_good=True), unsafe_allow_html=True)
 
 chart = plot_cumulative_returns({
     "Playground Portfolio": {
         "cumulative": cumulative_returns
     }
 })
+
+# --- Portfolio preview ---
+st.subheader("📊 Cumulative Returns")
 st.altair_chart(add_interactivity(chart, x_field="date", y_field="cumulative"), use_container_width=True)
 
 # --- Optional Monte Carlo Simulation ---
