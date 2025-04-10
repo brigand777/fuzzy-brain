@@ -473,17 +473,18 @@ def add_interactivity(
     ) if show_rule else alt.Chart(df)
 
     # Determine dot color:
+    color_encoding = getattr(base_chart.encoding, "color", None)
+
     if dot_color:
         dot_color_expr = alt.value(dot_color)
         dot_kwargs = {'color': dot_color}
-    elif "color" in base_chart.encoding:
-        # If the base chart is color-encoded, use the same
-        dot_color_expr = base_chart.encoding["color"]
-        dot_kwargs = {}  # color will be bound via encoding
+    elif color_encoding:
+        dot_color_expr = color_encoding
+        dot_kwargs = {}  # use encoding
     else:
-        # Fallback
         dot_color_expr = alt.value(rule_color)
         dot_kwargs = {'color': rule_color}
+
 
     # Intersection dot
     dot = alt.Chart(df).mark_point(
