@@ -71,30 +71,33 @@ if selected_assets:
     end_date = ensure_utc(end_date)
 
     # --- Cumulative Portfolio Value Chart (Centered) ---
-    st.markdown("### 📊 Portfolio Value Over Time")
-    custom_width_percent = 75  # 👈 Control this to adjust chart width as % of screen
-
-    custom_width_percent = 60
-
     # Allocate layout manually using Streamlit columns
-    col1, col2, col3 = st.columns([1, 3, 1])  # Middle column takes up 3x more space
-
-    with col2:
+    if selected_assets:
         st.subheader("📊 Portfolio Value Over Time")
-        st.altair_chart(cumulative_chart, use_container_width=True)
+
+        # Create the chart (make sure this function returns a chart object)
+        cumulative_chart = plot_asset_cumulative_returns(
+            data, selected_assets,
+            benchmark=None,
+            start=start_date, end=end_date,
+            portfolio_df=portfolio_df
+        ).properties(width=700)  # 👈 Altair-specific: set chart width here
+
+        # Streamlit-native centering using columns
+        col1, col2, col3 = st.columns([1, 3, 1])
+        with col2:
+            st.altair_chart(cumulative_chart, use_container_width=False)
 
 
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
-    if metrics_fig:
+    if metrics_fig and len(metrics_fig) == 6:
         st.markdown("### 🧭 Portfolio Metrics")
-        rows = [metrics_fig[i:i+3] for i in range(0, len(metrics_fig), 3)]  # 2 rows of 3 gauges
+        cols = st.columns(6)  # Create 6 equally spaced columns
 
-        for row in rows:
-            cols = st.columns(len(row))  # dynamically split into equal columns
-            for col, fig in zip(cols, row):
-                with col:
-                    st.plotly_chart(fig, use_container_width=True)
+        for col, fig in zip(cols, metrics_fig):
+            with col:
+                st.plotly_chart(fig, use_container_width=True)
 
 
 
