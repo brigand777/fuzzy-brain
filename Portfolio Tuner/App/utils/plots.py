@@ -435,9 +435,9 @@ import altair as alt
 
 def add_interactivity(
     base_chart,
-    df,
     x_field,
     y_field,
+    df=None,
     tooltip_fields=None,
     rule_color="#f5c518",
     rule_opacity=0.6,
@@ -445,8 +445,14 @@ def add_interactivity(
     show_text=False,
     text_dx=10,
     text_dy=-30
-    ):
-    # Create nearest x selection
+):
+    # Try to get df from base_chart if not passed
+    if df is None:
+        df = getattr(base_chart, 'data', None)
+        if df is None:
+            raise TypeError("You must provide `df` or ensure `base_chart` has `.data` set.")
+
+    # Nearest selection
     nearest = alt.selection_single(
         fields=[x_field],
         nearest=True,
@@ -455,19 +461,16 @@ def add_interactivity(
         clear="mouseout"
     )
 
-    # Invisible selector points to trigger rule
     selectors = alt.Chart(df).mark_point(size=0, opacity=0).encode(
         x=x_field,
         y=y_field
     ).add_selection(nearest)
 
-    # Vertical rule
     rule = alt.Chart(df).mark_rule(color=rule_color).encode(
         x=x_field,
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
-    ) if show_rule else alt.Chart(df)  # Empty if not shown
+    ) if show_rule else alt.Chart(df)
 
-    # Optional floating text
     if show_text:
         text = alt.Chart(df).mark_text(
             align="left",
@@ -489,16 +492,15 @@ def add_interactivity(
     else:
         overlay = selectors + rule
 
-    # Attach native tooltip to base chart if fields are given
+    # Add tooltip if requested
     if tooltip_fields:
         base_chart = base_chart.encode(
-            tooltip=[alt.Tooltip(f"{f}:Q", format="$,.2f" if "value" in f.lower() else "") for f in tooltip_fields]
+            tooltip=[
+                alt.Tooltip(f"{f}:Q", format="$,.2f" if "value" in f.lower() else "") for f in tooltip_fields
+            ]
         )
 
     return base_chart + overlay
-
-
-
 
 def plot_cumulative_returns(results_dict):
     cumul_df_list = []
