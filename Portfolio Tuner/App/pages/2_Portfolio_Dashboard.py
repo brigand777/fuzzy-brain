@@ -74,12 +74,15 @@ if selected_assets:
     st.markdown("### 📊 Portfolio Value Over Time")
     custom_width_percent = 75  # 👈 Control this to adjust chart width as % of screen
 
+    custom_width_percent = 60
+
     with st.container():
         st.markdown(
             f"""
-            <div style='width: {custom_width_percent}%; margin: 0 auto;'>
+            <div style="display: flex; justify-content: center;">
+                <div style="width: {custom_width_percent}%; text-align: center;">
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
         cumulative_chart = plot_asset_cumulative_returns(
@@ -90,15 +93,17 @@ if selected_assets:
         )
         st.altair_chart(cumulative_chart, use_container_width=False)
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("</div></div>", unsafe_allow_html=True)
+
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
     st.markdown("### 🧭 Portfolio Metrics ")
-    if metrics_fig:  # This is your list of 6 Plotly figures
-        cols = st.columns(6)
-        for col, fig in zip(cols, metrics_fig):
-            with col:
-                st.plotly_chart(fig, use_container_width=True)
+    if metrics_fig:
+        st.markdown("<div style='display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;'>", unsafe_allow_html=True)
+        for fig in metrics_fig:
+            st.plotly_chart(fig, use_container_width=False)
+        st.markdown("</div>", unsafe_allow_html=True)
+
 
     # --- Comparison Charts (2-column layout) ---
     st.markdown("### 🔍 Portfolio Comparison")

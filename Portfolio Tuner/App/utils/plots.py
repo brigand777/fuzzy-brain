@@ -87,12 +87,13 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
     ))
 
     fig.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',   # ✅ transparent background
-        plot_bgcolor='rgba(0,0,0,0)',    # ✅ transparent plot area
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
         font={'color': "white"},
-        height=220,
-        margin=dict(t=20, b=10, l=10, r=10)
+        height=200,
+        margin=dict(t=25, b=25, l=20, r=20)  # a bit more breathing room
     )
+
     return fig
 
 
