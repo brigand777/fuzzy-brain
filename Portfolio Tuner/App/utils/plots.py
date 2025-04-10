@@ -11,13 +11,13 @@ from datetime import timedelta
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
     returns = price_data.pct_change().dropna()
-    cumulative_returns = (1 + returns).prod() - 1
-    volatility = returns.std() * np.sqrt(252)
+    cumulative_returns = 100.0*(1 + returns).prod() - 1
+    volatility = 100.0*returns.std() * np.sqrt(365.0)
     sharpe_ratio = returns.mean() / returns.std() * np.sqrt(252)
-    max_drawdown = (price_data / price_data.cummax() - 1).min()
+    max_drawdown = 100.0*(price_data / price_data.cummax() - 1).min()
     rolling_max = price_data.cummax()
-    drawdown = price_data / rolling_max - 1
-    calmar_ratio = returns.mean() * 252 / abs(drawdown.min())
+    drawdown = 100.0*(price_data / rolling_max - 1)
+    calmar_ratio = returns.mean() * 365.0 / abs(drawdown.min())
     var_95 = returns.quantile(0.05)
 
     return {
@@ -51,10 +51,10 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
     metric_settings = {
         "sharpe":     {"range": [-1, 3], "threshold": 1.5},
         "calmar":     {"range": [0, 5], "threshold": 2},
-        "drawdown":   {"range": [0, 100], "threshold": 20},
+        "drawdown":   {"range": [0, -100], "threshold": -60},
         "cumulative": {"range": [0, 100], "threshold": 10},
         "var":        {"range": [0, 20], "threshold": 5},
-        "volatility": {"range": [0, 50], "threshold": 20}
+        "volatility": {"range": [0, 70], "threshold": 50}
     }
 
     settings = metric_settings.get(metric_key, {"range": [0, 100], "threshold": 50})
