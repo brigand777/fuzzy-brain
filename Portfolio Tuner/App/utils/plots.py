@@ -34,15 +34,15 @@ import plotly.graph_objects as go
 # ---- Single Gauge using Plotly ----
 def plot_single_gauge(title: str, value: float) -> go.Figure:
     fig = go.Figure(go.Indicator(
-        mode = "gauge+number",
-        value = value * 100,  # Convert to percentage
-        domain = {'x': [0, 1], 'y': [0, 1]},
-        title = {'text': title, 'font': {'size': 20}},
-        gauge = {
+        mode="gauge+number",
+        value=value * 100,  # Convert to percentage
+        domain={'x': [0, 1], 'y': [0, 1]},
+        title={'text': title, 'font': {'size': 16}},
+        gauge={
             'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkgray"},
             'bar': {'color': "black", 'thickness': 0.3},
             'bgcolor': "white",
-            'borderwidth': 2,
+            'borderwidth': 1,
             'bordercolor': "gray",
             'steps': [
                 {'range': [0, 33], 'color': '#00ff00'},
@@ -50,13 +50,18 @@ def plot_single_gauge(title: str, value: float) -> go.Figure:
                 {'range': [66, 100], 'color': '#ff0000'}
             ],
             'threshold': {
-                'line': {'color': "red", 'width': 4},
+                'line': {'color': "red", 'width': 3},
                 'thickness': 0.75,
                 'value': value * 100
             }
         }
     ))
+    fig.update_layout(
+        height=220,  # Adjust this for desired compactness
+        margin=dict(t=20, b=10, l=10, r=10)
+    )
     return fig
+
 
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict):
