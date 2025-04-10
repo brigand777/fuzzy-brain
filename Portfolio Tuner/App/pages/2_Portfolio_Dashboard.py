@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import os
-import panel as pn
 
 from auth import login_and_get_status
 from utils.plots import (
@@ -10,8 +9,6 @@ from utils.plots import (
     plot_asset_cumulative_returns,
     plot_gauge_charts
 )
-
-pn.extension('echarts')
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
