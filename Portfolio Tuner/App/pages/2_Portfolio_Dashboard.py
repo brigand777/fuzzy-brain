@@ -76,33 +76,26 @@ if selected_assets:
 
     custom_width_percent = 60
 
-    with st.container():
-        st.markdown(
-            f"""
-            <div style="display: flex; justify-content: center;">
-                <div style="width: {custom_width_percent}%; text-align: center;">
-            """,
-            unsafe_allow_html=True,
-        )
+    # Allocate layout manually using Streamlit columns
+    col1, col2, col3 = st.columns([1, 3, 1])  # Middle column takes up 3x more space
 
-        cumulative_chart = plot_asset_cumulative_returns(
-            data, selected_assets,
-            benchmark=None,
-            start=start_date, end=end_date,
-            portfolio_df=portfolio_df
-        )
-        st.altair_chart(cumulative_chart, use_container_width=False)
+    with col2:
+        st.subheader("📊 Portfolio Value Over Time")
+        st.altair_chart(cumulative_chart, use_container_width=True)
 
-        st.markdown("</div></div>", unsafe_allow_html=True)
 
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
-    st.markdown("### 🧭 Portfolio Metrics ")
     if metrics_fig:
-        st.markdown("<div style='display: flex; justify-content: center; flex-wrap: wrap; gap: 10px;'>", unsafe_allow_html=True)
-        for fig in metrics_fig:
-            st.plotly_chart(fig, use_container_width=False)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown("### 🧭 Portfolio Metrics")
+        rows = [metrics_fig[i:i+3] for i in range(0, len(metrics_fig), 3)]  # 2 rows of 3 gauges
+
+        for row in rows:
+            cols = st.columns(len(row))  # dynamically split into equal columns
+            for col, fig in zip(cols, row):
+                with col:
+                    st.plotly_chart(fig, use_container_width=True)
+
 
 
     # --- Comparison Charts (2-column layout) ---
