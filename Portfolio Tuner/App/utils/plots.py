@@ -7,13 +7,13 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 from datetime import timedelta
-import altair as alt
-import pandas as pd
+
+
 def plot_portfolio_absolute_value(
     data, selected_assets, start, end, portfolio_df,
     x_axis_font_size=15,
     y_axis_font_size=15
-):
+    ):
     filtered_data = data[selected_assets].loc[start:end]
     amounts = portfolio_df.set_index("Asset").loc[selected_assets]["Amount"]
     dollar_values = filtered_data.multiply(amounts, axis=1)
@@ -50,6 +50,7 @@ def plot_portfolio_absolute_value(
     # Add interactivity (rule + selectors, no floating text)
     interactive_chart = add_interactivity(
         base_chart=base_chart,
+        line_chart = line,
         df=df,
         x_field="Date",
         y_field="Portfolio Value"
@@ -60,8 +61,6 @@ def plot_portfolio_absolute_value(
     )
 
     return interactive_chart
-
-
 
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
@@ -150,11 +149,6 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
     )
 
     return fig
-
-
-
-
-
 
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict):
@@ -376,9 +370,6 @@ def plot_historical_assets(data, selected_assets, portfolio_df=None):
         st.warning("No data available in the selected range.")
 
 
-import plotly.graph_objects as go
-import pandas as pd
-import streamlit as st
 
 def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portfolio Allocation") -> None:
     """
@@ -431,7 +422,6 @@ def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portf
     )
 
     st.plotly_chart(fig, use_container_width=True)
-
 def add_interactivity(
     base_chart,
     x_field,
@@ -444,7 +434,8 @@ def add_interactivity(
     show_text=False,
     text_dx=10,
     text_dy=-30,
-    dot_color=None  # Can now be inferred
+    dot_color=None,
+    line_chart=None  # ✅ optional dedicated line chart
     ):
     if df is None:
         df = getattr(base_chart, 'data', None)
@@ -472,21 +463,23 @@ def add_interactivity(
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
     ) if show_rule else alt.Chart(df)
 
-    # Determine dot color:
+    # 🟡 Resolve dot color
     color_encoding = getattr(base_chart.encoding, "color", None)
+    line_color_attr = getattr(line_chart.mark, "color", None) if line_chart else None
 
     if dot_color:
         dot_color_expr = alt.value(dot_color)
         dot_kwargs = {'color': dot_color}
     elif color_encoding:
         dot_color_expr = color_encoding
-        dot_kwargs = {}  # use encoding
+        dot_kwargs = {}
+    elif line_color_attr:
+        dot_color_expr = alt.value(line_color_attr)
+        dot_kwargs = {'color': line_color_attr}
     else:
         dot_color_expr = alt.value(rule_color)
         dot_kwargs = {'color': rule_color}
 
-
-    # Intersection dot
     dot = alt.Chart(df).mark_point(
         filled=True,
         size=60,
@@ -675,8 +668,6 @@ def plot_asset_cumulative_returns(price_data: pd.DataFrame,
 
     return chart
 
-
-
 def plot_rolling_sharpe(results_dict):
     sharpe_df_list = []
     for method, res in results_dict.items():
@@ -729,7 +720,6 @@ def plot_allocations(results_dict):
         color=alt.Color("Method_Asset:N", title="Method - Asset")
     ).properties(width=700, height=400, title="Asset Allocation Over Time")
     return chart
-
 
 def plot_asset_returns(simulation_data, selected_assets):
     # Filter data to selected assets and compute daily returns (%)
