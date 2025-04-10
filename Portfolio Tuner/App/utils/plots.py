@@ -28,20 +28,14 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
 
     # Gradient area using a pseudo-color scale (via conditional fill)
     gradient_area = alt.Chart(df).mark_area(
-        line=False,  # ✅ Properly disables the line
+        color="#f5c518",
+        opacity=0.25,
         interpolate="monotone"
     ).encode(
         x="Date:T",
-        y="Portfolio Value:Q",
-        fill=alt.Gradient(
-            gradient="linear",
-            stops=[
-                alt.GradientStop(color="#fff6c0", offset=0),
-                alt.GradientStop(color="#f5c518", offset=1)
-            ],
-            x1=1, x2=1, y1=1, y2=0
-        )
+        y="Portfolio Value:Q"
     )
+
 
     # Before: passing the full layer chart
     base_chart = gradient_area + line
@@ -457,10 +451,15 @@ def add_interactivity(
             alt.expr.concat(*[f"datum.{field} + ' '" for field in tooltip_field])
 
         text = base_chart.mark_text(align="left", dx=text_dx, dy=text_dy).encode(
-            x=x_field,
-            y=y_field,
-            text=alt.condition(nearest, alt.ExprRef(expr=tooltip_expr), alt.value(''))
+        x=x_field,
+        y=y_field,
+        text=alt.condition(
+            nearest,
+            alt.Text(tooltip_field + ":Q", format=".2f"),
+            alt.value("")
         )
+)
+
         return selectors + rule + text
     else:
         return selectors + rule
