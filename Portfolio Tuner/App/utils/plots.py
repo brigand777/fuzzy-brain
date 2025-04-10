@@ -11,13 +11,13 @@ from datetime import timedelta
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
     returns = price_data.pct_change().dropna()
-    cumulative_returns = 100.0*(1 + returns).prod() - 1
+    cumulative_returns = 100.0*((1 + returns).prod() - 1)
     volatility = 100.0*returns.std() * np.sqrt(365.0)
     sharpe_ratio = returns.mean() / returns.std() * np.sqrt(252)
     max_drawdown = 100.0*(price_data / price_data.cummax() - 1).min()
     rolling_max = price_data.cummax()
     drawdown = 100.0*(price_data / rolling_max - 1)
-    calmar_ratio = returns.mean() * 365.0 / abs(drawdown.min())
+    calmar_ratio = 100*(returns.mean() * 365.0) / abs(drawdown.min())
     var_95 = returns.quantile(0.05)
 
     return {
