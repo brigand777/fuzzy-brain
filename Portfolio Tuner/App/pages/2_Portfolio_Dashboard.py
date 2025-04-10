@@ -72,16 +72,27 @@ if selected_assets:
 
     # --- Cumulative Portfolio Value Chart (Centered) ---
     st.markdown("### 📊 Portfolio Value Over Time")
+    custom_width_percent = 75  # 👈 Control this to adjust chart width as % of screen
+
     with st.container():
-        st.markdown("<div style='width:50%; margin:auto;'>", unsafe_allow_html=True)
+        st.markdown(
+            f"""
+            <div style='display: flex; justify-content: center;'>
+                <div style='width: {custom_width_percent}%;'>
+            """,
+            unsafe_allow_html=True
+        )
+
         cumulative_chart = plot_asset_cumulative_returns(
             data, selected_assets,
-            benchmark=None,  # This chart is just total value, no benchmark
+            benchmark=None,
             start=start_date, end=end_date,
             portfolio_df=portfolio_df
         )
-        st.altair_chart(cumulative_chart, use_container_width=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.altair_chart(cumulative_chart, use_container_width=False)  # 👈 Disable auto-scaling
+
+        st.markdown("</div></div>", unsafe_allow_html=True)
+
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
     st.markdown("### 🧭 Portfolio Metrics ")
