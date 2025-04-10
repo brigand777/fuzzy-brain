@@ -32,43 +32,64 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
 import plotly.graph_objects as go
 
 # ---- Single Gauge using Plotly ----
-def plot_single_gauge(title: str, value: float) -> go.Figure:
+def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.Figure:
+    # Normalize and fallback
+    metric_key = metric_name.lower() if metric_name else title.lower().replace(" ", "").replace("_", "")
+
+    metric_settings = {
+        "sharpe":     {"range": [-1, 3], "threshold": 1.5},
+        "calmar":     {"range": [0, 5], "threshold": 2},
+        "drawdown":   {"range": [0, 100], "threshold": 20},
+        "cumulativereturn": {"range": [0, 100], "threshold": 10},
+        "cumulative": {"range": [0, 100], "threshold": 10},
+        "var":        {"range": [0, 20], "threshold": 5},
+        "volatility": {"range": [0, 50], "threshold": 20}
+    }
+
+    settings = metric_settings.get(metric_key, {"range": [0, 100], "threshold": 50})
+    min_val, max_val = settings["range"]
+    threshold = settings["threshold"]
+
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=value * 100,  # Convert to percentage
-        domain={'x': [0, 1], 'y': [0, 1]},
-        title={'text': title, 'font': {'size': 16}},
+        value=value,
+        title={'text': title, 'font': {'size': 14, 'color': 'white'}},
         gauge={
-            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkgray"},
-            'bar': {'color': "black", 'thickness': 0.3},
-            'bgcolor': "white",
-            'borderwidth': 1,
+            'axis': {'range': [min_val, max_val], 'tickwidth': 1, 'tickcolor': "gray"},
+            'bar': {'color': "crimson", 'thickness': 0.35},
+            'bgcolor': "black",
+            'borderwidth': 2,
             'bordercolor': "gray",
             'steps': [
-                {'range': [0, 33], 'color': '#00ff00'},
-                {'range': [33, 66], 'color': '#ffff00'},
-                {'range': [66, 100], 'color': '#ff0000'}
+                {'range': [min_val, threshold], 'color': '#222'},         # low/ok
+                {'range': [threshold, (min_val+max_val)/2], 'color': '#b22222'},  # caution
+                {'range': [(min_val+max_val)/2, max_val], 'color': '#ffcc00'}     # redline!
             ],
             'threshold': {
-                'line': {'color': "red", 'width': 3},
+                'line': {'color': "red", 'width': 4},
                 'thickness': 0.75,
-                'value': value * 100
+                'value': value
             }
-        }
+        },
+        domain={'x': [0, 1], 'y': [0, 1]},
+        number={'suffix': "", 'font': {'color': 'white'}}
     ))
+
     fig.update_layout(
-        height=220,  # Adjust this for desired compactness
+        paper_bgcolor="black",
+        font={'color': "white"},
+        height=220,
         margin=dict(t=20, b=10, l=10, r=10)
     )
     return fig
 
 
+
+
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict):
-    figs = []
-    for title, value in metrics.items():
-        figs.append(plot_single_gauge(title, value))
-    return figs
+    return [plot_single_gauge(title, value) for title, value in metrics.items()]
+
 
 
 # ----- Correlation Heatmap Plotting -----

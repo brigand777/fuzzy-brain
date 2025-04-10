@@ -77,8 +77,7 @@ if selected_assets:
     with st.container():
         st.markdown(
             f"""
-            <div style='display: flex; justify-content: center;'>
-                <div style='width: {custom_width_percent}%;'>
+            <div style='width: {custom_width_percent}%; margin: 0 auto;'>
             """,
             unsafe_allow_html=True
         )
@@ -89,10 +88,9 @@ if selected_assets:
             start=start_date, end=end_date,
             portfolio_df=portfolio_df
         )
-        st.altair_chart(cumulative_chart, use_container_width=False)  # 👈 Disable auto-scaling
+        st.altair_chart(cumulative_chart, use_container_width=False)
 
-        st.markdown("</div></div>", unsafe_allow_html=True)
-
+        st.markdown("</div>", unsafe_allow_html=True)
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
     st.markdown("### 🧭 Portfolio Metrics ")
