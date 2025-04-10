@@ -7,55 +7,62 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 from datetime import timedelta
+import altair as alt
+import pandas as pd
 
 def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_df):
-    # Filter price data to date range and selected assets
     filtered_data = data[selected_assets].loc[start:end]
-
-    # Get asset amounts from portfolio_df
     amounts = portfolio_df.set_index("Asset").loc[selected_assets]["Amount"]
-
-    # Multiply historical prices by amounts to get dollar value per asset
     dollar_values = filtered_data.multiply(amounts, axis=1)
-
-    # Sum to get total portfolio value at each time step
     portfolio_value = dollar_values.sum(axis=1)
 
-    # Format for Altair
     df = portfolio_value.reset_index()
     df.columns = ["Date", "Portfolio Value"]
 
-    # Base line chart
+    # Line chart
     line = alt.Chart(df).mark_line(
         color="#f5c518",
         strokeWidth=3
     ).encode(
         x=alt.X("Date:T", axis=alt.Axis(title="Date")),
-        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Portfolio Value ($)", format="$,.0f")),
-        tooltip=[
-            alt.Tooltip("Date:T"),
-            alt.Tooltip("Portfolio Value:Q", format="$,.2f")
-        ]
+        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f"))
     )
 
-    # Gradient area under the line
-    area = alt.Chart(df).mark_area(
-        opacity=0.3,
-        color="#f5c518"
+    # Gradient area using a pseudo-color scale (via conditional fill)
+    gradient_area = alt.Chart(df).mark_area(
+        line=None,
+        interpolate="monotone"
     ).encode(
         x="Date:T",
-        y="Portfolio Value:Q"
+        y="Portfolio Value:Q",
+        fill=alt.Gradient(
+            gradient="linear",
+            stops=[
+                alt.GradientStop(color="#fff6c0", offset=0),
+                alt.GradientStop(color="#f5c518", offset=1)
+            ],
+            x1=1, x2=1, y1=1, y2=0
+        )
     )
-    size = 500
-    # Combine with interactivity
-    chart = (area + line).interactive().properties(
-        width=2*size,
-        height=size,
+
+    base_chart = gradient_area + line
+
+    interactive_chart = add_interactivity(
+        base_chart=base_chart,
+        x_field="Date",
+        y_field="Portfolio Value",
+        tooltip_field="Portfolio Value",
+        rule_color="#f5c518",
+        rule_opacity=0.6,
+        text_dx=10,
+        text_dy=-30
+    ).properties(
+        width=700,
+        height=350,
         title="Portfolio Value Over Time"
     )
 
-    return chart
-
+    return interactive_chart
 
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
@@ -155,29 +162,34 @@ def plot_gauge_charts(metrics: dict):
     return [plot_single_gauge(name, value) for name, value in metrics.items()]
 
 # ----- Correlation Heatmap Plotting -----
+import plotly.express as px
+import numpy as np
+
 def plot_correlation_heatmap(price_data: pd.DataFrame):
     returns = price_data.pct_change().dropna()
     corr = returns.corr()
 
-    # Sophisticated single-color red scale
+    # Format correlation values to 2 decimal places
+    corr_display = corr.copy()
+    corr_display[:] = np.round(corr_display.values, 2)
+
+    # Red-blue gradient scale
     red_blue_scale = [
-    [0.0, "rgba(0,0,120,1)"],        # deep blue (strong negative correlation)
-    [0.1, "rgba(30,30,160,1)"],      # darkish blue
-    [0.2, "rgba(70,70,200,1)"],      # medium blue
-    [0.3, "rgba(120,120,240,1)"],    # pale blue
-    [0.4, "rgba(200,200,255,1)"],    # very pale blue
-    [0.5, "rgba(255,255,255,1)"],    # white (neutral correlation)
-    [0.6, "rgba(255,200,200,1)"],    # pale red
-    [0.7, "rgba(240,120,120,1)"],    # salmon
-    [0.8, "rgba(200,70,70,1)"],      # medium red
-    [0.9, "rgba(160,30,30,1)"],      # blood red
-    [1.0, "rgba(120,0,0,1)"],        # dark red (strong positive correlation)
-]
-
-
+        [0.0, "rgba(0,0,120,1)"],
+        [0.1, "rgba(30,30,160,1)"],
+        [0.2, "rgba(70,70,200,1)"],
+        [0.3, "rgba(120,120,240,1)"],
+        [0.4, "rgba(200,200,255,1)"],
+        [0.5, "rgba(255,255,255,1)"],
+        [0.6, "rgba(255,200,200,1)"],
+        [0.7, "rgba(240,120,120,1)"],
+        [0.8, "rgba(200,70,70,1)"],
+        [0.9, "rgba(160,30,30,1)"],
+        [1.0, "rgba(120,0,0,1)"]
+    ]
 
     fig = px.imshow(
-        corr,
+        corr_display,
         text_auto=True,
         aspect="auto",
         title="📈 Correlation Heatmap of Portfolio Holdings",
@@ -185,8 +197,15 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
         zmin=-1, zmax=1,
         labels=dict(color="Correlation")
     )
-    fig.update_layout(margin=dict(t=50, b=30))
+
+    fig.update_layout(
+        margin=dict(t=50, b=50, l=50, r=50),
+        xaxis=dict(tickfont=dict(size=11)),
+        yaxis=dict(tickfont=dict(size=11))
+    )
+
     return fig
+
 
 
 # ----- Master Dashboard Plotter -----
