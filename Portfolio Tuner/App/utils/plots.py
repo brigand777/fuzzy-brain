@@ -31,84 +31,60 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
 
 import plotly.graph_objects as go
 
-# ----- Needle Chart Plotting -----
-def plot_single_needle(title: str, value: float) -> go.Indicator:
-    return go.Indicator(
-        mode="gauge+number+delta",
-        value=value,
-        title={
-            'text': f"<b>{title}</b>",
-            'font': {'size': 16},
-            'align': 'center'
-        },
-        domain={'x': [0, 1], 'y': [0.1, 1]},
-        delta={'reference': 0, 'increasing': {'color': "lime"}, 'decreasing': {'color': "red"}},
-        gauge={
-            'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "darkgray"},
-            'bar': {'color': "steelblue", 'thickness': 0.25},
-            'bgcolor': "white",
-            'borderwidth': 2,
-            'bordercolor': "gray",
-            'steps': [
-                {'range': [0, 0.33], 'color': '#d6e685'},
-                {'range': [0.33, 0.66], 'color': '#fdae61'},
-                {'range': [0.66, 1], 'color': '#f46d43'}
-            ],
-            'threshold': {
-                'line': {'color': "black", 'width': 4},
-                'thickness': 0.75,
-                'value': value
-            }
+iimport panel as pn
+pn.extension('echarts')
+
+# ----- Porsche-Inspired Animated Gauge Chart -----
+def plot_single_needle(title: str, value: float) -> pn.indicators.Gauge:
+    return pn.indicators.Gauge(
+        name=title,
+        value=value * 100,  # Scale to 0–100 range
+        bounds=(0, 100),
+        format="{value:.0f}%",
+        height=250,
+        sizing_mode='stretch_width',
+        colors=[(0.33, '#00ff00'), (0.66, '#ffff00'), (1.0, '#ff0000')],
+        custom_echarts_options={
+            'series': [{
+                'axisLine': {
+                    'lineStyle': {
+                        'width': 30,
+                        'color': [
+                            [0.33, '#00ff00'],
+                            [0.66, '#ffff00'],
+                            [1, '#ff0000']
+                        ]
+                    }
+                },
+                'pointer': {
+                    'width': 6,
+                    'length': '80%',
+                    'itemStyle': {
+                        'color': '#000'
+                    }
+                },
+                'detail': {
+                    'formatter': '{value}%',
+                    'fontSize': 18,
+                    'offsetCenter': [0, '60%']
+                },
+                'title': {
+                    'offsetCenter': [0, '-40%'],
+                    'fontStyle': 'italic',
+                    'fontWeight': 'bold',
+                    'color': '#111'
+                },
+                'animation': True,
+                'animationDuration': 1000,
+                'animationEasing': 'cubicOut'
+            }],
+            'backgroundColor': '#f7f7f7'
         }
     )
 
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
-
+# ----- Dashboard Row of Porsche-Like Gauges Using Panel -----
 def plot_needle_charts(metrics: dict):
-    fig = make_subplots(
-        rows=1,
-        cols=6,
-        specs=[[{'type': 'indicator'}] * 6],
-        horizontal_spacing=0.05  # spacing between gauges
-    )
-
-    for i, (title, value) in enumerate(metrics.items()):
-        col = i + 1
-
-        fig.add_trace(go.Indicator(
-            mode="gauge+number",
-            value=value,
-            title={
-                'text': f"<b>{title}</b>",
-                'font': {'size': 14}
-            },
-            gauge={
-                'shape': "angular",  # this shows a real needle!
-                'axis': {'range': [0, 1], 'tickwidth': 1, 'tickcolor': "gray"},
-                'bar': {'color': "steelblue", 'thickness': 0.25},
-                'bgcolor': "white",
-                'borderwidth': 1,
-                'bordercolor': "gray",
-                'steps': [
-                    {'range': [0, 0.33], 'color': '#d6e685'},
-                    {'range': [0.33, 0.66], 'color': '#fdae61'},
-                    {'range': [0.66, 1], 'color': '#f46d43'}
-                ],
-                'threshold': {
-                    'line': {'color': "black", 'width': 4},
-                    'thickness': 0.75,
-                    'value': value
-                }
-            }
-        ), row=1, col=col)
-
-    fig.update_layout(
-        height=300,
-        margin=dict(t=40, b=20, l=10, r=10)
-    )
-
-    return fig
+    return pn.Row(*[plot_single_needle(title, value) for title, value in metrics.items()])
 
 # ----- Correlation Heatmap Plotting -----
 def plot_correlation_heatmap(price_data: pd.DataFrame):

@@ -1,13 +1,17 @@
 import streamlit as st
 import pandas as pd
 import os
+import panel as pn
 
 from auth import login_and_get_status
 from utils.plots import (
     plot_portfolio_dashboard,
     plot_historical_assets,
-    plot_asset_cumulative_returns
+    plot_asset_cumulative_returns,
+    plot_needle_charts
 )
+
+pn.extension('echarts')
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
@@ -50,11 +54,10 @@ with st.expander("📅 Select Date Range"):
         max_value=max_date
     )
 
-
 # --- Dashboard Visualization ---
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 if selected_assets:
-    needle_fig, heatmap_fig = plot_portfolio_dashboard(
+    metrics_fig, heatmap_fig = plot_portfolio_dashboard(
         data, selected_assets, date_range=date_range
     )
 
@@ -83,10 +86,10 @@ if selected_assets:
         st.altair_chart(cumulative_chart, use_container_width=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-    # --- Needle Charts (6 stacked vertically) ---
-    st.markdown("### Portfolio Metrics")
-    if needle_fig:
-        st.plotly_chart(needle_fig, use_container_width=True)
+    # --- Needle Charts (6 Porsche-inspired gauges) ---
+    st.markdown("### 🧭 Portfolio Metrics (Inspired by Porsche 992.1)")
+    if isinstance(metrics_fig, pn.layout.Panel):
+        st.components.v1.html(metrics_fig._repr_html_(), height=300)
 
     # --- Comparison Charts (2-column layout) ---
     st.markdown("### 🔍 Portfolio Comparison")
@@ -111,7 +114,6 @@ if selected_assets:
             st.info("Select a benchmark to display comparison.")
 else:
     st.warning("No valid assets found in your portfolio.")
-
 
 # --- Optional historical charts toggle ---
 if "show_plot" not in st.session_state:
