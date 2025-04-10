@@ -431,15 +431,22 @@ def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portf
     )
 
     st.plotly_chart(fig, use_container_width=True)
+import altair as alt
+
 def add_interactivity(
     base_chart,
     df,
     x_field,
     y_field,
+    tooltip_fields=None,
     rule_color="#f5c518",
-    rule_opacity=0.6
-):
-    # Create nearest point selection on x_field
+    rule_opacity=0.6,
+    show_rule=True,
+    show_text=False,
+    text_dx=10,
+    text_dy=-30
+    ):
+    # Create nearest x selection
     nearest = alt.selection_single(
         fields=[x_field],
         nearest=True,
@@ -448,19 +455,48 @@ def add_interactivity(
         clear="mouseout"
     )
 
-    # Invisible selectors
+    # Invisible selector points to trigger rule
     selectors = alt.Chart(df).mark_point(size=0, opacity=0).encode(
         x=x_field,
         y=y_field
     ).add_selection(nearest)
 
-    # Vertical rule that follows the mouse
+    # Vertical rule
     rule = alt.Chart(df).mark_rule(color=rule_color).encode(
         x=x_field,
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
-    )
+    ) if show_rule else alt.Chart(df)  # Empty if not shown
 
-    return base_chart + selectors + rule
+    # Optional floating text
+    if show_text:
+        text = alt.Chart(df).mark_text(
+            align="left",
+            dx=text_dx,
+            dy=text_dy,
+            fontSize=13,
+            fontWeight="bold",
+            color="white"
+        ).encode(
+            x=x_field,
+            y=y_field,
+            text=alt.condition(
+                nearest,
+                alt.Text(f"{y_field}:Q", format="$,.2f"),
+                alt.value("")
+            )
+        )
+        overlay = selectors + rule + text
+    else:
+        overlay = selectors + rule
+
+    # Attach native tooltip to base chart if fields are given
+    if tooltip_fields:
+        base_chart = base_chart.encode(
+            tooltip=[alt.Tooltip(f"{f}:Q", format="$,.2f" if "value" in f.lower() else "") for f in tooltip_fields]
+        )
+
+    return base_chart + overlay
+
 
 
 
