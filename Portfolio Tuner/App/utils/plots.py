@@ -60,8 +60,10 @@ def plot_single_gauge(title: str, value: float) -> go.Figure:
 
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict):
+    figs = []
     for title, value in metrics.items():
-        st.plotly_chart(plot_single_gauge(title, value), use_container_width=True)
+        figs.append(plot_single_gauge(title, value))
+    return figs
 
 
 # ----- Correlation Heatmap Plotting -----
@@ -122,8 +124,9 @@ def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, da
         return None, None
 
     metrics = calculate_portfolio_metrics(filtered_data)
-    needle_fig = plot_gauge_charts(metrics)
+    needle_fig = plot_gauge_charts(metrics)  # just collects figures
     heatmap_fig = plot_correlation_heatmap(filtered_data)
+
 
     return needle_fig, heatmap_fig
 
