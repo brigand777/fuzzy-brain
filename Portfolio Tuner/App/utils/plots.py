@@ -9,7 +9,11 @@ from plotly.subplots import make_subplots
 from datetime import timedelta
 import altair as alt
 import pandas as pd
-def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_df):
+def plot_portfolio_absolute_value(
+    data, selected_assets, start, end, portfolio_df,
+    x_axis_font_size=20,
+    y_axis_font_size=20
+):
     filtered_data = data[selected_assets].loc[start:end]
     amounts = portfolio_df.set_index("Asset").loc[selected_assets]["Amount"]
     dollar_values = filtered_data.multiply(amounts, axis=1)
@@ -24,8 +28,8 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         opacity=0.25,
         interpolate="monotone"
     ).encode(
-        x=alt.X("Date:T", axis=alt.Axis(title="Date")),
-        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f"))
+        x=alt.X("Date:T", axis=alt.Axis(title="Date", labelFontSize=x_axis_font_size)),
+        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f", labelFontSize=y_axis_font_size))
     )
 
     # Line chart with tooltip
@@ -43,19 +47,20 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
 
     base_chart = area + line
 
-    # Add vertical rule interaction (but no floating text)
+    # Add interactivity (rule + selectors, no floating text)
     interactive_chart = add_interactivity(
         base_chart=base_chart,
         df=df,
         x_field="Date",
         y_field="Portfolio Value"
     ).properties(
-        width=1000,
-        height=500,
+        width=700,
+        height=350,
         title="Portfolio Value Over Time"
     )
 
     return interactive_chart
+
 
 
 # ----- Metric Calculation Function -----
