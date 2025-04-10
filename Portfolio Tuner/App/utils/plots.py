@@ -7,8 +7,6 @@ import plotly.graph_objects as go
 import plotly.express as px
 from plotly.subplots import make_subplots
 from datetime import timedelta
-import altair as alt
-import pandas as pd
 
 def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_df):
     filtered_data = data[selected_assets].loc[start:end]
@@ -63,6 +61,7 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
     )
 
     return interactive_chart
+
 
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
@@ -169,11 +168,12 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
     returns = price_data.pct_change().dropna()
     corr = returns.corr()
 
-    # Format correlation values to 2 decimal places
-    corr_display = corr.copy()
-    corr_display[:] = np.round(corr_display.values, 2)
+    # Mask the diagonal
+    corr.values[np.diag_indices_from(corr)] = np.nan
 
-    # Red-blue gradient scale
+    # Format to 2 decimals
+    corr_display = np.round(corr, 2)
+
     red_blue_scale = [
         [0.0, "rgba(0,0,120,1)"],
         [0.1, "rgba(30,30,160,1)"],
@@ -205,6 +205,7 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
     )
 
     return fig
+
 
 
 
