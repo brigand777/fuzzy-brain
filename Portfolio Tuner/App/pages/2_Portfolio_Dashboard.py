@@ -68,20 +68,17 @@ if selected_assets:
     if selected_assets:
         st.subheader("📊 Portfolio Value Over Time")
 
-        
-
         # Inside your selected_assets block
         cumulative_chart = plot_portfolio_absolute_value(
             data, selected_assets,
             start=start_date, end=end_date,
-            portfolio_df=portfolio_df
-)
+            portfolio_df=portfolio_df)
 
 
         # Streamlit-native centering using columns
-        col1, col2, col3 = st.columns([1, 3, 1])
+        col1, col2, col3 = st.columns([1, 5, 1])
         with col2:
-            st.altair_chart(cumulative_chart, use_container_width=False)
+            st.altair_chart(cumulative_chart, use_container_width=True)
 
 
 
