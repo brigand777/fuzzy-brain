@@ -50,8 +50,8 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         x_field="Date",
         y_field="Portfolio Value"
     ).properties(
-        width=700,
-        height=350,
+        width=500,
+        height=250,
         title="Portfolio Value Over Time"
     )
 
