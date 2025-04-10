@@ -46,11 +46,11 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         x="Date:T",
         y="Portfolio Value:Q"
     )
-
+    size = 500
     # Combine with interactivity
     chart = (area + line).interactive().properties(
-        width=700,
-        height=350,
+        width=2*size,
+        height=size,
         title="Portfolio Value Over Time"
     )
 
