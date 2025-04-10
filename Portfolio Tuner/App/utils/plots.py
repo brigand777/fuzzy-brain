@@ -28,7 +28,7 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
 
     # Gradient area using a pseudo-color scale (via conditional fill)
     gradient_area = alt.Chart(df).mark_area(
-        line=None,
+        line=False,  # ✅ Properly disables the line
         interpolate="monotone"
     ).encode(
         x="Date:T",
