@@ -163,15 +163,14 @@ def plot_gauge_charts(metrics: dict):
 # ----- Correlation Heatmap Plotting -----
 import plotly.express as px
 import numpy as np
+import plotly.express as px
+import numpy as np
 
 def plot_correlation_heatmap(price_data: pd.DataFrame):
     returns = price_data.pct_change().dropna()
     corr = returns.corr()
 
-    # Mask the diagonal
-    corr.values[np.diag_indices_from(corr)] = np.nan
-
-    # Format to 2 decimals
+    # Format to 2 decimal places (including the diagonal)
     corr_display = np.round(corr, 2)
 
     red_blue_scale = [
@@ -205,9 +204,6 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
     )
 
     return fig
-
-
-
 
 # ----- Master Dashboard Plotter -----
 def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, date_range: tuple = None):
