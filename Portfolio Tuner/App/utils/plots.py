@@ -431,7 +431,6 @@ def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portf
     )
 
     st.plotly_chart(fig, use_container_width=True)
-import altair as alt
 
 def add_interactivity(
     base_chart,
@@ -439,20 +438,20 @@ def add_interactivity(
     y_field,
     df=None,
     tooltip_fields=None,
-    rule_color="#f5c518",
+    rule_color="lightgray",
     rule_opacity=0.6,
     show_rule=True,
     show_text=False,
     text_dx=10,
     text_dy=-30
-):
-    # Try to get df from base_chart if not passed
+    ):
+    # Get df from base_chart if not explicitly provided
     if df is None:
         df = getattr(base_chart, 'data', None)
         if df is None:
             raise TypeError("You must provide `df` or ensure `base_chart` has `.data` set.")
 
-    # Nearest selection
+    # Nearest x-position selector
     nearest = alt.selection_single(
         fields=[x_field],
         nearest=True,
@@ -461,16 +460,33 @@ def add_interactivity(
         clear="mouseout"
     )
 
+    # Transparent selectors for hover
     selectors = alt.Chart(df).mark_point(size=0, opacity=0).encode(
         x=x_field,
         y=y_field
     ).add_selection(nearest)
 
-    rule = alt.Chart(df).mark_rule(color=rule_color).encode(
+    # Vertical dashed rule
+    rule = alt.Chart(df).mark_rule(
+        strokeDash=[4, 4],
+        color=rule_color
+    ).encode(
         x=x_field,
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
     ) if show_rule else alt.Chart(df)
 
+    # Dot at intersection
+    dot = alt.Chart(df).mark_point(
+        filled=True,
+        color=rule_color,
+        size=60
+    ).encode(
+        x=x_field,
+        y=y_field,
+        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
+    )
+
+    # Optional floating text (still available)
     if show_text:
         text = alt.Chart(df).mark_text(
             align="left",
@@ -488,11 +504,11 @@ def add_interactivity(
                 alt.value("")
             )
         )
-        overlay = selectors + rule + text
+        overlay = selectors + rule + dot + text
     else:
-        overlay = selectors + rule
+        overlay = selectors + rule + dot
 
-    # Add tooltip if requested
+    # Optional built-in tooltip
     if tooltip_fields:
         base_chart = base_chart.encode(
             tooltip=[
@@ -501,6 +517,7 @@ def add_interactivity(
         )
 
     return base_chart + overlay
+
 
 def plot_cumulative_returns(results_dict):
     cumul_df_list = []
