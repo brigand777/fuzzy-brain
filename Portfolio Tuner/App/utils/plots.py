@@ -9,38 +9,45 @@ from plotly.subplots import make_subplots
 from datetime import timedelta
 
 def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_df):
+    # Filter price data to date range and selected assets
     filtered_data = data[selected_assets].loc[start:end]
 
-    # Ensure matching order
-    weights = portfolio_df.set_index("Asset").loc[selected_assets]["Weight"].values
+    # Get asset amounts from portfolio_df
+    amounts = portfolio_df.set_index("Asset").loc[selected_assets]["Amount"]
 
-    # Compute portfolio value
-    normalized = filtered_data / filtered_data.iloc[0]  # normalize to 1
-    portfolio_value = (normalized * weights).sum(axis=1)
+    # Multiply historical prices by amounts to get dollar value per asset
+    dollar_values = filtered_data.multiply(amounts, axis=1)
 
+    # Sum to get total portfolio value at each time step
+    portfolio_value = dollar_values.sum(axis=1)
+
+    # Format for Altair
     df = portfolio_value.reset_index()
     df.columns = ["Date", "Portfolio Value"]
 
     # Base line chart
     line = alt.Chart(df).mark_line(
-        color="#f5c518",  # Ferrari gold
+        color="#f5c518",
         strokeWidth=3
     ).encode(
         x=alt.X("Date:T", axis=alt.Axis(title="Date")),
-        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f")),
-        tooltip=[alt.Tooltip("Date:T"), alt.Tooltip("Portfolio Value:Q", format="$,.2f")]
+        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Portfolio Value ($)", format="$,.0f")),
+        tooltip=[
+            alt.Tooltip("Date:T"),
+            alt.Tooltip("Portfolio Value:Q", format="$,.2f")
+        ]
     )
 
-    # Gradient area underneath
+    # Gradient area under the line
     area = alt.Chart(df).mark_area(
-        opacity=0.2,
+        opacity=0.3,
         color="#f5c518"
     ).encode(
         x="Date:T",
         y="Portfolio Value:Q"
     )
 
-    # Combine area and line, enable interactivity
+    # Combine with interactivity
     chart = (area + line).interactive().properties(
         width=700,
         height=350,
@@ -48,6 +55,7 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
     )
 
     return chart
+
 
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
