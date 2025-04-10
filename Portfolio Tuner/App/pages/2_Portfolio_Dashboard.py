@@ -76,7 +76,7 @@ if selected_assets:
 
 
         # Streamlit-native centering using columns
-        col1, col2, col3 = st.columns([1, 5, 1])
+        col1, col2, col3 = st.columns([1, 8, 1])
         with col2:
             st.altair_chart(cumulative_chart, use_container_width=True)
 
