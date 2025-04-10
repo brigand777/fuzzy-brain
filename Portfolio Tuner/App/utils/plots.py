@@ -33,14 +33,25 @@ import plotly.graph_objects as go
 
 # ---- Single Gauge using Plotly ----
 def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.Figure:
-    # Normalize and fallback
-    metric_key = metric_name.lower() if metric_name else title.lower().replace(" ", "").replace("_", "")
+    # Map displayed labels to internal config keys
+    label_to_metric = {
+        "cumulative returns": "cumulative",
+        "volatility": "volatility",
+        "sharpe ratio": "sharpe",
+        "max drawdown": "drawdown",
+        "calmar ratio": "calmar",
+        "value at risk (95%)": "var"
+    }
 
+    # Normalize and look up
+    normalized_label = title.strip().lower()
+    metric_key = metric_name.lower() if metric_name else label_to_metric.get(normalized_label, normalized_label)
+
+    # Metric-specific ranges and thresholds
     metric_settings = {
         "sharpe":     {"range": [-1, 3], "threshold": 1.5},
         "calmar":     {"range": [0, 5], "threshold": 2},
         "drawdown":   {"range": [0, 100], "threshold": 20},
-        "cumulativereturn": {"range": [0, 100], "threshold": 10},
         "cumulative": {"range": [0, 100], "threshold": 10},
         "var":        {"range": [0, 20], "threshold": 5},
         "volatility": {"range": [0, 50], "threshold": 20}
@@ -61,9 +72,9 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
             'borderwidth': 2,
             'bordercolor': "gray",
             'steps': [
-                {'range': [min_val, threshold], 'color': '#222'},         # low/ok
-                {'range': [threshold, (min_val+max_val)/2], 'color': '#b22222'},  # caution
-                {'range': [(min_val+max_val)/2, max_val], 'color': '#ffcc00'}     # redline!
+                {'range': [min_val, threshold], 'color': '#222'},
+                {'range': [threshold, (min_val + max_val) / 2], 'color': '#b22222'},
+                {'range': [(min_val + max_val) / 2, max_val], 'color': '#ffcc00'}
             ],
             'threshold': {
                 'line': {'color': "red", 'width': 4},
@@ -76,7 +87,8 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
     ))
 
     fig.update_layout(
-        paper_bgcolor="black",
+        paper_bgcolor='rgba(0,0,0,0)',   # ✅ transparent background
+        plot_bgcolor='rgba(0,0,0,0)',    # ✅ transparent plot area
         font={'color': "white"},
         height=220,
         margin=dict(t=20, b=10, l=10, r=10)
@@ -86,11 +98,11 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
 
 
 
+
+
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict):
-    return [plot_single_gauge(title, value) for title, value in metrics.items()]
-
-
+    return [plot_single_gauge(name, value) for name, value in metrics.items()]
 
 # ----- Correlation Heatmap Plotting -----
 def plot_correlation_heatmap(price_data: pd.DataFrame):
