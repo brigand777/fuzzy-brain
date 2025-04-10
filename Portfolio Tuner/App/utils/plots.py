@@ -17,17 +17,8 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
     df = portfolio_value.reset_index()
     df.columns = ["Date", "Portfolio Value"]
 
-    # Line chart
-    line = alt.Chart(df).mark_line(
-        color="#f5c518",
-        strokeWidth=3
-    ).encode(
-        x=alt.X("Date:T", axis=alt.Axis(title="Date")),
-        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f"))
-    )
-
-    # Gradient area using a pseudo-color scale (via conditional fill)
-    gradient_area = alt.Chart(df).mark_area(
+    # Visual base chart (area + line)
+    area = alt.Chart(df).mark_area(
         color="#f5c518",
         opacity=0.25,
         interpolate="monotone"
@@ -36,21 +27,27 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         y="Portfolio Value:Q"
     )
 
+    line = alt.Chart(df).mark_line(
+        color="#f5c518",
+        strokeWidth=3
+    ).encode(
+        x="Date:T",
+        y="Portfolio Value:Q"
+    )
 
-    # Before: passing the full layer chart
-    base_chart = gradient_area + line
+    base_chart = area + line
 
     interactive_chart = add_interactivity(
-        base_chart=alt.Chart(df),  # 👈 FIX: pass just the base chart with data
+        base_chart=base_chart,
+        df=df,
         x_field="Date",
         y_field="Portfolio Value",
-        tooltip_field="Portfolio Value",
-        rule_color="#f5c518",
-        rule_opacity=0.6,
-        text_dx=10,
-        text_dy=-30
-    ) + base_chart  # Layer the interactivity with the base visual
-
+        tooltip_field="Portfolio Value"
+    ).properties(
+        width=700,
+        height=350,
+        title="Portfolio Value Over Time"
+    )
 
     return interactive_chart
 
@@ -424,45 +421,58 @@ def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portf
 
     st.plotly_chart(fig, use_container_width=True)
 
-def add_interactivity(
-    base_chart, 
-    x_field, 
-    y_field, 
-    tooltip_field=None, 
-    rule_color="gray", 
-    rule_opacity=0.5,
-    text_dx=5,
-    text_dy=-5
-):
-    nearest = alt.selection_single(fields=[x_field], nearest=True, on="mouseover", empty="none")
 
-    selectors = base_chart.mark_point(size=0).encode(
+def add_interactivity(
+        base_chart,
+        df,
+        x_field,
+        y_field,
+        tooltip_field,
+        rule_color="#f5c518",
+        rule_opacity=0.6,
+        text_dx=10,
+        text_dy=-30
+    ):
+    # Selection: nearest x value under mouse
+    nearest = alt.selection_single(
+        fields=[x_field],
+        nearest=True,
+        on="mouseover",
+        empty="none",
+        clear="mouseout"
+    )
+
+    # Invisible points for mouse detection
+    selectors = alt.Chart(df).mark_point(size=0, opacity=0).encode(
         x=x_field,
-        opacity=alt.value(0)
+        y=y_field
     ).add_selection(nearest)
 
-    rule = base_chart.mark_rule(color=rule_color).encode(
+    # Vertical rule on hover
+    rule = alt.Chart(df).mark_rule(color=rule_color).encode(
         x=x_field,
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
     )
 
-    if tooltip_field is not None:
-        tooltip_expr = f"datum.{tooltip_field}" if isinstance(tooltip_field, str) else \
-            alt.expr.concat(*[f"datum.{field} + ' '" for field in tooltip_field])
-
-        text = base_chart.mark_text(align="left", dx=text_dx, dy=text_dy).encode(
+    # Floating text tooltip with portfolio value
+    text = alt.Chart(df).mark_text(
+        align="left",
+        dx=text_dx,
+        dy=text_dy,
+        fontSize=13,
+        fontWeight="bold",
+        color="white"
+    ).encode(
         x=x_field,
         y=y_field,
         text=alt.condition(
             nearest,
-            alt.Text(tooltip_field + ":Q", format=".2f"),
+            alt.Text(tooltip_field + ":Q", format="$,.2f"),
             alt.value("")
         )
-)
+    )
 
-        return selectors + rule + text
-    else:
-        return selectors + rule
+    return base_chart + selectors + rule + text
 
 
 def plot_cumulative_returns(results_dict):
