@@ -43,10 +43,11 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         )
     )
 
+    # Before: passing the full layer chart
     base_chart = gradient_area + line
 
     interactive_chart = add_interactivity(
-        base_chart=base_chart,
+        base_chart=alt.Chart(df),  # 👈 FIX: pass just the base chart with data
         x_field="Date",
         y_field="Portfolio Value",
         tooltip_field="Portfolio Value",
@@ -54,11 +55,8 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         rule_opacity=0.6,
         text_dx=10,
         text_dy=-30
-    ).properties(
-        width=700,
-        height=350,
-        title="Portfolio Value Over Time"
-    )
+    ) + base_chart  # Layer the interactivity with the base visual
+
 
     return interactive_chart
 
@@ -432,8 +430,6 @@ def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portf
 
     st.plotly_chart(fig, use_container_width=True)
 
-
-
 def add_interactivity(
     base_chart, 
     x_field, 
@@ -444,52 +440,31 @@ def add_interactivity(
     text_dx=5,
     text_dy=-5
 ):
-    """
-    Enhance a base Altair chart with interactive features.
-    
-    Parameters:
-        base_chart (alt.Chart): The base Altair chart.
-        x_field (str): The field name used for the x-axis (typically a date field).
-        y_field (str): The field name used for the y-axis.
-        tooltip_field (str or list, optional): Field(s) to display as tooltip on hover.
-            If a list, the fields are concatenated with a separator.
-        rule_color (str): Color of the vertical rule.
-        rule_opacity (float): Opacity of the vertical rule when active.
-        text_dx (int): Horizontal offset for the tooltip text.
-        text_dy (int): Vertical offset for the tooltip text.
-    
-    Returns:
-        alt.LayerChart: The interactive chart with a vertical rule and tooltips.
-    """
-    # Create a nearest selection based on the x_field.
     nearest = alt.selection_single(fields=[x_field], nearest=True, on="mouseover", empty="none")
-    
-    # Create transparent selectors across the chart to capture the mouse position.
+
     selectors = base_chart.mark_point(size=0).encode(
+        x=x_field,
         opacity=alt.value(0)
     ).add_selection(nearest)
-    
-    # Create a vertical rule that highlights the x position.
+
     rule = base_chart.mark_rule(color=rule_color).encode(
+        x=x_field,
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
     )
-    
-    # Prepare tooltip text.
+
     if tooltip_field is not None:
-        # If tooltip_field is a list, create a concatenated field.
-        if isinstance(tooltip_field, list):
-            tooltip_expr = alt.expr.concat(*[f"datum.{field} + ' '" for field in tooltip_field])
-        else:
-            tooltip_expr = f"datum.{tooltip_field}"
-            
+        tooltip_expr = f"datum.{tooltip_field}" if isinstance(tooltip_field, str) else \
+            alt.expr.concat(*[f"datum.{field} + ' '" for field in tooltip_field])
+
         text = base_chart.mark_text(align="left", dx=text_dx, dy=text_dy).encode(
+            x=x_field,
+            y=y_field,
             text=alt.condition(nearest, alt.ExprRef(expr=tooltip_expr), alt.value(''))
         )
-        interactive_chart = alt.layer(base_chart, selectors, rule, text).interactive()
+        return selectors + rule + text
     else:
-        interactive_chart = alt.layer(base_chart, selectors, rule).interactive()
-    
-    return interactive_chart
+        return selectors + rule
+
 
 def plot_cumulative_returns(results_dict):
     cumul_df_list = []
