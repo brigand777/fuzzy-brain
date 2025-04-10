@@ -443,15 +443,14 @@ def add_interactivity(
     show_rule=True,
     show_text=False,
     text_dx=10,
-    text_dy=-30
+    text_dy=-30,
+    dot_color=None  # Can now be inferred
     ):
-    # Get df from base_chart if not explicitly provided
     if df is None:
         df = getattr(base_chart, 'data', None)
         if df is None:
             raise TypeError("You must provide `df` or ensure `base_chart` has `.data` set.")
 
-    # Nearest x-position selector
     nearest = alt.selection_single(
         fields=[x_field],
         nearest=True,
@@ -460,13 +459,11 @@ def add_interactivity(
         clear="mouseout"
     )
 
-    # Transparent selectors for hover
     selectors = alt.Chart(df).mark_point(size=0, opacity=0).encode(
         x=x_field,
         y=y_field
     ).add_selection(nearest)
 
-    # Vertical dashed rule
     rule = alt.Chart(df).mark_rule(
         strokeDash=[4, 4],
         color=rule_color
@@ -475,18 +472,31 @@ def add_interactivity(
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
     ) if show_rule else alt.Chart(df)
 
-    # Dot at intersection
+    # Determine dot color:
+    if dot_color:
+        dot_color_expr = alt.value(dot_color)
+        dot_kwargs = {'color': dot_color}
+    elif "color" in base_chart.encoding:
+        # If the base chart is color-encoded, use the same
+        dot_color_expr = base_chart.encoding["color"]
+        dot_kwargs = {}  # color will be bound via encoding
+    else:
+        # Fallback
+        dot_color_expr = alt.value(rule_color)
+        dot_kwargs = {'color': rule_color}
+
+    # Intersection dot
     dot = alt.Chart(df).mark_point(
         filled=True,
-        color=rule_color,
-        size=60
+        size=60,
+        **dot_kwargs
     ).encode(
         x=x_field,
         y=y_field,
+        color=dot_color_expr,
         opacity=alt.condition(nearest, alt.value(1), alt.value(0))
     )
 
-    # Optional floating text (still available)
     if show_text:
         text = alt.Chart(df).mark_text(
             align="left",
@@ -508,7 +518,6 @@ def add_interactivity(
     else:
         overlay = selectors + rule + dot
 
-    # Optional built-in tooltip
     if tooltip_fields:
         base_chart = base_chart.encode(
             tooltip=[
@@ -516,8 +525,7 @@ def add_interactivity(
             ]
         )
 
-    return base_chart + overlay
-
+    return (base_chart + overlay).interactive()
 
 def plot_cumulative_returns(results_dict):
     cumul_df_list = []
