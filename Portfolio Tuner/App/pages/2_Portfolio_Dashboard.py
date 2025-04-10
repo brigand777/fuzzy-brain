@@ -8,7 +8,7 @@ from utils.plots import (
     plot_portfolio_dashboard,
     plot_historical_assets,
     plot_asset_cumulative_returns,
-    plot_needle_charts
+    plot_gauge_charts
 )
 
 pn.extension('echarts')
@@ -76,7 +76,7 @@ if selected_assets:
     # --- Cumulative Portfolio Value Chart (Centered) ---
     st.markdown("### 📊 Portfolio Value Over Time")
     with st.container():
-        st.markdown("<div style='width:70%; margin:auto;'>", unsafe_allow_html=True)
+        st.markdown("<div style='width:50%; margin:auto;'>", unsafe_allow_html=True)
         cumulative_chart = plot_asset_cumulative_returns(
             data, selected_assets,
             benchmark=None,  # This chart is just total value, no benchmark
@@ -87,9 +87,12 @@ if selected_assets:
         st.markdown("</div>", unsafe_allow_html=True)
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
-    st.markdown("### 🧭 Portfolio Metrics (Inspired by Porsche 992.1)")
-    if isinstance(metrics_fig, pn.layout.Panel):
-        st.components.v1.html(metrics_fig._repr_html_(), height=300)
+    st.markdown("### 🧭 Portfolio Metrics ")
+    if metrics_fig:  # This is your list of 6 Plotly figures
+        cols = st.columns(6)
+        for col, fig in zip(cols, metrics_fig):
+            with col:
+                st.plotly_chart(fig, use_container_width=True)
 
     # --- Comparison Charts (2-column layout) ---
     st.markdown("### 🔍 Portfolio Comparison")

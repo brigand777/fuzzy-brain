@@ -1,6 +1,5 @@
 streamlit-authenticator==0.2.2
 fitter
-panel>=1.2.0
 streamlit
 pandas
 numpy

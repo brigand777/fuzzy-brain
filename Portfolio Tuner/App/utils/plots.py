@@ -31,60 +31,38 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
 
 import plotly.graph_objects as go
 
-import panel as pn
-pn.extension('echarts')
-
-# ----- Porsche-Inspired Animated Gauge Chart -----
-def plot_single_needle(title: str, value: float) -> pn.indicators.Gauge:
-    return pn.indicators.Gauge(
-        name=title,
-        value=value * 100,  # Scale to 0–100 range
-        bounds=(0, 100),
-        format="{value:.0f}%",
-        height=250,
-        sizing_mode='stretch_width',
-        colors=[(0.33, '#00ff00'), (0.66, '#ffff00'), (1.0, '#ff0000')],
-        custom_echarts_options={
-            'series': [{
-                'axisLine': {
-                    'lineStyle': {
-                        'width': 30,
-                        'color': [
-                            [0.33, '#00ff00'],
-                            [0.66, '#ffff00'],
-                            [1, '#ff0000']
-                        ]
-                    }
-                },
-                'pointer': {
-                    'width': 6,
-                    'length': '80%',
-                    'itemStyle': {
-                        'color': '#000'
-                    }
-                },
-                'detail': {
-                    'formatter': '{value}%',
-                    'fontSize': 18,
-                    'offsetCenter': [0, '60%']
-                },
-                'title': {
-                    'offsetCenter': [0, '-40%'],
-                    'fontStyle': 'italic',
-                    'fontWeight': 'bold',
-                    'color': '#111'
-                },
-                'animation': True,
-                'animationDuration': 1000,
-                'animationEasing': 'cubicOut'
-            }],
-            'backgroundColor': '#f7f7f7'
+# ---- Single Gauge using Plotly ----
+def plot_single_gauge(title: str, value: float) -> go.Figure:
+    fig = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = value * 100,  # Convert to percentage
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': title, 'font': {'size': 20}},
+        gauge = {
+            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "darkgray"},
+            'bar': {'color': "black", 'thickness': 0.3},
+            'bgcolor': "white",
+            'borderwidth': 2,
+            'bordercolor': "gray",
+            'steps': [
+                {'range': [0, 33], 'color': '#00ff00'},
+                {'range': [33, 66], 'color': '#ffff00'},
+                {'range': [66, 100], 'color': '#ff0000'}
+            ],
+            'threshold': {
+                'line': {'color': "red", 'width': 4},
+                'thickness': 0.75,
+                'value': value * 100
+            }
         }
-    )
+    ))
+    return fig
 
-# ----- Dashboard Row of Porsche-Like Gauges Using Panel -----
-def plot_needle_charts(metrics: dict):
-    return pn.Row(*[plot_single_needle(title, value) for title, value in metrics.items()])
+# ---- Layout for Multiple Gauges ----
+def plot_gauge_charts(metrics: dict):
+    for title, value in metrics.items():
+        st.plotly_chart(plot_single_gauge(title, value), use_container_width=True)
+
 
 # ----- Correlation Heatmap Plotting -----
 def plot_correlation_heatmap(price_data: pd.DataFrame):
@@ -144,7 +122,7 @@ def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, da
         return None, None
 
     metrics = calculate_portfolio_metrics(filtered_data)
-    needle_fig = plot_needle_charts(metrics)
+    needle_fig = plot_gauge_charts(metrics)
     heatmap_fig = plot_correlation_heatmap(filtered_data)
 
     return needle_fig, heatmap_fig
