@@ -8,6 +8,47 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from datetime import timedelta
 
+def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_df):
+    filtered_data = data[selected_assets].loc[start:end]
+
+    # Ensure matching order
+    weights = portfolio_df.set_index("Asset").loc[selected_assets]["Weight"].values
+
+    # Compute portfolio value
+    normalized = filtered_data / filtered_data.iloc[0]  # normalize to 1
+    portfolio_value = (normalized * weights).sum(axis=1)
+
+    df = portfolio_value.reset_index()
+    df.columns = ["Date", "Portfolio Value"]
+
+    # Base line chart
+    line = alt.Chart(df).mark_line(
+        color="#f5c518",  # Ferrari gold
+        strokeWidth=3
+    ).encode(
+        x=alt.X("Date:T", axis=alt.Axis(title="Date")),
+        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f")),
+        tooltip=[alt.Tooltip("Date:T"), alt.Tooltip("Portfolio Value:Q", format="$,.2f")]
+    )
+
+    # Gradient area underneath
+    area = alt.Chart(df).mark_area(
+        opacity=0.2,
+        color="#f5c518"
+    ).encode(
+        x="Date:T",
+        y="Portfolio Value:Q"
+    )
+
+    # Combine area and line, enable interactivity
+    chart = (area + line).interactive().properties(
+        width=700,
+        height=350,
+        title="Portfolio Value Over Time"
+    )
+
+    return chart
+
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
     returns = price_data.pct_change().dropna()

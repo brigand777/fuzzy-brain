@@ -7,7 +7,8 @@ from utils.plots import (
     plot_portfolio_dashboard,
     plot_historical_assets,
     plot_asset_cumulative_returns,
-    plot_gauge_charts
+    plot_gauge_charts,
+    plot_portfolio_absolute_value
 )
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
@@ -58,14 +59,6 @@ if selected_assets:
         data, selected_assets, date_range=date_range
     )
 
-    # --- Benchmark selection ---
-    benchmark = st.selectbox(
-        "Select a benchmark for comparison:",
-        options=["None"] + available_assets,
-        index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
-    )
-    benchmark = None if benchmark == "None" else benchmark
-
     start_date, end_date = date_range
     start_date = ensure_utc(start_date)
     end_date = ensure_utc(end_date)
@@ -75,13 +68,15 @@ if selected_assets:
     if selected_assets:
         st.subheader("📊 Portfolio Value Over Time")
 
-        # Create the chart (make sure this function returns a chart object)
-        cumulative_chart = plot_asset_cumulative_returns(
+        
+
+        # Inside your selected_assets block
+        cumulative_chart = plot_portfolio_absolute_value(
             data, selected_assets,
-            benchmark=None,
             start=start_date, end=end_date,
             portfolio_df=portfolio_df
-        ).properties(width=700)  # 👈 Altair-specific: set chart width here
+)
+
 
         # Streamlit-native centering using columns
         col1, col2, col3 = st.columns([1, 3, 1])
@@ -112,6 +107,13 @@ if selected_assets:
 
     with col2:
         st.subheader("Cumulative Return vs. Benchmark")
+        # --- Benchmark selection ---
+        benchmark = st.selectbox(
+            "Select a benchmark for comparison:",
+            options=["None"] + available_assets,
+            index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
+        )
+        benchmark = None if benchmark == "None" else benchmark
         if benchmark:
             benchmark_chart = plot_asset_cumulative_returns(
                 data, selected_assets,
