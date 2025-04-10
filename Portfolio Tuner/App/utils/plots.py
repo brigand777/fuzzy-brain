@@ -31,7 +31,7 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
 
 import plotly.graph_objects as go
 
-iimport panel as pn
+import panel as pn
 pn.extension('echarts')
 
 # ----- Porsche-Inspired Animated Gauge Chart -----
