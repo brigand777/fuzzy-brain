@@ -11,8 +11,8 @@ import altair as alt
 import pandas as pd
 def plot_portfolio_absolute_value(
     data, selected_assets, start, end, portfolio_df,
-    x_axis_font_size=20,
-    y_axis_font_size=20
+    x_axis_font_size=15,
+    y_axis_font_size=15
 ):
     filtered_data = data[selected_assets].loc[start:end]
     amounts = portfolio_df.set_index("Asset").loc[selected_assets]["Amount"]
@@ -54,8 +54,8 @@ def plot_portfolio_absolute_value(
         x_field="Date",
         y_field="Portfolio Value"
     ).properties(
-        width=700,
-        height=350,
+        width=1000,
+        height=500,
         title="Portfolio Value Over Time"
     )
 
