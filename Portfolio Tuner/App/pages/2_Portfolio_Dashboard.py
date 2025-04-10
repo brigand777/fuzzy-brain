@@ -104,13 +104,11 @@ if selected_assets:
 
     with col2:
         st.subheader("Cumulative Return vs. Benchmark")
-        # --- Benchmark selection ---
-        benchmark = st.selectbox(
-            "Select a benchmark for comparison:",
-            options=["None"] + available_assets,
-            index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
-        )
-        benchmark = None if benchmark == "None" else benchmark
+
+        # --- Default benchmark to BTC if available
+        benchmark = "BTC" if "BTC" in available_assets else None
+
+        # --- Plot the chart first (default BTC or None)
         if benchmark:
             benchmark_chart = plot_asset_cumulative_returns(
                 data, selected_assets,
@@ -120,7 +118,27 @@ if selected_assets:
             )
             st.altair_chart(benchmark_chart, use_container_width=True)
         else:
+            st.info("No benchmark selected by default.")
+
+        # --- Benchmark selector (appears below the chart)
+        benchmark_input = st.selectbox(
+            "Select a different benchmark for comparison:",
+            options=["None"] + available_assets,
+            index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
+        )
+
+        # --- If user changes selection, update chart
+        if benchmark_input != benchmark and benchmark_input != "None":
+            benchmark_chart = plot_asset_cumulative_returns(
+                data, selected_assets,
+                benchmark=benchmark_input,
+                start=start_date, end=end_date,
+                portfolio_df=portfolio_df
+            )
+            st.altair_chart(benchmark_chart, use_container_width=True)
+        elif benchmark_input == "None":
             st.info("Select a benchmark to display comparison.")
+
 else:
     st.warning("No valid assets found in your portfolio.")
 
