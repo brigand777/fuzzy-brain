@@ -9,7 +9,6 @@ from plotly.subplots import make_subplots
 from datetime import timedelta
 import altair as alt
 import pandas as pd
-
 def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_df):
     filtered_data = data[selected_assets].loc[start:end]
     amounts = portfolio_df.set_index("Asset").loc[selected_assets]["Amount"]
@@ -19,7 +18,7 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
     df = portfolio_value.reset_index()
     df.columns = ["Date", "Portfolio Value"]
 
-    # Base area
+    # Area background
     area = alt.Chart(df).mark_area(
         color="#f5c518",
         opacity=0.25,
@@ -29,7 +28,7 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f"))
     )
 
-    # Line on top
+    # Line chart with tooltip
     line = alt.Chart(df).mark_line(
         color="#f5c518",
         strokeWidth=3
@@ -42,13 +41,22 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
         ]
     )
 
-    chart = (area + line).interactive().properties(
+    base_chart = area + line
+
+    # Add vertical rule interaction (but no floating text)
+    interactive_chart = add_interactivity(
+        base_chart=base_chart,
+        df=df,
+        x_field="Date",
+        y_field="Portfolio Value"
+    ).properties(
         width=700,
         height=350,
         title="Portfolio Value Over Time"
     )
 
-    return chart
+    return interactive_chart
+
 
 # ----- Metric Calculation Function -----
 def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
@@ -418,20 +426,15 @@ def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portf
     )
 
     st.plotly_chart(fig, use_container_width=True)
-
-
 def add_interactivity(
-        base_chart,
-        df,
-        x_field,
-        y_field,
-        tooltip_field,
-        rule_color="#f5c518",
-        rule_opacity=0.6,
-        text_dx=10,
-        text_dy=-30
-    ):
-    # Selection: nearest x value under mouse
+    base_chart,
+    df,
+    x_field,
+    y_field,
+    rule_color="#f5c518",
+    rule_opacity=0.6
+):
+    # Create nearest point selection on x_field
     nearest = alt.selection_single(
         fields=[x_field],
         nearest=True,
@@ -440,37 +443,20 @@ def add_interactivity(
         clear="mouseout"
     )
 
-    # Invisible points for mouse detection
+    # Invisible selectors
     selectors = alt.Chart(df).mark_point(size=0, opacity=0).encode(
         x=x_field,
         y=y_field
     ).add_selection(nearest)
 
-    # Vertical rule on hover
+    # Vertical rule that follows the mouse
     rule = alt.Chart(df).mark_rule(color=rule_color).encode(
         x=x_field,
         opacity=alt.condition(nearest, alt.value(rule_opacity), alt.value(0))
     )
 
-    # Floating text tooltip with portfolio value
-    text = alt.Chart(df).mark_text(
-        align="left",
-        dx=text_dx,
-        dy=text_dy,
-        fontSize=13,
-        fontWeight="bold",
-        color="white"
-    ).encode(
-        x=x_field,
-        y=y_field,
-        text=alt.condition(
-            nearest,
-            alt.Text(tooltip_field + ":Q", format="$,.2f"),
-            alt.value("")
-        )
-    )
+    return base_chart + selectors + rule
 
-    return base_chart + selectors + rule + text
 
 
 def plot_cumulative_returns(results_dict):
