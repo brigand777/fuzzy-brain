@@ -63,12 +63,6 @@ def plot_portfolio_absolute_value(
     return interactive_chart
 
 # ----- Metric Calculation Function -----
-import numpy as np
-import pandas as pd
-
-import numpy as np
-import pandas as pd
-
 def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataFrame) -> dict:
     """
     Calculate portfolio-level performance metrics using actual asset weights.
@@ -247,8 +241,6 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
     return fig
 
 # ----- Master Dashboard Plotter -----
-from utils.metrics import calculate_portfolio_metrics  # Make sure this is imported
-
 def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, portfolio_df: pd.DataFrame, date_range: tuple = None):
     if not selected_assets:
         return None, None
