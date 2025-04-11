@@ -119,9 +119,7 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
 import plotly.graph_objects as go
 
 # ---- Single Gauge using Plotly ----
-import plotly.graph_objects as go
-
-def plot_single_gauge(title: str, value: float, metric_name: str = None, title_font_size: int = 18) -> go.Figure:
+def plot_single_gauge(title: str, value: float, metric_name: str = None, title_font_size: int = 15) -> go.Figure:
     label_to_metric = {
         "cumulative returns": "cumulative",
         "volatility": "volatility",
@@ -134,22 +132,37 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
     normalized_label = title.strip().lower()
     metric_key = metric_name.lower() if metric_name else label_to_metric.get(normalized_label, normalized_label)
 
-    # Define which metrics should show %
+    # Metrics that should display as %
     percent_metrics = {"cumulative", "volatility", "drawdown", "var"}
 
-    # Metric-specific settings
+    # Metric-specific thresholds (bad if value is below threshold)
     metric_settings = {
-        "sharpe":     {"range": [-1, 3], "threshold": 1.5},
-        "calmar":     {"range": [0, 5], "threshold": 2},
-        "drawdown":   {"range": [-100, 0], "threshold": -60},
+        "sharpe":     {"range": [-1, 3], "threshold": 1.0},
+        "calmar":     {"range": [0, 5], "threshold": 1.0},
+        "drawdown":   {"range": [-100, 0], "threshold": -20},
         "cumulative": {"range": [0, 100], "threshold": 10},
         "var":        {"range": [0, 20], "threshold": 5},
-        "volatility": {"range": [0, 70], "threshold": 50}
+        "volatility": {"range": [0, 70], "threshold": 30}
     }
 
     settings = metric_settings.get(metric_key, {"range": [0, 100], "threshold": 50})
     min_val, max_val = settings["range"]
     threshold = settings["threshold"]
+
+    # Decide if higher is better or lower is better
+    is_better_above = metric_key not in {"drawdown", "var", "volatility"}  # lower is better for these
+
+    # Color ranges based on threshold
+    if is_better_above:
+        steps = [
+            {'range': [min_val, threshold], 'color': 'darkred'},
+            {'range': [threshold, max_val], 'color': 'darkgreen'}
+        ]
+    else:
+        steps = [
+            {'range': [min_val, threshold], 'color': 'darkgreen'},
+            {'range': [threshold, max_val], 'color': 'darkred'}
+        ]
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -163,16 +176,16 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
             'axis': {
                 'range': [min_val, max_val],
                 'tickmode': 'array',
-                'tickvals': [],  # 👈 no tick labels
+                'tickvals': [],
                 'tickwidth': 0
             },
             'bar': {'color': "lightgray", 'thickness': 0.35},
             'bgcolor': "black",
             'borderwidth': 2,
             'bordercolor': "gray",
-            'steps': [],
+            'steps': steps,
             'threshold': {
-                'line': {'color': "gray", 'width': 4},
+                'line': {'color': "red", 'width': 4},
                 'thickness': 0.75,
                 'value': value
             }
