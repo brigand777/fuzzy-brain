@@ -119,7 +119,10 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
 import plotly.graph_objects as go
 
 # ---- Single Gauge using Plotly ----
-def plot_single_gauge(title: str, value: float, metric_name: str = None, title_font_size: int = 15) -> go.Figure:
+import plotly.graph_objects as go
+
+def plot_single_gauge(title: str, value: float, metric_name: str = None, title_font_size: int = 20) -> go.Figure:
+    # Label → internal key
     label_to_metric = {
         "cumulative returns": "cumulative",
         "volatility": "volatility",
@@ -132,50 +135,44 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
     normalized_label = title.strip().lower()
     metric_key = metric_name.lower() if metric_name else label_to_metric.get(normalized_label, normalized_label)
 
-    # Metrics that should display as %
     percent_metrics = {"cumulative", "volatility", "drawdown", "var"}
 
-    # Metric-specific thresholds (bad if value is below threshold)
+    # Metric-specific thresholds
     metric_settings = {
-        "sharpe":     {"range": [-1, 3], "threshold": 1.0},
-        "calmar":     {"range": [0, 5], "threshold": 1.0},
-        "drawdown":   {"range": [-100, 0], "threshold": -20},
-        "cumulative": {"range": [0, 100], "threshold": 10},
-        "var":        {"range": [0, 20], "threshold": 5},
-        "volatility": {"range": [0, 70], "threshold": 30}
+        "sharpe":     {"range": [-1, 3], "threshold": 1.0, "better": "above"},
+        "calmar":     {"range": [0, 5], "threshold": 1.0, "better": "above"},
+        "drawdown":   {"range": [-100, 0], "threshold": -20, "better": "below"},
+        "cumulative": {"range": [0, 100], "threshold": 10, "better": "above"},
+        "var":        {"range": [0, 20], "threshold": 5, "better": "below"},
+        "volatility": {"range": [0, 70], "threshold": 30, "better": "below"}
     }
 
-    settings = metric_settings.get(metric_key, {"range": [0, 100], "threshold": 50})
+    settings = metric_settings.get(metric_key, {"range": [0, 100], "threshold": 50, "better": "above"})
     min_val, max_val = settings["range"]
     threshold = settings["threshold"]
+    better = settings["better"]
 
-    # Decide if higher is better or lower is better
-    is_better_above = metric_key not in {"drawdown", "var", "volatility"}  # lower is better for these
+    is_good = value >= threshold if better == "above" else value <= threshold
+    number_color = "limegreen" if is_good else "red"
+    suffix = "%" if metric_key in percent_metrics else ""
 
-    # Color ranges based on threshold
-    if is_better_above:
-        steps = [
-            {'range': [min_val, threshold], 'color': 'darkred'},
-            {'range': [threshold, max_val], 'color': 'darkgreen'}
-        ]
+    # 🔴 Only show red zone in the "bad" region
+    if better == "above":
+        red_range = [min_val, threshold]
     else:
-        steps = [
-            {'range': [min_val, threshold], 'color': 'darkgreen'},
-            {'range': [threshold, max_val], 'color': 'darkred'}
-        ]
+        red_range = [threshold, max_val]
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
         number={
-            'suffix': "%" if metric_key in percent_metrics else "",
-            'font': {'color': 'white'}
+            'suffix': suffix,
+            'font': {'color': number_color, 'size': 22}
         },
-        title={'text': title, 'font': {'size': title_font_size, 'color': 'white'}},
+        title={'text': f"<b>{title}</b>", 'font': {'size': title_font_size, 'color': 'white'}},
         gauge={
             'axis': {
                 'range': [min_val, max_val],
-                'tickmode': 'array',
                 'tickvals': [],
                 'tickwidth': 0
             },
@@ -183,9 +180,11 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
             'bgcolor': "black",
             'borderwidth': 2,
             'bordercolor': "gray",
-            'steps': steps,
+            'steps': [
+                {'range': red_range, 'color': 'darkred'}
+            ],
             'threshold': {
-                'line': {'color': "red", 'width': 4},
+                'line': {'color': "white", 'width': 4},
                 'thickness': 0.75,
                 'value': value
             }
