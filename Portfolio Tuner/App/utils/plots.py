@@ -22,6 +22,13 @@ def plot_portfolio_absolute_value(
     df = portfolio_value.reset_index()
     df.columns = ["Date", "Portfolio Value"]
 
+    # Determine dynamic y-axis bounds
+    y_min = df["Portfolio Value"].min()
+    y_max = df["Portfolio Value"].max()
+
+    # Add 5% padding to min/max
+    y_range = [y_min * 0.98, y_max * 1.02]
+
     # Area background
     area = alt.Chart(df).mark_area(
         color="#f5c518",
@@ -29,7 +36,11 @@ def plot_portfolio_absolute_value(
         interpolate="monotone"
     ).encode(
         x=alt.X("Date:T", axis=alt.Axis(title="Date", labelFontSize=x_axis_font_size)),
-        y=alt.Y("Portfolio Value:Q", axis=alt.Axis(title="Value ($)", format="$,.0f", labelFontSize=y_axis_font_size))
+        y=alt.Y(
+            "Portfolio Value:Q",
+            axis=alt.Axis(title="Value ($)", format="$,.0f", labelFontSize=y_axis_font_size),
+            scale=alt.Scale(domain=y_range)  # ✅ auto-scale range
+        )
     )
 
     # Line chart with tooltip
@@ -47,10 +58,10 @@ def plot_portfolio_absolute_value(
 
     base_chart = area + line
 
-    # Add interactivity (rule + selectors, no floating text)
+    # Add interactivity
     interactive_chart = add_interactivity(
         base_chart=base_chart,
-        line_chart = line,
+        line_chart=line,
         df=df,
         x_field="Date",
         y_field="Portfolio Value"
@@ -116,13 +127,7 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
         "Value at Risk (95%)": abs(var_95) * 100  # as positive %
     }
 
-import plotly.graph_objects as go
-
 # ---- Single Gauge using Plotly ----
-import plotly.graph_objects as go
-
-import plotly.graph_objects as go
-
 def plot_single_gauge(
     title: str,
     value: float,
@@ -290,10 +295,7 @@ def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, po
 
     return needle_fig, heatmap_fig
 
-def plot_historical_assets(data, selected_assets, portfolio_df=None):
-    import altair as alt
-    import streamlit as st
-    import pandas as pd
+def plot_historical_assets(data, selected_assets, portfolio_df=None, date_range_default=None):
 
     if not selected_assets:
         st.warning("No assets selected to plot.")
@@ -302,12 +304,25 @@ def plot_historical_assets(data, selected_assets, portfolio_df=None):
     st.markdown("### 📊 Historical Asset Plots")
 
     # Time range input
+    min_date = data.index.min().date()
+    max_date = data.index.max().date()
+
+    # Use custom default range if passed
+    if date_range_default:
+        default_start, default_end = date_range_default
+        default_start = pd.to_datetime(default_start).date()
+        default_end = pd.to_datetime(default_end).date()
+    else:
+        default_start = min_date
+        default_end = max_date
+
     date_range = st.date_input(
         "Select Time Range",
-        value=[data.index.min().date(), data.index.max().date()],
-        min_value=data.index.min().date(),
-        max_value=data.index.max().date()
+        value=[default_start, default_end],
+        min_value=min_date,
+        max_value=max_date
     )
+
 
     if len(date_range) != 2:
         st.warning("Please select a valid time range.")
@@ -431,8 +446,6 @@ def plot_historical_assets(data, selected_assets, portfolio_df=None):
     else:
         st.warning("No data available in the selected range.")
 
-
-
 def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portfolio Allocation") -> None:
     """
     Vertical bar chart showing asset allocations by value percentage.
@@ -484,6 +497,7 @@ def plot_portfolio_allocation_3d(portfolio_df: pd.DataFrame, title: str = "Portf
     )
 
     st.plotly_chart(fig, use_container_width=True)
+
 def add_interactivity(
     base_chart,
     x_field,

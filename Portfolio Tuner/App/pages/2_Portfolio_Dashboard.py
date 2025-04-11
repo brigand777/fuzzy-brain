@@ -168,7 +168,7 @@ if st.button("📊 Show Historical Asset Performance"):
 
 if st.session_state.show_plot:
     if selected_assets:
-        plot_historical_assets(data, selected_assets, portfolio_df=portfolio_df)
+        plot_historical_assets(data, selected_assets, portfolio_df=portfolio_df, date_range_default=(start_date, end_date))
     else:
         st.warning("No assets found to plot.")
 
