@@ -25,7 +25,7 @@ st.set_page_config(page_title="Backtest Lab", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
 st.title("⏳ Backtest Lab")
 
-# --- Load data ---
+# --- Load Data ---
 @st.cache_data
 def load_data():
     return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
@@ -70,64 +70,81 @@ if simulation_data.empty:
     st.error("No data available for the selected backtest period.")
     st.stop()
 
+# --- State Setup ---
+if "backtest_results" not in st.session_state:
+    st.session_state.backtest_results = None
+    st.session_state.downsampled = None
+    st.session_state.selected_methods = None
+
 # --- Run Backtest ---
 st.markdown("## 📈 Backtest Portfolio vs. Strategies")
+
 if st.button("Run Backtest"):
-    try:
-        # Prepare user weights
-        latest_prices = data.iloc[-1]
-        values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
-        total_value = values.sum()
-        user_weights = {
-            row["Asset"]: (row["Amount"] * latest_prices.get(row["Asset"], 0)) / total_value
-            for _, row in portfolio_df.iterrows()
-            if latest_prices.get(row["Asset"], 0) > 0
-        }
+    with st.spinner("Running backtest..."):
+        try:
+            # Prepare user weights
+            latest_prices = data.iloc[-1]
+            values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
+            total_value = values.sum()
+            user_weights = {
+                row["Asset"]: (row["Amount"] * latest_prices.get(row["Asset"], 0)) / total_value
+                for _, row in portfolio_df.iterrows()
+                if latest_prices.get(row["Asset"], 0) > 0
+            }
 
-        lookback_window = data.loc[pd.to_datetime(start_date) - pd.Timedelta(days=lookback_days):start_date]
-        initial_allocations = run_optimizers(lookback_window[selected_assets], nonnegative_mvo=nonnegative_toggle)
-        initial_allocations["User Portfolio"] = user_weights
-        selected_methods = get_optimization_methods(initial_allocations)
+            lookback_window = data.loc[pd.to_datetime(start_date) - pd.Timedelta(days=lookback_days):start_date]
+            initial_allocations = run_optimizers(lookback_window[selected_assets], nonnegative_mvo=nonnegative_toggle)
+            initial_allocations["User Portfolio"] = user_weights
+            selected_methods = get_optimization_methods(initial_allocations)
 
-        results_dict = {}
-        for method in selected_methods:
-            if method == "User Portfolio":
-                user_shares = {row["Asset"]: row["Amount"] for _, row in portfolio_df.iterrows()}
-                res = dynamic_backtest_portfolio_user_fixed_shares(simulation_data, asset_amounts=user_shares)
-            else:
-                res = dynamic_backtest_portfolio(simulation_data, method, lookback_days, rebalance_days, nonnegative_toggle)
-            results_dict[method] = res
+            results_dict = {}
+            for method in selected_methods:
+                if method == "User Portfolio":
+                    user_shares = {row["Asset"]: row["Amount"] for _, row in portfolio_df.iterrows()}
+                    res = dynamic_backtest_portfolio_user_fixed_shares(simulation_data, asset_amounts=user_shares)
+                else:
+                    res = dynamic_backtest_portfolio(simulation_data, method, lookback_days, rebalance_days, nonnegative_toggle)
+                results_dict[method] = res
 
-        downsampled = downsample_results_dict(results_dict, start_date, end_date)
+            downsampled = downsample_results_dict(results_dict, start_date, end_date)
 
-        # --- Cumulative Returns ---
-        st.markdown("### 📊 Cumulative Returns")
-        cumulative_chart = plot_cumulative_returns(downsampled)
-        st.altair_chart(add_interactivity(cumulative_chart, x_field="date", y_field="cumulative"), use_container_width=True)
+            # Store in session
+            st.session_state.backtest_results = results_dict
+            st.session_state.downsampled = downsampled
+            st.session_state.selected_methods = selected_methods
 
-        # --- Rolling Sharpe ---
-        st.markdown("### 📈 Rolling Annualized Sharpe Ratio")
-        st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
+        except Exception as e:
+            st.error("An error occurred during backtesting.")
+            st.error(f"Details: {e}")
 
-        # --- Drawdowns ---
-        st.markdown("### 📉 Drawdowns")
-        st.altair_chart(add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown"), use_container_width=True)
+# --- Render Results ---
+if st.session_state.downsampled:
+    downsampled = st.session_state.downsampled
+    selected_methods = st.session_state.selected_methods
 
-        # --- Allocations ---
-        st.markdown("### 🧩 Dynamic Asset Allocations")
-        for method in selected_methods:
-            st.altair_chart(add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="allocation"), use_container_width=True)
+    st.markdown("### 📊 Cumulative Returns")
+    st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative"), use_container_width=True)
 
-        # --- Summary ---
-        st.markdown("### 📌 Backtest Summary")
-        st.write(f"**Backtest Period:** {start_date} to {end_date}")
-        st.write(f"**Rebalance Frequency:** Every {rebalance_days} days")
-        st.write(f"**Lookback Window:** {lookback_days} days")
-        for method, res in downsampled.items():
-            st.subheader(method)
-            st.write(f"**Sharpe Ratio:** {res['sharpe']:.2f}")
-            st.write(f"**Max Drawdown:** {res['drawdown']:.2%}")
+    st.markdown("### 📈 Rolling Annualized Sharpe Ratio")
+    st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
 
-    except Exception as e:
-        st.error("An error occurred during backtesting.")
-        st.error(f"Details: {e}")
+    st.markdown("### 📉 Drawdowns")
+    st.altair_chart(add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown"), use_container_width=True)
+
+    st.markdown("### 🧩 Dynamic Asset Allocations")
+    for method in selected_methods:
+        with st.expander(f"{method} Allocations", expanded=False):
+            st.altair_chart(
+                add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
+                use_container_width=True
+            )
+
+    st.markdown("### 📌 Backtest Summary")
+    st.write(f"**Backtest Period:** {start_date} to {end_date}")
+    st.write(f"**Rebalance Frequency:** Every {rebalance_days} days")
+    st.write(f"**Lookback Window:** {lookback_days} days")
+
+    for method, res in downsampled.items():
+        st.subheader(method)
+        st.write(f"**Sharpe Ratio:** {res['sharpe']:.2f}")
+        st.write(f"**Max Drawdown:** {res['drawdown']:.2%}")
