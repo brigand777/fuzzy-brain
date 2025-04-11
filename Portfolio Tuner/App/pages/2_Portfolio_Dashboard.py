@@ -55,9 +55,16 @@ with st.expander("📅 Select Date Range"):
 # --- Dashboard Visualization ---
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 if selected_assets:
-    metrics_fig, heatmap_fig = plot_portfolio_dashboard(
-        data, selected_assets, portfolio_df=portfolio_df, date_range=date_range
-    )
+    try:
+        metrics_fig, heatmap_fig = plot_portfolio_dashboard(
+            data, selected_assets,
+            portfolio_df=portfolio_df,
+            date_range=date_range
+        )
+    except Exception as e:
+        st.error(f"⚠️ Error in plot_portfolio_dashboard: {type(e).__name__} — {e}")
+        st.stop()
+
 
 
     start_date, end_date = date_range
