@@ -144,7 +144,37 @@ if st.session_state.downsampled:
     st.write(f"**Rebalance Frequency:** Every {rebalance_days} days")
     st.write(f"**Lookback Window:** {lookback_days} days")
 
+    # Prepare summary data
+    summary_data = {
+        "Method": [],
+        "Sharpe Ratio": [],
+        "Max Drawdown": []
+    }
+
     for method, res in downsampled.items():
-        st.subheader(method)
-        st.write(f"**Sharpe Ratio:** {res['sharpe']:.2f}")
-        st.write(f"**Max Drawdown:** {res['drawdown']:.2%}")
+        summary_data["Method"].append(method)
+        summary_data["Sharpe Ratio"].append(round(res["sharpe"], 2))
+        summary_data["Max Drawdown"].append(res["drawdown"])  # Store as float for comparison
+
+    summary_df = pd.DataFrame(summary_data)
+
+    # Highlight best Sharpe and best (least negative) drawdown
+    def highlight_best(s):
+        if s.name == "Sharpe Ratio":
+            is_max = s == s.max()
+            return ["background-color: #b5f5b0" if v else "" for v in is_max]
+        elif s.name == "Max Drawdown":
+            is_min = s == s.min()  # drawdown is negative, so min is best
+            return ["background-color: #b5f5b0" if v else "" for v in is_min]
+        else:
+            return [""] * len(s)
+
+    styled_df = summary_df.style.format({
+        "Sharpe Ratio": "{:.2f}",
+        "Max Drawdown": "{:.2%}"
+    }).apply(highlight_best, axis=0)
+
+    st.markdown("### 📋 Highlighted Summary Table")
+    st.dataframe(styled_df, use_container_width=True)
+
+
