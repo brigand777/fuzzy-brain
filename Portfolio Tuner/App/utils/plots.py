@@ -219,23 +219,19 @@ def plot_gauge_charts(metrics: dict):
 
 # ----- Correlation Heatmap Plotting -----
 import plotly.express as px
-import numpy as np
-import plotly.express as px
-import numpy as np
+from pandas.io.formats.style import Styler  # ✅ correct import
 
-import pandas as pd
-
-def generate_styled_summary_table(downsampled_results: dict) -> pd.io.formats.style.Styler:
+def generate_styled_summary_table(downsampled_results: dict) -> Styler:
     """
-    Create a styled performance summary table with colored text based on Sharpe Ratio and Max Drawdown.
+    Create a styled performance summary table with colored text
+    for highest/lowest Sharpe and Max Drawdown values.
 
     Parameters:
-    - downsampled_results: dict containing backtest results per method with 'sharpe' and 'drawdown' keys.
+    - downsampled_results: dict of method -> { 'sharpe': float, 'drawdown': float }
 
     Returns:
-    - A styled pandas Styler object for display with st.dataframe().
+    - pd.Styler: styled DataFrame ready for st.dataframe()
     """
-    # Step 1: Build dataframe
     summary_data = {
         "Method": [],
         "Sharpe Ratio": [],
@@ -249,7 +245,6 @@ def generate_styled_summary_table(downsampled_results: dict) -> pd.io.formats.st
 
     df = pd.DataFrame(summary_data)
 
-    # Step 2: Coloring logic
     def color_sharpe(val):
         if val == df["Sharpe Ratio"].max():
             return "color: green"
@@ -258,13 +253,12 @@ def generate_styled_summary_table(downsampled_results: dict) -> pd.io.formats.st
         return ""
 
     def color_drawdown(val):
-        if val == df["Max Drawdown"].min():  # Most negative = worst
+        if val == df["Max Drawdown"].min():
             return "color: red"
-        elif val == df["Max Drawdown"].max():  # Least negative = best
+        elif val == df["Max Drawdown"].max():
             return "color: green"
         return ""
 
-    # Step 3: Style and return
     styled_df = df.style\
         .format({
             "Sharpe Ratio": "{:.2f}",
@@ -274,7 +268,6 @@ def generate_styled_summary_table(downsampled_results: dict) -> pd.io.formats.st
         .applymap(color_drawdown, subset=["Max Drawdown"])
 
     return styled_df
-
 
 def plot_correlation_heatmap(price_data: pd.DataFrame):
     returns = price_data.pct_change().dropna()
