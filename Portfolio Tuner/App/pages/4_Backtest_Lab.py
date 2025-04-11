@@ -116,7 +116,7 @@ if st.button("Run Backtest"):
         # --- Allocations ---
         st.markdown("### 🧩 Dynamic Asset Allocations")
         for method in selected_methods:
-            st.altair_chart(add_interactivity(plot_allocations_per_method(downsampled[method]["Allocations"], method), x_field="date", y_field="allocation"), use_container_width=True)
+            st.altair_chart(add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="allocation"), use_container_width=True)
 
         # --- Summary ---
         st.markdown("### 📌 Backtest Summary")
