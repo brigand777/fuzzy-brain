@@ -223,6 +223,59 @@ import numpy as np
 import plotly.express as px
 import numpy as np
 
+import pandas as pd
+
+def generate_styled_summary_table(downsampled_results: dict) -> pd.io.formats.style.Styler:
+    """
+    Create a styled performance summary table with colored text based on Sharpe Ratio and Max Drawdown.
+
+    Parameters:
+    - downsampled_results: dict containing backtest results per method with 'sharpe' and 'drawdown' keys.
+
+    Returns:
+    - A styled pandas Styler object for display with st.dataframe().
+    """
+    # Step 1: Build dataframe
+    summary_data = {
+        "Method": [],
+        "Sharpe Ratio": [],
+        "Max Drawdown": []
+    }
+
+    for method, res in downsampled_results.items():
+        summary_data["Method"].append(method)
+        summary_data["Sharpe Ratio"].append(round(res["sharpe"], 2))
+        summary_data["Max Drawdown"].append(res["drawdown"])
+
+    df = pd.DataFrame(summary_data)
+
+    # Step 2: Coloring logic
+    def color_sharpe(val):
+        if val == df["Sharpe Ratio"].max():
+            return "color: green"
+        elif val == df["Sharpe Ratio"].min():
+            return "color: red"
+        return ""
+
+    def color_drawdown(val):
+        if val == df["Max Drawdown"].min():  # Most negative = worst
+            return "color: red"
+        elif val == df["Max Drawdown"].max():  # Least negative = best
+            return "color: green"
+        return ""
+
+    # Step 3: Style and return
+    styled_df = df.style\
+        .format({
+            "Sharpe Ratio": "{:.2f}",
+            "Max Drawdown": "{:.2%}"
+        })\
+        .applymap(color_sharpe, subset=["Sharpe Ratio"])\
+        .applymap(color_drawdown, subset=["Max Drawdown"])
+
+    return styled_df
+
+
 def plot_correlation_heatmap(price_data: pd.DataFrame):
     returns = price_data.pct_change().dropna()
     corr = returns.corr()
