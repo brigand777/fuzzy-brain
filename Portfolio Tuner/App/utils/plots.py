@@ -200,7 +200,7 @@ def plot_single_gauge(
         plot_bgcolor='rgba(0,0,0,0)',
         font={'color': "white"},
         height=250,
-        margin=dict(t=30, b=20, l=20, r=20)
+        margin=dict(t=40, b=20, l=20, r=20)
     )
 
     return fig
