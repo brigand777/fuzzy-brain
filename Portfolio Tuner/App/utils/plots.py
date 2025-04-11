@@ -122,7 +122,6 @@ import plotly.graph_objects as go
 import plotly.graph_objects as go
 
 def plot_single_gauge(title: str, value: float, metric_name: str = None, title_font_size: int = 20) -> go.Figure:
-    # Label → internal key
     label_to_metric = {
         "cumulative returns": "cumulative",
         "volatility": "volatility",
@@ -137,7 +136,7 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
 
     percent_metrics = {"cumulative", "volatility", "drawdown", "var"}
 
-    # Metric-specific thresholds
+    # Metric-specific thresholds and display configs
     metric_settings = {
         "sharpe":     {"range": [-1, 3], "threshold": 1.0, "better": "above"},
         "calmar":     {"range": [0, 5], "threshold": 1.0, "better": "above"},
@@ -156,11 +155,8 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
     number_color = "limegreen" if is_good else "red"
     suffix = "%" if metric_key in percent_metrics else ""
 
-    # 🔴 Only show red zone in the "bad" region
-    if better == "above":
-        red_range = [min_val, threshold]
-    else:
-        red_range = [threshold, max_val]
+    # Define red zone inside gauge
+    red_range = [min_val, threshold] if better == "above" else [threshold, max_val]
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
@@ -169,14 +165,14 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
             'suffix': suffix,
             'font': {'color': number_color, 'size': 22}
         },
-        title={'text': f"<b>{title}</b>", 'font': {'size': title_font_size, 'color': 'white'}},
+        title={'text': ""},  # we’ll use layout.title instead
         gauge={
             'axis': {
                 'range': [min_val, max_val],
                 'tickvals': [],
                 'tickwidth': 0
             },
-            'bar': {'color': "lightgray", 'thickness': 0.35},
+            'bar': {'color': "#f5c518", 'thickness': 0.35},  # 🟡 Ferrari Yellow
             'bgcolor': "black",
             'borderwidth': 2,
             'bordercolor': "gray",
@@ -193,14 +189,20 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
     ))
 
     fig.update_layout(
+        title={
+            "text": f"<b>{title}</b>",
+            "font": {"size": title_font_size, "color": "white"},
+            "x": 0.5,
+            "xanchor": "center"
+        },
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font={'color': "white"},
-        height=200,
-        margin=dict(t=25, b=25, l=20, r=20)
+        height=250,
+        margin=dict(t=50, b=30, l=20, r=20)
     )
 
     return fig
+
 
 
 # ---- Layout for Multiple Gauges ----
