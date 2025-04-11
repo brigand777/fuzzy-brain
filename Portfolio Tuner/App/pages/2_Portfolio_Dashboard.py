@@ -91,13 +91,22 @@ if selected_assets:
 
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
+    st.markdown("### 🧭 Portfolio Metrics")
     if metrics_fig and len(metrics_fig) == 6:
-        st.markdown("### 🧭 Portfolio Metrics")
-        cols = st.columns(6)  # Create 6 equally spaced columns
-
-        for col, fig in zip(cols, metrics_fig):
+        # Row 1: 2 gauges
+        row1 = st.columns(2)
+        for col, fig in zip(row1, metrics_fig[:2]):
             with col:
                 st.plotly_chart(fig, use_container_width=True)
+
+        # Row 2: 4 gauges
+        row2 = st.columns(4)
+        for col, fig in zip(row2, metrics_fig[2:]):
+            with col:
+                st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Expected 6 metrics for layout, but received a different number.")
+
 
 
 

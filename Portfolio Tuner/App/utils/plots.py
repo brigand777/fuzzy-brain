@@ -121,7 +121,16 @@ import plotly.graph_objects as go
 # ---- Single Gauge using Plotly ----
 import plotly.graph_objects as go
 
-def plot_single_gauge(title: str, value: float, metric_name: str = None, title_font_size: int = 20) -> go.Figure:
+import plotly.graph_objects as go
+
+def plot_single_gauge(
+    title: str,
+    value: float,
+    metric_name: str = None,
+    title_font_size: int = 18,
+    number_font_size: int = 24,
+    tick_font_size: int = 12
+) -> go.Figure:
     label_to_metric = {
         "cumulative returns": "cumulative",
         "volatility": "volatility",
@@ -136,7 +145,7 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
 
     percent_metrics = {"cumulative", "volatility", "drawdown", "var"}
 
-    # Metric-specific thresholds and display configs
+    # Metric-specific thresholds
     metric_settings = {
         "sharpe":     {"range": [-1, 3], "threshold": 1.0, "better": "above"},
         "calmar":     {"range": [0, 5], "threshold": 1.0, "better": "above"},
@@ -151,36 +160,34 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
     threshold = settings["threshold"]
     better = settings["better"]
 
-    is_good = value >= threshold if better == "above" else value <= threshold
-    number_color = "limegreen" if is_good else "red"
     suffix = "%" if metric_key in percent_metrics else ""
 
-    # Define red zone inside gauge
-    red_range = [min_val, threshold] if better == "above" else [threshold, max_val]
+    # Color needle red if in bad zone
+    is_bad = value < threshold if better == "above" else value > threshold
+    needle_color = "#f5c518" if not is_bad else "crimson"
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
         number={
             'suffix': suffix,
-            'font': {'color': number_color, 'size': 22}
+            'font': {'color': 'white', 'size': number_font_size}
         },
-        title={'text': ""},  # we’ll use layout.title instead
+        title={'text': title, 'font': {'size': title_font_size, 'color': 'white'}},
         gauge={
             'axis': {
                 'range': [min_val, max_val],
-                'tickvals': [],
-                'tickwidth': 0
+                'tickwidth': 1,
+                'tickcolor': "gray",
+                'tickfont': {'size': tick_font_size, 'color': 'white'}
             },
-            'bar': {'color': "#f5c518", 'thickness': 0.35},  # 🟡 Ferrari Yellow
+            'bar': {'color': needle_color, 'thickness': 0.3},
             'bgcolor': "black",
             'borderwidth': 2,
             'bordercolor': "gray",
-            'steps': [
-                {'range': red_range, 'color': 'darkred'}
-            ],
+            'steps': [],  # no zones for now
             'threshold': {
-                'line': {'color': "white", 'width': 4},
+                'line': {'color': "white", 'width': 3},
                 'thickness': 0.75,
                 'value': value
             }
@@ -189,19 +196,15 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None, title_f
     ))
 
     fig.update_layout(
-        title={
-            "text": f"<b>{title}</b>",
-            "font": {"size": title_font_size, "color": "white"},
-            "x": 0.5,
-            "xanchor": "center"
-        },
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
+        font={'color': "white"},
         height=250,
-        margin=dict(t=50, b=30, l=20, r=20)
+        margin=dict(t=30, b=20, l=20, r=20)
     )
 
     return fig
+
 
 
 
