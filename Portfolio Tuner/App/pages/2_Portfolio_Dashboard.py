@@ -168,7 +168,19 @@ if st.button("📊 Show Historical Asset Performance"):
 
 if st.session_state.show_plot:
     if selected_assets:
-        plot_historical_assets(data, selected_assets, portfolio_df=portfolio_df, date_range_default=(start_date, end_date))
+        try:
+            plot_historical_assets(
+                data,
+                selected_assets,
+                portfolio_df=portfolio_df,
+                date_range_default=(start_date, end_date)
+            )
+        except Exception as e:
+            import traceback
+            st.error("⚠️ An error occurred in `plot_historical_assets()`")
+            st.code(traceback.format_exc())
+            st.stop()
+
     else:
         st.warning("No assets found to plot.")
 
