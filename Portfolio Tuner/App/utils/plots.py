@@ -63,31 +63,71 @@ def plot_portfolio_absolute_value(
     return interactive_chart
 
 # ----- Metric Calculation Function -----
-def calculate_portfolio_metrics(price_data: pd.DataFrame) -> dict:
+import numpy as np
+import pandas as pd
+
+import numpy as np
+import pandas as pd
+
+def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataFrame) -> dict:
+    """
+    Calculate portfolio-level performance metrics using actual asset weights.
+
+    Parameters:
+        price_data (pd.DataFrame): Price history of assets (columns = asset symbols).
+        portfolio_df (pd.DataFrame): Portfolio holdings with columns ['Asset', 'Amount'].
+
+    Returns:
+        dict: Dictionary of portfolio metrics.
+    """
     returns = price_data.pct_change().dropna()
-    cumulative_returns = 100.0*((1 + returns).prod() - 1)
-    volatility = 100.0*returns.std() * np.sqrt(365.0)
-    sharpe_ratio = returns.mean() / returns.std() * np.sqrt(252)
-    max_drawdown = 100.0*(price_data / price_data.cummax() - 1).min()
-    rolling_max = price_data.cummax()
-    drawdown = 100.0*(price_data / rolling_max - 1)
-    calmar_ratio = 100*(returns.mean() * 365.0) / abs(drawdown.min())
-    var_95 = returns.quantile(0.05)
+
+    # --- Compute weights from portfolio holdings and latest prices ---
+    latest_prices = price_data.iloc[-1]
+    portfolio_df = portfolio_df.copy()
+
+    portfolio_df["Price"] = portfolio_df["Asset"].map(latest_prices)
+    portfolio_df["Value"] = portfolio_df["Amount"] * portfolio_df["Price"]
+    total_value = portfolio_df["Value"].sum()
+
+    weights = (portfolio_df.set_index("Asset")["Value"] / total_value).reindex(price_data.columns).fillna(0)
+
+    # --- Portfolio returns and cumulative value over time ---
+    portfolio_returns = returns.dot(weights)
+    portfolio_value = (1 + portfolio_returns).cumprod()
+
+    # --- Metrics ---
+    cumulative_return = 100 * (portfolio_value.iloc[-1] - 1)
+    volatility = 100 * portfolio_returns.std() * np.sqrt(365.0)
+    sharpe_ratio = (portfolio_returns.mean() / portfolio_returns.std()) * np.sqrt(252)
+    
+    # Max drawdown on portfolio value
+    rolling_max = portfolio_value.cummax()
+    drawdown = portfolio_value / rolling_max - 1
+    max_drawdown = 100 * drawdown.min()
+
+    # Calmar = annual return / abs(max drawdown)
+    annual_return = portfolio_returns.mean() * 365
+    calmar_ratio = 100 * (annual_return / abs(drawdown.min()))
+
+    # Historical VaR (95%)
+    var_95 = portfolio_returns.quantile(0.05)
 
     return {
-        "Cumulative Returns": cumulative_returns.mean(),
-        "Volatility": volatility.mean(),
-        "Sharpe Ratio": sharpe_ratio.mean(),
-        "Max Drawdown": max_drawdown.mean(),
-        "Calmar Ratio": calmar_ratio.mean(),
-        "Value at Risk (95%)": var_95.mean()
+        "Cumulative Returns": cumulative_return,
+        "Volatility": volatility,
+        "Sharpe Ratio": sharpe_ratio,
+        "Max Drawdown": max_drawdown,
+        "Calmar Ratio": calmar_ratio,
+        "Value at Risk (95%)": abs(var_95) * 100  # as positive %
     }
 
 import plotly.graph_objects as go
 
 # ---- Single Gauge using Plotly ----
-def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.Figure:
-    # Map displayed labels to internal config keys
+import plotly.graph_objects as go
+
+def plot_single_gauge(title: str, value: float, metric_name: str = None, title_font_size: int = 18) -> go.Figure:
     label_to_metric = {
         "cumulative returns": "cumulative",
         "volatility": "volatility",
@@ -97,15 +137,17 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
         "value at risk (95%)": "var"
     }
 
-    # Normalize and look up
     normalized_label = title.strip().lower()
     metric_key = metric_name.lower() if metric_name else label_to_metric.get(normalized_label, normalized_label)
 
-    # Metric-specific ranges and thresholds
+    # Define which metrics should show %
+    percent_metrics = {"cumulative", "volatility", "drawdown", "var"}
+
+    # Metric-specific settings
     metric_settings = {
         "sharpe":     {"range": [-1, 3], "threshold": 1.5},
         "calmar":     {"range": [0, 5], "threshold": 2},
-        "drawdown":   {"range": [0, -100], "threshold": -60},
+        "drawdown":   {"range": [-100, 0], "threshold": -60},
         "cumulative": {"range": [0, 100], "threshold": 10},
         "var":        {"range": [0, 20], "threshold": 5},
         "volatility": {"range": [0, 70], "threshold": 50}
@@ -118,26 +160,30 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=value,
-        title={'text': title, 'font': {'size': 14, 'color': 'white'}},
+        number={
+            'suffix': "%" if metric_key in percent_metrics else "",
+            'font': {'color': 'white'}
+        },
+        title={'text': title, 'font': {'size': title_font_size, 'color': 'white'}},
         gauge={
-            'axis': {'range': [min_val, max_val], 'tickwidth': 1, 'tickcolor': "gray"},
-            'bar': {'color': "crimson", 'thickness': 0.35},
+            'axis': {
+                'range': [min_val, max_val],
+                'tickmode': 'array',
+                'tickvals': [],  # 👈 no tick labels
+                'tickwidth': 0
+            },
+            'bar': {'color': "lightgray", 'thickness': 0.35},
             'bgcolor': "black",
             'borderwidth': 2,
             'bordercolor': "gray",
-            'steps': [
-                {'range': [min_val, threshold], 'color': '#222'},
-                {'range': [threshold, (min_val + max_val) / 2], 'color': '#b22222'},
-                {'range': [(min_val + max_val) / 2, max_val], 'color': '#ffcc00'}
-            ],
+            'steps': [],
             'threshold': {
-                'line': {'color': "red", 'width': 4},
+                'line': {'color': "gray", 'width': 4},
                 'thickness': 0.75,
                 'value': value
             }
         },
-        domain={'x': [0, 1], 'y': [0, 1]},
-        number={'suffix': "", 'font': {'color': 'white'}}
+        domain={'x': [0, 1], 'y': [0, 1]}
     ))
 
     fig.update_layout(
@@ -145,10 +191,11 @@ def plot_single_gauge(title: str, value: float, metric_name: str = None) -> go.F
         plot_bgcolor='rgba(0,0,0,0)',
         font={'color': "white"},
         height=200,
-        margin=dict(t=25, b=25, l=20, r=20)  # a bit more breathing room
+        margin=dict(t=25, b=25, l=20, r=20)
     )
 
     return fig
+
 
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict):
@@ -200,19 +247,21 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
     return fig
 
 # ----- Master Dashboard Plotter -----
-def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, date_range: tuple = None):
+from utils.metrics import calculate_portfolio_metrics  # Make sure this is imported
+
+def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, portfolio_df: pd.DataFrame, date_range: tuple = None):
     if not selected_assets:
         return None, None
 
     asset_data = price_data[selected_assets]
 
-    # Default to last 100 days
+    # Use custom date range if provided
     if date_range is None:
         end_date = asset_data.index.max()
-        start_date = end_date - timedelta(days=100)
+        start_date = end_date - pd.Timedelta(days=100)
     else:
         start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
-    
+
     start_date = pd.to_datetime(start_date).tz_localize("UTC") if pd.to_datetime(start_date).tzinfo is None else pd.to_datetime(start_date)
     end_date = pd.to_datetime(end_date).tz_localize("UTC") if pd.to_datetime(end_date).tzinfo is None else pd.to_datetime(end_date)
 
@@ -221,10 +270,14 @@ def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, da
     if filtered_data.empty:
         return None, None
 
-    metrics = calculate_portfolio_metrics(filtered_data)
-    needle_fig = plot_gauge_charts(metrics)  # just collects figures
-    heatmap_fig = plot_correlation_heatmap(filtered_data)
+    # ✅ NEW: Portfolio-aware metrics using weighted returns
+    metrics = calculate_portfolio_metrics(filtered_data, portfolio_df)
 
+    # 🧭 Gauge charts
+    needle_fig = plot_gauge_charts(metrics)
+
+    # 🔥 Optional: Heatmap for diversification insight
+    heatmap_fig = plot_correlation_heatmap(filtered_data)
 
     return needle_fig, heatmap_fig
 

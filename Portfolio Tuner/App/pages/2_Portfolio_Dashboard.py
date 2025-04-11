@@ -56,8 +56,9 @@ with st.expander("📅 Select Date Range"):
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 if selected_assets:
     metrics_fig, heatmap_fig = plot_portfolio_dashboard(
-        data, selected_assets, date_range=date_range
+        data, selected_assets, portfolio_df=portfolio_df, date_range=date_range
     )
+
 
     start_date, end_date = date_range
     start_date = ensure_utc(start_date)
