@@ -93,7 +93,7 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
     # --- Metrics ---
     cumulative_return = 100 * (portfolio_value.iloc[-1] - 1)
     volatility = 100 * portfolio_returns.std() * np.sqrt(365.0)
-    sharpe_ratio = (portfolio_returns.mean() / portfolio_returns.std()) * np.sqrt(252)
+    sharpe_ratio = (portfolio_returns.mean() / portfolio_returns.std()) * np.sqrt(365)
     
     # Max drawdown on portfolio value
     rolling_max = portfolio_value.cummax()
@@ -102,7 +102,7 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
 
     # Calmar = annual return / abs(max drawdown)
     annual_return = portfolio_returns.mean() * 365
-    calmar_ratio = 100 * (annual_return / abs(drawdown.min()))
+    calmar_ratio = (annual_return / abs(drawdown.min()))
 
     # Historical VaR (95%)
     var_95 = portfolio_returns.quantile(0.05)
@@ -128,9 +128,9 @@ def plot_single_gauge(
     value: float,
     metric_name: str = None,
     title_font_size: int = 18,
-    number_font_size: int = 24,
+    number_font_size: int = 30,
     tick_font_size: int = 12
-) -> go.Figure:
+    ) -> go.Figure:
     label_to_metric = {
         "cumulative returns": "cumulative",
         "volatility": "volatility",
@@ -149,8 +149,8 @@ def plot_single_gauge(
     metric_settings = {
         "sharpe":     {"range": [-1, 3], "threshold": 1.0, "better": "above"},
         "calmar":     {"range": [0, 5], "threshold": 1.0, "better": "above"},
-        "drawdown":   {"range": [-100, 0], "threshold": -20, "better": "below"},
-        "cumulative": {"range": [0, 100], "threshold": 10, "better": "above"},
+        "drawdown":   {"range": [-100, 0], "threshold": -30, "better": "above"},
+        "cumulative": {"range": [0, 50], "threshold": 10, "better": "above"},
         "var":        {"range": [0, 20], "threshold": 5, "better": "below"},
         "volatility": {"range": [0, 70], "threshold": 30, "better": "below"}
     }
@@ -164,7 +164,7 @@ def plot_single_gauge(
 
     # Color needle red if in bad zone
     is_bad = value < threshold if better == "above" else value > threshold
-    needle_color = "#f5c518" if not is_bad else "crimson"
+    needle_color = "green" if not is_bad else "red"
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
