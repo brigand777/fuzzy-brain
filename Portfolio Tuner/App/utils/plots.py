@@ -128,9 +128,12 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
     }
 
 # ---- Single Gauge using Plotly ----
+import plotly.graph_objects as go
+
 def plot_single_gauge(
     title: str,
     value: float,
+    benchmark_value: float = None,  # ✅ NEW: optional benchmark for comparison
     metric_name: str = None,
     title_font_size: int = 18,
     number_font_size: int = 30,
@@ -150,7 +153,6 @@ def plot_single_gauge(
 
     percent_metrics = {"cumulative", "volatility", "drawdown", "var"}
 
-    # Metric-specific thresholds
     metric_settings = {
         "sharpe":     {"range": [-1, 3], "threshold": 1.0, "better": "above"},
         "calmar":     {"range": [0, 5], "threshold": 1.0, "better": "above"},
@@ -166,18 +168,28 @@ def plot_single_gauge(
     better = settings["better"]
 
     suffix = "%" if metric_key in percent_metrics else ""
-
-    # Color needle red if in bad zone
     is_bad = value < threshold if better == "above" else value > threshold
     needle_color = "green" if not is_bad else "red"
 
+    # Optional delta config if benchmark provided
+    delta_config = {}
+    if benchmark_value is not None:
+        delta_config = {
+            "reference": benchmark_value,
+            "increasing": {"color": "limegreen"},
+            "decreasing": {"color": "crimson"},
+            "relative": False,
+            "valueformat": ".2f"
+        }
+
     fig = go.Figure(go.Indicator(
-        mode="gauge+number",
+        mode="gauge+number" + ("+delta" if benchmark_value is not None else ""),
         value=value,
         number={
             'suffix': suffix,
             'font': {'color': 'white', 'size': number_font_size}
         },
+        delta=delta_config if benchmark_value is not None else None,
         title={'text': title, 'font': {'size': title_font_size, 'color': 'white'}},
         gauge={
             'axis': {
@@ -190,7 +202,7 @@ def plot_single_gauge(
             'bgcolor': "black",
             'borderwidth': 2,
             'bordercolor': "gray",
-            'steps': [],  # no zones for now
+            'steps': [],
             'threshold': {
                 'line': {'color': "white", 'width': 3},
                 'thickness': 0.75,
@@ -211,11 +223,20 @@ def plot_single_gauge(
     return fig
 
 
-
-
 # ---- Layout for Multiple Gauges ----
-def plot_gauge_charts(metrics: dict):
-    return [plot_single_gauge(name, value) for name, value in metrics.items()]
+def plot_gauge_charts(metrics: dict, benchmark_metrics: dict = None):
+    """
+    Returns a list of plotly gauge charts (not rendered).
+    Optionally compares each metric to a benchmark metric (delta shown).
+    """
+    return [
+        plot_single_gauge(
+            title=metric_name,
+            value=value,
+            benchmark_value=benchmark_metrics.get(metric_name) if benchmark_metrics else None
+        )
+        for metric_name, value in metrics.items()
+    ]
 
 # ----- Correlation Heatmap Plotting -----
 import plotly.express as px
@@ -309,7 +330,13 @@ def plot_correlation_heatmap(price_data: pd.DataFrame):
     return fig
 
 # ----- Master Dashboard Plotter -----
-def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, portfolio_df: pd.DataFrame, date_range: tuple = None):
+def plot_portfolio_dashboard(
+    price_data: pd.DataFrame,
+    selected_assets: list,
+    portfolio_df: pd.DataFrame,
+    date_range: tuple = None,
+    benchmark: str = None  # ✅ NEW: optional benchmark asset
+    ):
     if not selected_assets:
         return None, None
 
@@ -322,24 +349,36 @@ def plot_portfolio_dashboard(price_data: pd.DataFrame, selected_assets: list, po
     else:
         start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
 
-    start_date = pd.to_datetime(start_date).tz_localize("UTC") if pd.to_datetime(start_date).tzinfo is None else pd.to_datetime(start_date)
-    end_date = pd.to_datetime(end_date).tz_localize("UTC") if pd.to_datetime(end_date).tzinfo is None else pd.to_datetime(end_date)
+    start_date = start_date.tz_localize("UTC") if start_date.tzinfo is None else start_date
+    end_date = end_date.tz_localize("UTC") if end_date.tzinfo is None else end_date
 
     filtered_data = asset_data[(asset_data.index >= start_date) & (asset_data.index <= end_date)]
 
     if filtered_data.empty:
         return None, None
 
-    # ✅ NEW: Portfolio-aware metrics using weighted returns
+    # ✅ Portfolio metrics using weighted returns
     metrics = calculate_portfolio_metrics(filtered_data, portfolio_df)
 
-    # 🧭 Gauge charts
-    needle_fig = plot_gauge_charts(metrics)
+    # ✅ Benchmark metrics (if a benchmark asset is provided)
+    benchmark_metrics = None
+    if benchmark and benchmark in price_data.columns:
+        benchmark_series = price_data[[benchmark]].loc[start_date:end_date]
+        # Create synthetic benchmark portfolio_df
+        dummy_benchmark_df = pd.DataFrame({"Asset": [benchmark], "Amount": [1.0]})
+        benchmark_metrics = calculate_portfolio_metrics(benchmark_series, dummy_benchmark_df)
 
-    # 🔥 Optional: Heatmap for diversification insight
+    # ✅ Generate gauges with deltas if benchmark available
+    gauge_figs = []
+    for metric_name, value in metrics.items():
+        benchmark_value = benchmark_metrics.get(metric_name) if benchmark_metrics else None
+        # ✅ Generate gauges with benchmark deltas
+        gauge_figs = plot_gauge_charts(metrics, benchmark_metrics)
+
+    # 🔥 Optional: Correlation heatmap
     heatmap_fig = plot_correlation_heatmap(filtered_data)
 
-    return needle_fig, heatmap_fig
+    return gauge_figs, heatmap_fig
 
 def plot_historical_assets(data, selected_assets, portfolio_df=None, date_range_default=None):
 
