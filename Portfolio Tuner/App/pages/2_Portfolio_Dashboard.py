@@ -126,39 +126,35 @@ if selected_assets:
         st.subheader("Cumulative Return vs. Benchmark")
 
         
-        # --- Plot the chart first (default BTC or None)
-        if benchmark:
+        # --- Determine the current benchmark to use
+        selected_benchmark = benchmark or "None"
+
+        # --- Plot chart based on current selection
+        if selected_benchmark != "None":
             benchmark_chart = plot_asset_cumulative_returns(
                 data, selected_assets,
-                benchmark=benchmark,
+                benchmark=selected_benchmark,
                 start=start_date, end=end_date,
                 portfolio_df=portfolio_df
             )
             st.altair_chart(benchmark_chart, use_container_width=True)
         else:
-            st.info("No benchmark selected by default.")
+            st.info("Select a benchmark to display comparison.")
 
-        # --- Benchmark selector (appears below the chart)
+        # --- Benchmark selector appears below the chart
         benchmark_input = st.selectbox(
             "Select a different benchmark for comparison:",
             options=["None"] + available_assets,
-            index=available_assets.index("BTC") + 1 if "BTC" in available_assets else 0
+            index=(available_assets.index("BTC") + 1) if selected_benchmark == "BTC" else 0
         )
 
-        # --- If user changes selection, update chart
-        if benchmark_input != benchmark and benchmark_input != "None":
-            benchmark_chart = plot_asset_cumulative_returns(
-                data, selected_assets,
-                benchmark=benchmark_input,
-                start=start_date, end=end_date,
-                portfolio_df=portfolio_df
-            )
-            st.altair_chart(benchmark_chart, use_container_width=True)
-        elif benchmark_input == "None":
-            st.info("Select a benchmark to display comparison.")
+        # --- Trigger rerun if user changed selection
+        if benchmark_input != selected_benchmark:
+            st.experimental_rerun()
 
-else:
-    st.warning("No valid assets found in your portfolio.")
+
+        else:
+            st.warning("No valid assets found in your portfolio.")
 
 # --- Optional historical charts toggle ---
 if "show_plot" not in st.session_state:
