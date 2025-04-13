@@ -40,8 +40,19 @@ else:
     st.warning("Please log in to view saved portfolio data.")
     st.stop()
 
+# --- Benchmark Selector (controlled via session_state)
+if "selected_benchmark" not in st.session_state:
+    st.session_state.selected_benchmark = "BTC" if "BTC" in available_assets else "None"
+
+st.selectbox(
+    "🔍 Select a benchmark for your portfolio comparison:",
+    options=["None"] + available_assets,
+    index=(available_assets.index(st.session_state.selected_benchmark) + 1) if st.session_state.selected_benchmark in available_assets else 0,
+    key="selected_benchmark"
+)
+
 # --- Date range selector ---
-with st.expander("📅 Select Date Range"):
+with st.expander("🗕️ Select Date Range"):
     max_date = data.index.max()
     min_date = data.index.min()
     default_start = max_date - pd.Timedelta(days=100)
@@ -54,8 +65,7 @@ with st.expander("📅 Select Date Range"):
 
 # --- Dashboard Visualization ---
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
-# --- Default benchmark to BTC if available
-benchmark = "BTC" if "BTC" in available_assets else None
+benchmark = st.session_state.selected_benchmark
 
 if selected_assets:
     try:
@@ -63,41 +73,31 @@ if selected_assets:
             data, selected_assets,
             portfolio_df=portfolio_df,
             date_range=date_range,
-            benchmark = benchmark
+            benchmark=benchmark if benchmark != "None" else None
         )
     except Exception as e:
         st.error(f"⚠️ Error in plot_portfolio_dashboard: {type(e).__name__} — {e}")
         st.stop()
-
-
 
     start_date, end_date = date_range
     start_date = ensure_utc(start_date)
     end_date = ensure_utc(end_date)
 
     # --- Cumulative Portfolio Value Chart (Centered) ---
-    # Allocate layout manually using Streamlit columns
     if selected_assets:
         st.subheader("📊 Portfolio Value Over Time")
-
-        # Inside your selected_assets block
         cumulative_chart = plot_portfolio_absolute_value(
             data, selected_assets,
             start=start_date, end=end_date,
             portfolio_df=portfolio_df)
 
-
-        # Streamlit-native centering using columns
         col1, col2, col3 = st.columns([0.2, 8, 1])
         with col2:
             st.altair_chart(cumulative_chart, use_container_width=True)
 
-
-
     # --- Needle Charts (6 Porsche-inspired gauges) ---
     st.markdown("### 🧭 Portfolio Metrics")
     if metrics_fig and len(metrics_fig) == 6:
-        # Custom layout: 2 on row 1, 4 on row 2
         row1 = st.columns(2)
         for col, fig in zip(row1, metrics_fig[:2]):
             with col:
@@ -110,9 +110,6 @@ if selected_assets:
     else:
         st.warning("Expected 6 metrics for layout, but received a different number.")
 
-
-
-
     # --- Comparison Charts (2-column layout) ---
     st.markdown("### 🔍 Portfolio Comparison")
     col1, col2 = st.columns(2)
@@ -124,15 +121,8 @@ if selected_assets:
 
     with col2:
         st.subheader("Cumulative Return vs. Benchmark")
+        benchmark_input = st.session_state.selected_benchmark
 
-        # --- Benchmark selector appears first (value used immediately below)
-        benchmark_input = st.selectbox(
-            "Select a benchmark for comparison:",
-            options=["None"] + available_assets,
-            index=(available_assets.index("BTC") + 1) if "BTC" in available_assets else 0
-        )
-
-        # --- Plot chart based on current selection
         if benchmark_input != "None":
             benchmark_chart = plot_asset_cumulative_returns(
                 data, selected_assets,
@@ -143,7 +133,6 @@ if selected_assets:
             st.altair_chart(benchmark_chart, use_container_width=True)
         else:
             st.info("Select a benchmark to display comparison.")
-
 else:
     st.warning("No valid assets found in your portfolio.")
 
@@ -168,7 +157,6 @@ if st.session_state.show_plot:
             st.error("⚠️ An error occurred in `plot_historical_assets()`")
             st.code(traceback.format_exc())
             st.stop()
-
     else:
         st.warning("No assets found to plot.")
 
