@@ -89,13 +89,7 @@ with chart_col:
     }, show_legend = False)
     st.altair_chart(add_interactivity(chart, x_field="date", y_field="cumulative"), use_container_width=True)
 
-    if risk_score > 0.05:
-        st.markdown("**Portfolio Risk Level:** 🔥 High")
-    elif risk_score > 0.03:
-        st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
-    else:
-        st.markdown("**Portfolio Risk Level:** 🧣 Low")
-
+    
     #st.markdown("### 📊 Portfolio Stats (Past 365 Days)")
     col1, col2, col3 = st.columns(3)
 
@@ -122,6 +116,13 @@ with chart_col:
             metric_name="sharpe"
         )
         st.plotly_chart(fig, use_container_width=True)
+    
+    if risk_score > 0.05:
+            st.markdown("**Portfolio Risk Level:** 🔥 High")
+        elif risk_score > 0.03:
+            st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
+        else:
+            st.markdown("**Portfolio Risk Level:** 🧣 Low")
 
 # --- Optional Monte Carlo Simulation ---
 st.markdown("## 🔮 Monte Carlo Future Simulator")

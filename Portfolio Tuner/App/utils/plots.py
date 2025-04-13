@@ -709,7 +709,7 @@ def plot_cumulative_returns(results_dict, show_legend: bool = True):
     ).properties(
         width=700,
         height=400,
-        title="Cumulative Returns by Optimization Method"
+        title="Cumulative Returns"
     )
 
     return chart
