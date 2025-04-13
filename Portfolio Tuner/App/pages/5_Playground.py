@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 from datetime import timedelta
-from utils.plots import plot_cumulative_returns, add_interactivity
+from utils.plots import plot_cumulative_returns, add_interactivity, plot_single_gauge
 from optimizer import run_optimizers
 from utils.simulation import run_smart_monte_carlo_simulation
 
