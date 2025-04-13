@@ -240,7 +240,7 @@ def plot_gauge_charts(metrics: dict, benchmark_metrics: dict = None,benchmark_na
         plot_single_gauge(
             title=metric_name,
             value=value,
-            benchmark_value=benchmark_metrics.get(metric_name) if benchmark_metrics else None
+            benchmark_value=benchmark_metrics.get(metric_name) if benchmark_metrics else None,
             benchmark_label=benchmark__name if benchmark_name else None
         )
         for metric_name, value in metrics.items()

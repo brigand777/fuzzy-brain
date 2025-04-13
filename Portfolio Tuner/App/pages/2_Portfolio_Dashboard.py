@@ -150,7 +150,7 @@ if selected_assets:
 
         # --- Trigger rerun if user changed selection
         if benchmark_input != selected_benchmark:
-            st.experimental_rerun()
+            st.rerun()
 
 
         else:
