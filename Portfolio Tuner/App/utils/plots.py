@@ -335,47 +335,45 @@ def plot_portfolio_dashboard(
     selected_assets: list,
     portfolio_df: pd.DataFrame,
     date_range: tuple = None,
-    benchmark: str = None  # ✅ NEW: optional benchmark asset
+    benchmark: str = None  # ✅ Optional benchmark for comparison
     ):
     if not selected_assets:
         return None, None
 
     asset_data = price_data[selected_assets]
 
-    # Use custom date range if provided
+    # Handle date range
     if date_range is None:
         end_date = asset_data.index.max()
         start_date = end_date - pd.Timedelta(days=100)
     else:
         start_date, end_date = pd.to_datetime(date_range[0]), pd.to_datetime(date_range[1])
 
-    start_date = start_date.tz_localize("UTC") if start_date.tzinfo is None else start_date
-    end_date = end_date.tz_localize("UTC") if end_date.tzinfo is None else end_date
+    # Ensure UTC for slicing
+    if asset_data.index.tz is not None:
+        start_date = start_date.tz_localize(asset_data.index.tz) if start_date.tzinfo is None else start_date.tz_convert(asset_data.index.tz)
+        end_date = end_date.tz_localize(asset_data.index.tz) if end_date.tzinfo is None else end_date.tz_convert(asset_data.index.tz)
 
+    # Slice the selected data
     filtered_data = asset_data[(asset_data.index >= start_date) & (asset_data.index <= end_date)]
 
     if filtered_data.empty:
         return None, None
 
-    # ✅ Portfolio metrics using weighted returns
+    # ✅ Portfolio metrics
     metrics = calculate_portfolio_metrics(filtered_data, portfolio_df)
 
-    # ✅ Benchmark metrics (if a benchmark asset is provided)
+    # ✅ Benchmark metrics (if selected)
     benchmark_metrics = None
     if benchmark and benchmark in price_data.columns:
-        benchmark_series = price_data[[benchmark]].loc[start_date:end_date]
-        # Create synthetic benchmark portfolio_df
-        dummy_benchmark_df = pd.DataFrame({"Asset": [benchmark], "Amount": [1.0]})
-        benchmark_metrics = calculate_portfolio_metrics(benchmark_series, dummy_benchmark_df)
+        benchmark_data = price_data[[benchmark]].loc[start_date:end_date]
+        benchmark_df = pd.DataFrame({"Asset": [benchmark], "Amount": [1.0]})
+        benchmark_metrics = calculate_portfolio_metrics(benchmark_data, benchmark_df)
 
-    # ✅ Generate gauges with deltas if benchmark available
-    gauge_figs = []
-    for metric_name, value in metrics.items():
-        benchmark_value = benchmark_metrics.get(metric_name) if benchmark_metrics else None
-        # ✅ Generate gauges with benchmark deltas
-        gauge_figs = plot_gauge_charts(metrics, benchmark_metrics)
+    # ✅ Gauges with benchmark deltas
+    gauge_figs = plot_gauge_charts(metrics, benchmark_metrics)
 
-    # 🔥 Optional: Correlation heatmap
+    # 🔥 Diversification heatmap
     heatmap_fig = plot_correlation_heatmap(filtered_data)
 
     return gauge_figs, heatmap_fig
