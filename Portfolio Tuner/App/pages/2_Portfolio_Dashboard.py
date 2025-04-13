@@ -82,16 +82,17 @@ if authentication_status:
             start=start_date, end=end_date,
             portfolio_df=portfolio_df)
         
+        
+        col1, col2, col3 = st.columns([0.2, 8, 1])
+        with col2:
+            st.altair_chart(cumulative_chart, use_container_width=True)
+        
         st.selectbox(
             "🔍 Select a benchmark for your portfolio comparison:",
             options=["None"] + available_assets,
             index=(available_assets.index(st.session_state.selected_benchmark) + 1) if st.session_state.selected_benchmark in available_assets else 0,
             key="selected_benchmark"
         )
-        col1, col2, col3 = st.columns([0.2, 8, 1])
-        with col2:
-            st.altair_chart(cumulative_chart, use_container_width=True)
-
         # --- Needle Charts (6 Porsche-inspired gauges) ---
         st.markdown("### 🧭 Portfolio Metrics")
         if metrics_fig and len(metrics_fig) == 6:
