@@ -14,7 +14,7 @@ from utils.plots import (
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
 
-st.title("📊 Portfolio Dashboard")
+st.title("\ud83d\udcca Portfolio Dashboard")
 
 # --- Load asset data ---
 @st.cache_data
@@ -36,23 +36,23 @@ if authentication_status:
     else:
         st.warning("No saved portfolio found. Please create one in the Portfolio Editor.")
         st.stop()
+
+    # --- Benchmark Selector (controlled via session_state)
+    if "selected_benchmark" not in st.session_state:
+        st.session_state.selected_benchmark = "BTC" if "BTC" in available_assets else "None"
+
+    st.selectbox(
+        "\ud83d\udd0d Select a benchmark for your portfolio comparison:",
+        options=["None"] + available_assets,
+        index=(available_assets.index(st.session_state.selected_benchmark) + 1) if st.session_state.selected_benchmark in available_assets else 0,
+        key="selected_benchmark"
+    )
 else:
     st.warning("Please log in to view saved portfolio data.")
     st.stop()
 
-# --- Benchmark Selector (controlled via session_state)
-if "selected_benchmark" not in st.session_state:
-    st.session_state.selected_benchmark = "BTC" if "BTC" in available_assets else "None"
-
-st.selectbox(
-    "🔍 Select a benchmark for your portfolio comparison:",
-    options=["None"] + available_assets,
-    index=(available_assets.index(st.session_state.selected_benchmark) + 1) if st.session_state.selected_benchmark in available_assets else 0,
-    key="selected_benchmark"
-)
-
 # --- Date range selector ---
-with st.expander("🗕️ Select Date Range"):
+with st.expander("\ud83d\udd5d\ufe0f Select Date Range"):
     max_date = data.index.max()
     min_date = data.index.min()
     default_start = max_date - pd.Timedelta(days=100)
@@ -76,7 +76,7 @@ if selected_assets:
             benchmark=benchmark if benchmark != "None" else None
         )
     except Exception as e:
-        st.error(f"⚠️ Error in plot_portfolio_dashboard: {type(e).__name__} — {e}")
+        st.error(f"\u26a0\ufe0f Error in plot_portfolio_dashboard: {type(e).__name__} \u2014 {e}")
         st.stop()
 
     start_date, end_date = date_range
@@ -85,7 +85,7 @@ if selected_assets:
 
     # --- Cumulative Portfolio Value Chart (Centered) ---
     if selected_assets:
-        st.subheader("📊 Portfolio Value Over Time")
+        st.subheader("\ud83d\udcca Portfolio Value Over Time")
         cumulative_chart = plot_portfolio_absolute_value(
             data, selected_assets,
             start=start_date, end=end_date,
@@ -96,7 +96,7 @@ if selected_assets:
             st.altair_chart(cumulative_chart, use_container_width=True)
 
     # --- Needle Charts (6 Porsche-inspired gauges) ---
-    st.markdown("### 🧭 Portfolio Metrics")
+    st.markdown("### \ud83e\udded Portfolio Metrics")
     if metrics_fig and len(metrics_fig) == 6:
         row1 = st.columns(2)
         for col, fig in zip(row1, metrics_fig[:2]):
@@ -111,7 +111,7 @@ if selected_assets:
         st.warning("Expected 6 metrics for layout, but received a different number.")
 
     # --- Comparison Charts (2-column layout) ---
-    st.markdown("### 🔍 Portfolio Comparison")
+    st.markdown("### \ud83d\udd0d Portfolio Comparison")
     col1, col2 = st.columns(2)
 
     with col1:
@@ -140,7 +140,7 @@ else:
 if "show_plot" not in st.session_state:
     st.session_state.show_plot = False
 
-if st.button("📊 Show Historical Asset Performance"):
+if st.button("\ud83d\udcca Show Historical Asset Performance"):
     st.session_state.show_plot = not st.session_state.show_plot
 
 if st.session_state.show_plot:
@@ -154,7 +154,7 @@ if st.session_state.show_plot:
             )
         except Exception as e:
             import traceback
-            st.error("⚠️ An error occurred in `plot_historical_assets()`")
+            st.error("\u26a0\ufe0f An error occurred in `plot_historical_assets()`")
             st.code(traceback.format_exc())
             st.stop()
     else:
@@ -162,4 +162,4 @@ if st.session_state.show_plot:
 
 # --- Navigation ---
 st.markdown("---")
-st.markdown("[← Back to Portfolio Editor](1_My_Portfolio.py)")
+st.markdown("[\u2190 Back to Portfolio Editor](1_My_Portfolio.py)")
