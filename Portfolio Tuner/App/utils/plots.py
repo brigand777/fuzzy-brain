@@ -687,22 +687,25 @@ def add_interactivity(
 
     return (base_chart + overlay).interactive()
 
-def plot_cumulative_returns(results_dict):
+def plot_cumulative_returns(results_dict, show_legend: bool = True):
     cumul_df_list = []
     for method, res in results_dict.items():
         temp = res["cumulative"].reset_index()
         temp.columns = ["date", "cumulative"]
-        # Adjust cumulative returns to start at 0 (subtract 1)
         temp["cumulative"] = temp["cumulative"] - 1
         temp["Method"] = method
         cumul_df_list.append(temp)
     
     cumul_df = pd.concat(cumul_df_list)
 
+    color_encoding = alt.Color("Method:N")
+    if not show_legend:
+        color_encoding = color_encoding.legend(None)
+
     chart = alt.Chart(cumul_df).mark_line().encode(
         x="date:T",
         y=alt.Y("cumulative:Q", title="Cumulative Return (starting at 0)"),
-        color="Method:N"
+        color=color_encoding
     ).properties(
         width=700,
         height=400,

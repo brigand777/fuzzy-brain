@@ -81,12 +81,12 @@ def styled_number(value):
     return f"<span style='color:{color}'>{value:.2f}</span>"
 
 with chart_col:
-    st.subheader("📊 Cumulative Returns")
+    #st.subheader("📊 Cumulative Returns")
     chart = plot_cumulative_returns({
         "Playground Portfolio": {
             "cumulative": cumulative_returns
         }
-    })
+    }, show_legend = False)
     st.altair_chart(add_interactivity(chart, x_field="date", y_field="cumulative"), use_container_width=True)
 
     if risk_score > 0.05:
@@ -96,14 +96,32 @@ with chart_col:
     else:
         st.markdown("**Portfolio Risk Level:** 🧣 Low")
 
-    st.markdown("### 📊 Portfolio Stats (Past 365 Days)")
+    #st.markdown("### 📊 Portfolio Stats (Past 365 Days)")
     col1, col2, col3 = st.columns(3)
+
     with col1:
-        st.markdown(f"**Cumulative Return**<br>{styled_percent(cumulative_return)}", unsafe_allow_html=True)
+        fig = plot_single_gauge(
+            title="Cumulative Return",
+            value=cumulative_return ,  # convert to percent
+            metric_name="cumulative"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
     with col2:
-        st.markdown(f"**Annualized Volatility**<br>{styled_percent(annualized_volatility, red_if_high=True)}", unsafe_allow_html=True)
+        fig = plot_single_gauge(
+            title="Annualized Volatility",
+            value=annualized_volatility,  # convert to percent
+            metric_name="volatility"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
     with col3:
-        st.markdown(f"**Sharpe Ratio**<br>{styled_number(sharpe_ratio)}", unsafe_allow_html=True)
+        fig = plot_single_gauge(
+            title="Sharpe Ratio",
+            value=sharpe_ratio,
+            metric_name="sharpe"
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 # --- Optional Monte Carlo Simulation ---
 st.markdown("## 🔮 Monte Carlo Future Simulator")
