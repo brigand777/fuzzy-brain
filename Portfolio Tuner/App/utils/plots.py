@@ -133,6 +133,8 @@ import plotly.graph_objects as go
 import plotly.graph_objects as go
 import numpy as np
 
+import plotly.graph_objects as go
+
 def plot_single_gauge(
     title: str,
     value: float,
@@ -175,17 +177,17 @@ def plot_single_gauge(
     is_bad = value < threshold if better == "above" else value > threshold
     needle_color = "green" if not is_bad else "red"
 
-    # ✅ Delta: move label inline
+    # ✅ Clean delta formatting: "vs BTC"
     delta_config = None
     if benchmark_value is not None:
         delta_config = {
             "reference": benchmark_value,
-            "increasing": {"color": "limegreen", "symbol": "▲"},
-            "decreasing": {"color": "crimson", "symbol": "▼"},
+            "increasing": {"color": "limegreen", "symbol": ""},
+            "decreasing": {"color": "crimson", "symbol": ""},
             "relative": False,
             "valueformat": ".2f",
-            "position": "right",
-            "suffix": f" vs {benchmark_label.upper()}"
+            "suffix": f" vs {benchmark_label.upper()}",
+            "position": "bottom"
         }
 
     fig = go.Figure(go.Indicator(
@@ -218,33 +220,12 @@ def plot_single_gauge(
         domain={'x': [0, 1], 'y': [0, 1]}
     ))
 
-    # ✅ Improved visibility of benchmark stripe
-    def value_to_angle(val):
-        angle_deg = (1 - (val - min_val) / (max_val - min_val)) * 180
-        return np.radians(angle_deg)
-
-    if benchmark_value is not None and min_val < benchmark_value < max_val:
-        angle = value_to_angle(benchmark_value)
-        r0, r1 = 0.5, 0.95  # longer stroke
-        x0 = 0.5 + r0 * np.cos(angle)
-        y0 = 0.5 + r0 * np.sin(angle)
-        x1 = 0.5 + r1 * np.cos(angle)
-        y1 = 0.5 + r1 * np.sin(angle)
-
-        fig.add_shape(
-            type="line",
-            x0=x0, y0=y0, x1=x1, y1=y1,
-            line=dict(color="dodgerblue", width=4),
-            xref="paper", yref="paper",
-            layer="above"
-        )
-
     fig.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
         font={'color': "white"},
         height=250,
-        margin=dict(t=40, b=20, l=20, r=20)
+        margin=dict(t=50, b=40, l=20, r=20)  # extra bottom space for delta
     )
 
     return fig
