@@ -102,7 +102,7 @@ with chart_col:
     with col1:
         fig = plot_single_gauge(
             title="Cumulative Return",
-            value=cumulative_return ,  # convert to percent
+            value=cumulative_return * 100 ,  # convert to percent
             metric_name="cumulative"
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -110,7 +110,7 @@ with chart_col:
     with col2:
         fig = plot_single_gauge(
             title="Annualized Volatility",
-            value=annualized_volatility,  # convert to percent
+            value=annualized_volatility*100,  # convert to percent
             metric_name="volatility"
         )
         st.plotly_chart(fig, use_container_width=True)
