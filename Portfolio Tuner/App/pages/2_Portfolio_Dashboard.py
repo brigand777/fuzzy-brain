@@ -63,8 +63,7 @@ if selected_assets:
             data, selected_assets,
             portfolio_df=portfolio_df,
             date_range=date_range,
-            benchmark = benchmark,
-            benchmark_label = benchmark
+            benchmark = benchmark
         )
     except Exception as e:
         st.error(f"⚠️ Error in plot_portfolio_dashboard: {type(e).__name__} — {e}")

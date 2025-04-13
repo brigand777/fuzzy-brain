@@ -231,7 +231,7 @@ def plot_single_gauge(
     return fig
 
 # ---- Layout for Multiple Gauges ----
-def plot_gauge_charts(metrics: dict, benchmark_metrics: dict = None):
+def plot_gauge_charts(metrics: dict, benchmark_metrics: dict = None,benchmark_name: str = None):
     """
     Returns a list of plotly gauge charts (not rendered).
     Optionally compares each metric to a benchmark metric (delta shown).
@@ -241,6 +241,7 @@ def plot_gauge_charts(metrics: dict, benchmark_metrics: dict = None):
             title=metric_name,
             value=value,
             benchmark_value=benchmark_metrics.get(metric_name) if benchmark_metrics else None
+            benchmark_label=benchmark__name if benchmark_name else None
         )
         for metric_name, value in metrics.items()
     ]
@@ -372,13 +373,15 @@ def plot_portfolio_dashboard(
 
     # ✅ Benchmark metrics (if selected)
     benchmark_metrics = None
+    benchmark_name = None
     if benchmark and benchmark in price_data.columns:
+        benchmark_name = benchmark
         benchmark_data = price_data[[benchmark]].loc[start_date:end_date]
         benchmark_df = pd.DataFrame({"Asset": [benchmark], "Amount": [1.0]})
         benchmark_metrics = calculate_portfolio_metrics(benchmark_data, benchmark_df)
 
     # ✅ Gauges with benchmark deltas
-    gauge_figs = plot_gauge_charts(metrics, benchmark_metrics)
+    gauge_figs = plot_gauge_charts(metrics, benchmark_metrics, benchmark_name)
 
     # 🔥 Diversification heatmap
     heatmap_fig = plot_correlation_heatmap(filtered_data)
