@@ -133,7 +133,8 @@ import plotly.graph_objects as go
 def plot_single_gauge(
     title: str,
     value: float,
-    benchmark_value: float = None,  # ✅ NEW: optional benchmark for comparison
+    benchmark_value: float = None,
+    benchmark_label: str = "Benchmark",
     metric_name: str = None,
     title_font_size: int = 18,
     number_font_size: int = 30,
@@ -171,16 +172,18 @@ def plot_single_gauge(
     is_bad = value < threshold if better == "above" else value > threshold
     needle_color = "green" if not is_bad else "red"
 
-    # Optional delta config if benchmark provided
-    delta_config = {}
+    delta_config = None
     if benchmark_value is not None:
         delta_config = {
             "reference": benchmark_value,
-            "increasing": {"color": "limegreen"},
-            "decreasing": {"color": "crimson"},
+            "increasing": {"color": "limegreen", "symbol": "▲"},
+            "decreasing": {"color": "crimson", "symbol": "▼"},
             "relative": False,
-            "valueformat": ".2f"
+            "valueformat": ".2f",
+            "position": "bottom"
         }
+
+    subtitle = f"<br><span style='font-size:12px'>vs {benchmark_label}</span>" if benchmark_value is not None else ""
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number" + ("+delta" if benchmark_value is not None else ""),
@@ -189,8 +192,11 @@ def plot_single_gauge(
             'suffix': suffix,
             'font': {'color': 'white', 'size': number_font_size}
         },
-        delta=delta_config if benchmark_value is not None else None,
-        title={'text': title, 'font': {'size': title_font_size, 'color': 'white'}},
+        delta=delta_config,
+        title={
+            'text': f"{title}{subtitle}",
+            'font': {'size': title_font_size, 'color': 'white'}
+        },
         gauge={
             'axis': {
                 'range': [min_val, max_val],
@@ -212,6 +218,26 @@ def plot_single_gauge(
         domain={'x': [0, 1], 'y': [0, 1]}
     ))
 
+    # 🟦 Optional: draw benchmark indicator line
+    def value_to_angle(val):
+        angle_deg = (1 - (val - min_val) / (max_val - min_val)) * 180
+        return np.radians(angle_deg)
+
+    if benchmark_value is not None and min_val < benchmark_value < max_val:
+        angle = value_to_angle(benchmark_value)
+        r0, r1 = 0.7, 0.95  # inner & outer radius
+        x0 = 0.5 + r0 * np.cos(angle)
+        y0 = 0.5 + r0 * np.sin(angle)
+        x1 = 0.5 + r1 * np.cos(angle)
+        y1 = 0.5 + r1 * np.sin(angle)
+
+        fig.add_shape(
+            type="line",
+            x0=x0, y0=y0, x1=x1, y1=y1,
+            line=dict(color="dodgerblue", width=3),
+            xref="paper", yref="paper"
+        )
+
     fig.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
@@ -221,7 +247,6 @@ def plot_single_gauge(
     )
 
     return fig
-
 
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict, benchmark_metrics: dict = None):
