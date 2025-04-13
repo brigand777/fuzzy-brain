@@ -151,10 +151,8 @@ if selected_assets:
         # --- Trigger rerun if user changed selection
         if benchmark_input != selected_benchmark:
             st.rerun()
-
-
-        else:
-            st.warning("No valid assets found in your portfolio.")
+else:
+    st.warning("No valid assets found in your portfolio.")
 
 # --- Optional historical charts toggle ---
 if "show_plot" not in st.session_state:
