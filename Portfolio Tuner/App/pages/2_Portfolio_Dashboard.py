@@ -125,15 +125,18 @@ if selected_assets:
     with col2:
         st.subheader("Cumulative Return vs. Benchmark")
 
-        
-        # --- Determine the current benchmark to use
-        selected_benchmark = benchmark or "None"
+        # --- Benchmark selector appears first (value used immediately below)
+        benchmark_input = st.selectbox(
+            "Select a benchmark for comparison:",
+            options=["None"] + available_assets,
+            index=(available_assets.index("BTC") + 1) if "BTC" in available_assets else 0
+        )
 
         # --- Plot chart based on current selection
-        if selected_benchmark != "None":
+        if benchmark_input != "None":
             benchmark_chart = plot_asset_cumulative_returns(
                 data, selected_assets,
-                benchmark=selected_benchmark,
+                benchmark=benchmark_input,
                 start=start_date, end=end_date,
                 portfolio_df=portfolio_df
             )
@@ -141,16 +144,6 @@ if selected_assets:
         else:
             st.info("Select a benchmark to display comparison.")
 
-        # --- Benchmark selector appears below the chart
-        benchmark_input = st.selectbox(
-            "Select a different benchmark for comparison:",
-            options=["None"] + available_assets,
-            index=(available_assets.index("BTC") + 1) if selected_benchmark == "BTC" else 0
-        )
-
-        # --- Trigger rerun if user changed selection
-        if benchmark_input != selected_benchmark:
-            st.rerun()
 else:
     st.warning("No valid assets found in your portfolio.")
 
