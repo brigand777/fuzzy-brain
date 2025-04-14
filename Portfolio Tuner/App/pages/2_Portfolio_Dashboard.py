@@ -82,7 +82,7 @@ if authentication_status:
                 glossary_url="6_Glossary.py#cumulative-return",
                 chart_func=plot_portfolio_absolute_value,
                 data=data,
-                assets=selected_assets,
+                selected_assets=selected_assets,
                 start=start_date,
                 end=end_date,
                 portfolio_df=portfolio_df
@@ -144,7 +144,7 @@ if authentication_status:
                 glossary_url="6_Glossary.py#benchmark",
                 chart_func=plot_asset_cumulative_returns,
                 data=data,
-                assets=selected_assets,
+                selected_assets=selected_assets,
                 benchmark=benchmark,
                 start=start_date,
                 end=end_date,
