@@ -61,44 +61,44 @@ def chart_with_tooltip(
         st.markdown(f"### {title}")
     with col2:
         tooltip_html = f"""
-        <div>
-        <style>
-        .tooltip-inline {{
-          display: inline-block;
-          position: relative;
-        }}
+    <div>
+    <style>
+    .tooltip-inline {{
+      display: inline-block;
+      position: relative;
+    }}
 
-        .tooltip-icon {{
-          cursor: help;
-          padding: 0 4px;
-        }}
+    .tooltip-icon {{
+      cursor: help;
+      padding: 0 4px;
+    }}
 
-        .tooltip-text-wrapper {{
-          position: absolute;
-          z-index: 10000;
-          top: 20px;
-          left: 0px;
-          visibility: visible;  /* <-- FORCE SHOW */
-          opacity: 1;            /* <-- FORCE SHOW */
-          width: 250px;
-          background-color: #333;
-          color: #fff;
-          border-radius: 6px;
-          padding: 8px;
-          font-size: 0.85rem;
-          pointer-events: auto;
-        }}
-        </style>
+    .tooltip-text-wrapper {{
+      position: absolute;
+      z-index: 10000;
+      top: 20px;
+      left: 0px;
+      visibility: visible;  /* <-- FORCE SHOW */
+      opacity: 1;            /* <-- FORCE SHOW */
+      width: 250px;
+      background-color: #333;
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.85rem;
+      pointer-events: auto;
+    }}
+    </style>
 
-        <div class='tooltip-inline'>
-          <span class='tooltip-icon'>❓</span>
-          <div class='tooltip-text-wrapper'>
-            <strong>{term}</strong><br>{short_desc}
-            {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
-          </div>
-        </div>
-        </div>
-        """
+    <div class='tooltip-inline'>
+      <span class='tooltip-icon'>❓</span>
+      <div class='tooltip-text-wrapper'>
+        <strong>{term}</strong><br>{short_desc}
+        {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
+      </div>
+    </div>
+    </div>
+    """
 
         components.html(tooltip_html, height=60)
 
