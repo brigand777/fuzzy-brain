@@ -97,8 +97,8 @@ if authentication_status:
         )
 
         # --- Needle Charts (Portfolio Metrics) ---
-        st.markdown("### 🧭 Portfolio Metrics")
-        add_info_icon("Portfolio Metrics", "Key risk and performance indicators.", "6_Glossary.py#sharpe-ratio")
+        #st.markdown("### 🧭 Portfolio Metrics")
+        add_info_icon("🧭 Portfolio Metrics", "Key risk and performance indicators.", "6_Glossary.py#sharpe-ratio")
 
         if "show_advanced_metrics" not in st.session_state:
             st.session_state.show_advanced_metrics = False

@@ -3,46 +3,65 @@ import streamlit.components.v1 as components
 from utils.plots import add_interactivity
 
 def add_info_icon(term: str, short_description: str, glossary_url: str = None):
-    """Displays a compact info icon with hover tooltip and optional glossary link."""
+    """Displays a compact inline info icon with hover tooltip and optional glossary link."""
+
     tooltip_html = f"""
     <style>
-    .tooltip {{
-      position: relative;
+    .info-tooltip {{
       display: inline-block;
-      cursor: help;
+      position: relative;
+      vertical-align: super;
+      margin-left: 6px;
+      font-size: 0.75em;
+      font-family: inherit;
+      color: inherit;
     }}
 
-    .tooltip .tooltiptext {{
+    .info-tooltip-icon {{
+      cursor: help;
+      font-weight: bold;
+      font-size: 0.8em;
+      line-height: 1;
+      color: inherit;
+    }}
+
+    .info-tooltip-box {{
       visibility: hidden;
-      width: 240px;
+      opacity: 0;
+      width: 220px;
       background-color: #333;
       color: #fff;
       text-align: left;
       border-radius: 6px;
-      padding: 8px;
+      padding: 6px 8px;
+      font-size: 0.7em;
       position: absolute;
-      z-index: 1;
-      top: -5px;
-      left: 110%;
-      opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 0.85rem;
+      z-index: 10;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: auto;
+      transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
     }}
 
-    .tooltip:hover .tooltiptext {{
+    .info-tooltip:hover .info-tooltip-box {{
       visibility: visible;
       opacity: 1;
+      transition-delay: 0s, 0s;
     }}
     </style>
 
-    <div class="tooltip">❓
-      <span class="tooltiptext">
+    <span class="info-tooltip">
+      <span class="info-tooltip-icon">ℹ️</span>
+      <div class="info-tooltip-box">
         <strong>{term}</strong><br>{short_description}
         {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
-      </span>
-    </div>
+      </div>
+    </span>
     """
-    components.html(tooltip_html, height=30)
+
+    st.markdown(tooltip_html, unsafe_allow_html=True)
+
 
 
 def chart_with_tooltip(
