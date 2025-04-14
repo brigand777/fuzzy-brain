@@ -56,7 +56,10 @@ def chart_with_tooltip(
     ):
     from utils.plots import add_interactivity
 
+    import streamlit.components.v1 as components
+
     tooltip_html = f"""
+    <div>
     <style>
     .tooltip-inline {{
       display: inline-block;
@@ -93,34 +96,32 @@ def chart_with_tooltip(
     </style>
 
     <script>
-    let tooltipTimeout;
-    document.addEventListener("DOMContentLoaded", function() {{
-      const container = document.querySelectorAll('.tooltip-inline');
-      container.forEach(el => {{
-        const icon = el.querySelector('.tooltip-icon');
-        const tooltip = el.querySelector('.tooltip-text-wrapper');
+    (function() {{
+      let tooltipTimeout;
+      const container = document.currentScript.parentElement.querySelector('.tooltip-inline');
+      const icon = container.querySelector('.tooltip-icon');
+      const tooltip = container.querySelector('.tooltip-text-wrapper');
 
-        el.addEventListener('mouseenter', () => {{
-          clearTimeout(tooltipTimeout);
-          el.classList.add('show-tooltip');
-        }});
-
-        el.addEventListener('mouseleave', () => {{
-          tooltipTimeout = setTimeout(() => {{
-            el.classList.remove('show-tooltip');
-          }}, 1500);
-        }});
-
-        tooltip.addEventListener('mouseenter', () => {{
-          clearTimeout(tooltipTimeout);
-        }});
-        tooltip.addEventListener('mouseleave', () => {{
-          tooltipTimeout = setTimeout(() => {{
-            el.classList.remove('show-tooltip');
-          }}, 1500);
-        }});
+      container.addEventListener('mouseenter', () => {{
+        clearTimeout(tooltipTimeout);
+        container.classList.add('show-tooltip');
       }});
-    }});
+
+      container.addEventListener('mouseleave', () => {{
+        tooltipTimeout = setTimeout(() => {{
+          container.classList.remove('show-tooltip');
+        }}, 1500);
+      }});
+
+      tooltip.addEventListener('mouseenter', () => {{
+        clearTimeout(tooltipTimeout);
+      }});
+      tooltip.addEventListener('mouseleave', () => {{
+        tooltipTimeout = setTimeout(() => {{
+          container.classList.remove('show-tooltip');
+        }}, 1500);
+      }});
+    }})();
     </script>
 
     <h4 style='display:flex; align-items:center; gap:0.5rem;'>
@@ -133,9 +134,11 @@ def chart_with_tooltip(
         </div>
       </div>
     </h4>
+    </div>
     """
 
-    st.markdown(tooltip_html, unsafe_allow_html=True)
+    # Render with Streamlit component (forces JS to execute reliably)
+    components.html(tooltip_html, height=80)
 
     chart = chart_func(*args, **kwargs)
 
