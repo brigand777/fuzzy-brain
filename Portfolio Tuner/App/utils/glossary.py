@@ -55,7 +55,6 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
     *args, **kwargs
     ):
     from utils.plots import add_interactivity
-    import streamlit.components.v1 as components
 
     # ✅ Show title using Streamlit styling
     col1, col2 = st.columns([0.97, 0.03])
