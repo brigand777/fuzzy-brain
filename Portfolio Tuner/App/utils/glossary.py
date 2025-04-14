@@ -42,7 +42,7 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
     </div>
     """
     components.html(tooltip_html, height=30)
-
+    
 def chart_with_tooltip(
     title: str,
     term: str,
@@ -56,10 +56,10 @@ def chart_with_tooltip(
     ):
     from utils.plots import add_interactivity
 
-    import streamlit.components.v1 as components
+    import streamlit as st
 
+    # Tooltip with 1.5s decay timer, inline using CSS + minimal JS
     tooltip_html = f"""
-    <div>
     <style>
     .tooltip-inline {{
       display: inline-block;
@@ -96,32 +96,34 @@ def chart_with_tooltip(
     </style>
 
     <script>
-    (function() {{
-      let tooltipTimeout;
-      const container = document.currentScript.parentElement.querySelector('.tooltip-inline');
-      const icon = container.querySelector('.tooltip-icon');
-      const tooltip = container.querySelector('.tooltip-text-wrapper');
+    let tooltipTimeout;
+    window.addEventListener('load', function() {{
+      const containers = document.querySelectorAll('.tooltip-inline');
+      containers.forEach(container => {{
+        const icon = container.querySelector('.tooltip-icon');
+        const tooltip = container.querySelector('.tooltip-text-wrapper');
 
-      container.addEventListener('mouseenter', () => {{
-        clearTimeout(tooltipTimeout);
-        container.classList.add('show-tooltip');
-      }});
+        container.addEventListener('mouseenter', () => {{
+          clearTimeout(tooltipTimeout);
+          container.classList.add('show-tooltip');
+        }});
 
-      container.addEventListener('mouseleave', () => {{
-        tooltipTimeout = setTimeout(() => {{
-          container.classList.remove('show-tooltip');
-        }}, 1500);
-      }});
+        container.addEventListener('mouseleave', () => {{
+          tooltipTimeout = setTimeout(() => {{
+            container.classList.remove('show-tooltip');
+          }}, 1500);
+        }});
 
-      tooltip.addEventListener('mouseenter', () => {{
-        clearTimeout(tooltipTimeout);
+        tooltip.addEventListener('mouseenter', () => {{
+          clearTimeout(tooltipTimeout);
+        }});
+        tooltip.addEventListener('mouseleave', () => {{
+          tooltipTimeout = setTimeout(() => {{
+            container.classList.remove('show-tooltip');
+          }}, 1500);
+        }});
       }});
-      tooltip.addEventListener('mouseleave', () => {{
-        tooltipTimeout = setTimeout(() => {{
-          container.classList.remove('show-tooltip');
-        }}, 1500);
-      }});
-    }})();
+    }});
     </script>
 
     <h4 style='display:flex; align-items:center; gap:0.5rem;'>
@@ -134,11 +136,9 @@ def chart_with_tooltip(
         </div>
       </div>
     </h4>
-    </div>
     """
 
-    # Render with Streamlit component (forces JS to execute reliably)
-    components.html(tooltip_html, height=80)
+    st.markdown(tooltip_html, unsafe_allow_html=True)
 
     chart = chart_func(*args, **kwargs)
 
@@ -149,7 +149,6 @@ def chart_with_tooltip(
         st.plotly_chart(chart, use_container_width=True)
     else:
         st.altair_chart(chart, use_container_width=True)
-
 
 def add_glossary_term(term, short, long, show_more=True):
     """Displays a glossary term with an expandable explanation."""
