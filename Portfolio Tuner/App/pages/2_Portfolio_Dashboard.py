@@ -10,7 +10,7 @@ from utils.plots import (
     plot_gauge_charts,
     plot_portfolio_absolute_value
 )
-from utils.glossary import chart_with_tooltip, add_info_icon
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
@@ -97,8 +97,13 @@ if authentication_status:
         )
 
         # --- Needle Charts (Portfolio Metrics) ---
-        #st.markdown("### 🧭 Portfolio Metrics")
-        add_info_icon("🧭 Portfolio Metrics", "Key risk and performance indicators.", "6_Glossary.py#sharpe-ratio")
+        section_heading(
+            "🧭 Portfolio Metrics",
+            term="Portfolio Metrics",
+            short_description="Key risk and performance indicators.",
+            glossary_url="6_Glossary.py#sharpe-ratio",
+            level=3  # or level=3 for subsection
+        )
 
         if "show_advanced_metrics" not in st.session_state:
             st.session_state.show_advanced_metrics = False

@@ -2,10 +2,8 @@ import streamlit as st
 import streamlit.components.v1 as components
 from utils.plots import add_interactivity
 
-def add_info_icon(term: str, short_description: str, glossary_url: str = None):
-    """Displays a compact inline info icon with hover tooltip and optional glossary link."""
-
-    tooltip_html = f"""
+def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
+    return f"""
     <style>
     .info-tooltip {{
       display: inline-block;
@@ -16,7 +14,6 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
       font-family: inherit;
       color: inherit;
     }}
-
     .info-tooltip-icon {{
       cursor: help;
       font-weight: bold;
@@ -24,7 +21,6 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
       line-height: 1;
       color: inherit;
     }}
-
     .info-tooltip-box {{
       visibility: hidden;
       opacity: 0;
@@ -43,7 +39,6 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
       pointer-events: auto;
       transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
     }}
-
     .info-tooltip:hover .info-tooltip-box {{
       visibility: visible;
       opacity: 1;
@@ -60,8 +55,16 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
     </span>
     """
 
-    st.markdown(tooltip_html, unsafe_allow_html=True)
-
+def section_heading(
+    title: str,
+    term: str,
+    short_description: str,
+    glossary_url: str = None,
+    level: int = 2  # Use 2 for "##", 3 for "###", etc.
+    ):
+    heading_tag = f"h{level}"
+    full_html = f"<{heading_tag}>{title} {add_info_icon(term, short_description, glossary_url)}</{heading_tag}>"
+    st.markdown(full_html, unsafe_allow_html=True)
 
 
 def chart_with_tooltip(
