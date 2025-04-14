@@ -118,16 +118,20 @@ with chart_col:
         st.plotly_chart(fig, use_container_width=True)
     
     if risk_score > 0.05:
-            st.markdown("**Portfolio Risk Level:** 🔥 High")
-        elif risk_score > 0.03:
-            st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
-        else:
-            st.markdown("**Portfolio Risk Level:** 🧣 Low")
+        st.markdown("**Portfolio Risk Level:** 🔥 High")
+    elif risk_score > 0.03:
+        st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
+    else:
+        st.markdown("**Portfolio Risk Level:** 🧣 Low")
 
 # --- Optional Monte Carlo Simulation ---
 st.markdown("## 🔮 Monte Carlo Future Simulator")
 
 if st.button("🔮 Run Smart Monte Carlo Simulation"):
+    if len(weights) < 2:
+        st.warning("Monte Carlo works best with multiple assets.")
+        st.stop()
+
     result = run_smart_monte_carlo_simulation(weights, data[playground_assets])
     st.plotly_chart(result["chart"], use_container_width=True)
 

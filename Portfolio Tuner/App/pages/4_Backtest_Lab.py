@@ -85,6 +85,8 @@ if st.button("Run Backtest"):
         try:
             # Prepare user weights
             latest_prices = data.iloc[-1]
+            portfolio_df = portfolio_df.dropna(subset=["Asset", "Amount"])
+            #portfolio_df = portfolio_df[portfolio_df["Amount"] > 0]
             values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
             total_value = values.sum()
             user_weights = {

@@ -33,5 +33,5 @@ else:
 portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_status)
 
 # --- Navigation ---
-st.markdown("---")
-st.markdown("[📈 Go to Portfolio Dashboard](2_Portfolio_Dashboard.py)")
+if st.button("📈 Go to Portfolio Dashboard"):
+    st.switch_page("pages/2_Portfolio_Dashboard.py")

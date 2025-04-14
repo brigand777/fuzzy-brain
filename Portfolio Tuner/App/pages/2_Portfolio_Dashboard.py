@@ -95,18 +95,35 @@ if authentication_status:
         )
         # --- Needle Charts (6 Porsche-inspired gauges) ---
         st.markdown("### 🧭 Portfolio Metrics")
-        if metrics_fig and len(metrics_fig) == 6:
-            row1 = st.columns(2)
-            for col, fig in zip(row1, metrics_fig[:2]):
-                with col:
-                    st.plotly_chart(fig, use_container_width=True)
 
-            row2 = st.columns(4)
-            for col, fig in zip(row2, metrics_fig[2:]):
-                with col:
-                    st.plotly_chart(fig, use_container_width=True)
+        # Initialize session state for the toggle
+        if "show_advanced_metrics" not in st.session_state:
+            st.session_state.show_advanced_metrics = False
+
+        # Toggle button that updates session state
+        st.checkbox("Show Advanced Metrics", key="show_advanced_metrics")
+
+        if metrics_fig and len(metrics_fig) == 6:
+            if st.session_state.show_advanced_metrics:
+                # Show all 6 metrics in two rows of 3
+                row1 = st.columns(3)
+                for col, fig in zip(row1, metrics_fig[:3]):
+                    with col:
+                        st.plotly_chart(fig, use_container_width=True)
+
+                row2 = st.columns(3)
+                for col, fig in zip(row2, metrics_fig[3:]):
+                    with col:
+                        st.plotly_chart(fig, use_container_width=True)
+            else:
+                # Show only the first 3 metrics in one row
+                row = st.columns(3)
+                for col, fig in zip(row, metrics_fig[:3]):
+                    with col:
+                        st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("Expected 6 metrics for layout, but received a different number.")
+
 
         # --- Comparison Charts (2-column layout) ---
         st.markdown("### 🔍 Portfolio Comparison")
@@ -158,5 +175,6 @@ else:
     st.warning("Please log in to view saved portfolio data.")
 
 # --- Navigation ---
-st.markdown("---")
-st.markdown("[← Back to Portfolio Editor](1_My_Portfolio.py)")
+if st.button("← Back to Portfolio Editor"):
+    st.switch_page("pages/1_My_Portfolio.py")
+
