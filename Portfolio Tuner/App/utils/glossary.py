@@ -59,8 +59,8 @@ def chart_with_tooltip(
 
     # ✅ Show title using Streamlit styling
     col1, col2 = st.columns([0.97, 0.03])
-    with col1:
-        st.markdown(f"### {title}")
+    #with col1:
+    #    st.markdown(f"### {title}")
     tooltip_html = f"""
     <style>
     .tooltip-inline {{
