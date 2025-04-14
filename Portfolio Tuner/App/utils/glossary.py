@@ -59,50 +59,58 @@ def chart_with_tooltip(
     col1, col2 = st.columns([0.97, 0.03])
     with col1:
         st.markdown(f"### {title}")
-    with col2:
-     tooltip_html = f"""
-        <style>
-        .tooltip-inline {{
-          position: relative;
-          display: inline-block;
-          border-bottom: 1px dotted black;
-        }}
+    tooltip_html = f"""
+    <style>
+    .tooltip-inline {{
+      position: relative;
+      display: inline-block;
+    }}
 
-        .tooltip-inline .tooltip-text-wrapper {{
-          visibility: hidden;
-          width: 250px;
-          background-color: #333;
-          color: #fff;
-          text-align: left;
-          border-radius: 6px;
-          padding: 8px;
-          position: absolute;
-          z-index: 1;
-          bottom: 125%;  /* above icon */
-          left: 50%;
-          transform: translateX(-50%);
-          opacity: 0;
-          transition: opacity 0.3s;
-        }}
+    .tooltip-icon {{
+      cursor: help;
+      font-weight: bold;
+      padding: 2px;
+    }}
 
-        .tooltip-inline:hover .tooltip-text-wrapper {{
-          visibility: visible;
-          opacity: 1;
-        }}
-        </style>
+    .tooltip-text-wrapper {{
+      visibility: hidden;
+      opacity: 0;
+      width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: left;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;  /* prevents blocking hover on icon */
+      transition: opacity 0.3s ease-in-out 0s, visibility 0s linear 0.5s;  /* fade out delayed */
+    }}
 
-        <div class="tooltip-inline">
-          ❓
-          <div class="tooltip-text-wrapper">
-            <strong>{term}</strong><br>{short_desc}
-            {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
-          </div>
-        </div>
-        """
+    .tooltip-inline:hover .tooltip-text-wrapper {{
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+      transition-delay: 0s;  /* show immediately */
+      transition: opacity 0.3s ease-in-out, visibility 0s linear;
+    }}
+    </style>
 
-    # Display in your narrow col2 block:
+    <div class="tooltip-inline">
+      <span class="tooltip-icon">❓</span>
+      <div class="tooltip-text-wrapper">
+        <strong>{term}</strong><br>{short_desc}
+        {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
+      </div>
+    </div>
+    """
+
     with col2:
         st.markdown(tooltip_html, unsafe_allow_html=True)
+
 
 
     # ✅ Now draw chart
