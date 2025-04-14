@@ -68,7 +68,7 @@ def chart_with_tooltip(
       position: relative;
       vertical-align: super;
       margin-left: 6px;
-      font-size: inherit;
+      font-size: 0.75em;  /* smaller icon */
       font-family: inherit;
       color: inherit;
     }}
@@ -76,7 +76,7 @@ def chart_with_tooltip(
     .tooltip-icon {{
       cursor: help;
       font-weight: bold;
-      font-size: 0.75em;
+      font-size: 1em;  /* matches superscript scale */
       line-height: 1;
       color: inherit;
     }}
@@ -84,12 +84,13 @@ def chart_with_tooltip(
     .tooltip-text-wrapper {{
       visibility: hidden;
       opacity: 0;
-      width: 250px;
+      width: 220px;
       background-color: #333;
       color: #fff;
       text-align: left;
       border-radius: 6px;
-      padding: 8px;
+      padding: 6px 8px;
+      font-size: 0.8em;  /* smaller tooltip text */
       position: absolute;
       z-index: 10;
       bottom: 125%;
@@ -117,6 +118,7 @@ def chart_with_tooltip(
       </span>
     </h3>
     """
+
     st.markdown(tooltip_html, unsafe_allow_html=True)
 
 
