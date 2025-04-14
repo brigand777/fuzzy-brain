@@ -62,41 +62,50 @@ def chart_with_tooltip(
     .tooltip-inline {{
       display: inline-block;
       position: relative;
-      margin-left: 6px;
-      cursor: help;
     }}
-    .tooltip-inline .tooltiptext {{
-      visibility: hidden;
-      width: 250px;
-      background-color: #333;
-      color: #fff;
-      text-align: left;
-      border-radius: 6px;
-      padding: 8px;
+
+    .tooltip-icon {{
+      cursor: help;
+      padding: 0 4px;
+    }}
+
+    .tooltip-text-wrapper {{
       position: absolute;
-      z-index: 1;
+      z-index: 9999;  /* ensure it sits above all Streamlit/chart elements */
       bottom: 125%;
       left: 50%;
       transform: translateX(-50%);
+      visibility: hidden;
       opacity: 0;
+      width: 250px;
+      background-color: #333;
+      color: #fff;
+      border-radius: 6px;
+      padding: 8px;
       transition: opacity 0.3s;
       font-size: 0.85rem;
     }}
-    .tooltip-inline:hover .tooltiptext {{
+
+
+    .tooltip-inline:hover .tooltip-text-wrapper,
+    .tooltip-text-wrapper:hover {{
       visibility: visible;
       opacity: 1;
     }}
     </style>
 
-    <h4 style='display:flex; align-items:center;'>{title}
-      <div class='tooltip-inline'>❓
-        <span class='tooltiptext'>
+    <h4 style='display:flex; align-items:center; gap:0.5rem;'>
+      {title}
+      <div class='tooltip-inline'>
+        <span class='tooltip-icon'>❓</span>
+        <div class='tooltip-text-wrapper'>
           <strong>{term}</strong><br>{short_desc}
           {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
-        </span>
+        </div>
       </div>
     </h4>
     """
+
     st.markdown(tooltip_html, unsafe_allow_html=True)
 
     # Call the chart
