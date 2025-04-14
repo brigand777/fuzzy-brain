@@ -77,64 +77,31 @@ def chart_with_tooltip(
         .tooltip-text-wrapper {{
           position: absolute;
           z-index: 10000;
-          top: -120px;
-          left: -200px;
-          visibility: hidden;
-          opacity: 0;
+          top: 20px;
+          left: 0px;
+          visibility: visible;  /* <-- FORCE SHOW */
+          opacity: 1;            /* <-- FORCE SHOW */
           width: 250px;
           background-color: #333;
           color: #fff;
           border-radius: 6px;
           padding: 8px;
-          transition: opacity 0.3s;
           font-size: 0.85rem;
           pointer-events: auto;
         }}
-
-        .tooltip-inline.show-tooltip .tooltip-text-wrapper {{
-          visibility: visible;
-          opacity: 1;
-        }}
         </style>
-
-        <script>
-        (function() {{
-          let tooltipTimeout;
-          const container = document.currentScript.parentElement.querySelector('.tooltip-inline');
-          const tooltip = container.querySelector('.tooltip-text-wrapper');
-
-          container.addEventListener('mouseenter', () => {{
-            clearTimeout(tooltipTimeout);
-            container.classList.add('show-tooltip');
-          }});
-
-          container.addEventListener('mouseleave', () => {{
-            tooltipTimeout = setTimeout(() => {{
-              container.classList.remove('show-tooltip');
-            }}, 1500);
-          }});
-
-          tooltip.addEventListener('mouseenter', () => {{
-            clearTimeout(tooltipTimeout);
-          }});
-          tooltip.addEventListener('mouseleave', () => {{
-            tooltipTimeout = setTimeout(() => {{
-              container.classList.remove('show-tooltip');
-            }}, 1500);
-          }});
-        }})();
-        </script>
 
         <div class='tooltip-inline'>
           <span class='tooltip-icon'>❓</span>
           <div class='tooltip-text-wrapper'>
             <strong>{term}</strong><br>{short_desc}
-            {'<br><a href=\"' + glossary_url + '\" target=\"_blank\" style=\"color:#1F77B4;\">Read more</a>' if glossary_url else ''}
+            {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
           </div>
         </div>
         </div>
         """
-        components.html(tooltip_html, height=0)
+
+        components.html(tooltip_html, height=60)
 
     # ✅ Now draw chart
     chart = chart_func(*args, **kwargs)
