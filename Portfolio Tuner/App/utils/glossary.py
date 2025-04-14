@@ -56,7 +56,6 @@ def chart_with_tooltip(
     ):
     from utils.plots import add_interactivity
 
-    # Header with inline tooltip
     tooltip_html = f"""
     <style>
     .tooltip-inline {{
@@ -71,7 +70,7 @@ def chart_with_tooltip(
 
     .tooltip-text-wrapper {{
       position: absolute;
-      z-index: 9999;  /* ensure it sits above all Streamlit/chart elements */
+      z-index: 9999;
       bottom: 125%;
       left: 50%;
       transform: translateX(-50%);
@@ -84,15 +83,45 @@ def chart_with_tooltip(
       padding: 8px;
       transition: opacity 0.3s;
       font-size: 0.85rem;
+      pointer-events: auto;
     }}
 
-
-    .tooltip-inline:hover .tooltip-text-wrapper,
-    .tooltip-text-wrapper:hover {{
+    .tooltip-inline.show-tooltip .tooltip-text-wrapper {{
       visibility: visible;
       opacity: 1;
     }}
     </style>
+
+    <script>
+    let tooltipTimeout;
+    document.addEventListener("DOMContentLoaded", function() {{
+      const container = document.querySelectorAll('.tooltip-inline');
+      container.forEach(el => {{
+        const icon = el.querySelector('.tooltip-icon');
+        const tooltip = el.querySelector('.tooltip-text-wrapper');
+
+        el.addEventListener('mouseenter', () => {{
+          clearTimeout(tooltipTimeout);
+          el.classList.add('show-tooltip');
+        }});
+
+        el.addEventListener('mouseleave', () => {{
+          tooltipTimeout = setTimeout(() => {{
+            el.classList.remove('show-tooltip');
+          }}, 1500);
+        }});
+
+        tooltip.addEventListener('mouseenter', () => {{
+          clearTimeout(tooltipTimeout);
+        }});
+        tooltip.addEventListener('mouseleave', () => {{
+          tooltipTimeout = setTimeout(() => {{
+            el.classList.remove('show-tooltip');
+          }}, 1500);
+        }});
+      }});
+    }});
+    </script>
 
     <h4 style='display:flex; align-items:center; gap:0.5rem;'>
       {title}
@@ -108,19 +137,15 @@ def chart_with_tooltip(
 
     st.markdown(tooltip_html, unsafe_allow_html=True)
 
-    # Call the chart
     chart = chart_func(*args, **kwargs)
 
-    # Optional interactivity
     if interactive and x_field and y_field:
         chart = add_interactivity(chart, x_field=x_field, y_field=y_field)
 
-    # Render
     if "plotly" in str(type(chart)).lower():
         st.plotly_chart(chart, use_container_width=True)
     else:
         st.altair_chart(chart, use_container_width=True)
-
 
 
 def add_glossary_term(term, short, long, show_more=True):
