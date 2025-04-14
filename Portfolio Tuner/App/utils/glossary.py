@@ -95,7 +95,7 @@ def chart_with_tooltip(
       opacity: 1;
       pointer-events: auto;
       transition-delay: 0s;  /* show immediately */
-      transition: transition: opacity 10s ease-in-out 0.5s, visibility 10s linear 1s; 
+      transition: transition: opacity 10s ease-in-out 10s, visibility 10s linear 10s; 
     }}
     </style>
 
