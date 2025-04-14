@@ -43,7 +43,99 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
     </div>
     """
     components.html(tooltip_html, height=30)
+
+
 def chart_with_tooltip(
+    title: str,
+    term: str,
+    short_desc: str,
+    chart_func,
+    glossary_url: str = None,
+    interactive: bool = False,
+    x_field: str = None,
+    y_field: str = None,
+    *args, **kwargs
+    ):
+
+    # ✅ Show title using Streamlit styling
+    col1, col2 = st.columns([0.97, 0.03])
+    with col1:
+        st.markdown(f"### {title}")
+    tooltip_html = f"""
+    <style>
+    .tooltip-inline {{
+      display: inline-block;
+      position: relative;
+      vertical-align: super;
+      margin-left: 6px;
+      font-size: inherit;
+      font-family: inherit;
+      color: inherit;
+    }}
+
+    .tooltip-icon {{
+      cursor: help;
+      font-weight: bold;
+      font-size: 0.75em;
+      line-height: 1;
+      color: inherit;
+    }}
+
+    .tooltip-text-wrapper {{
+      visibility: hidden;
+      opacity: 0;
+      width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: left;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 10;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: auto;
+
+      transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+    }}
+
+    .tooltip-inline:hover .tooltip-text-wrapper {{
+      visibility: visible;
+      opacity: 1;
+      transition-delay: 0s, 0s;
+    }}
+    </style>
+
+    <span style="display: inline-flex; align-items: flex-start; font-size: inherit; font-family: inherit; color: inherit;">
+      <span style="font-weight: 600;">{title}</span>
+      <span class="tooltip-inline">
+        <span class="tooltip-icon">❓</span>
+        <div class="tooltip-text-wrapper">
+          <strong>{term}</strong><br>{short_desc}
+          {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
+        </div>
+      </span>
+    </span>
+    """
+
+
+
+    st.markdown(tooltip_html, unsafe_allow_html=True)
+
+
+
+    # ✅ Now draw chart
+    chart = chart_func(*args, **kwargs)
+    if interactive and x_field and y_field:
+        chart = add_interactivity(chart, x_field=x_field, y_field=y_field)
+
+    if "plotly" in str(type(chart)).lower():
+        st.plotly_chart(chart, use_container_width=True)
+    else:
+        st.altair_chart(chart, use_container_width=True)
+
+def chart_with_tooltips(
     title: str,
     term: str,
     short_desc: str,
