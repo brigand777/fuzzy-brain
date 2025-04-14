@@ -43,8 +43,7 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
     </div>
     """
     components.html(tooltip_html, height=30)
-    
-def chart_with_tooltip(
+ def chart_with_tooltip(
     title: str,
     term: str,
     short_desc: str,
@@ -55,92 +54,91 @@ def chart_with_tooltip(
     y_field: str = None,
     *args, **kwargs
     ):
+    from utils.plots import add_interactivity
+    import streamlit.components.v1 as components
 
-    # Tooltip with 1.5s decay timer, inline using CSS + minimal JS
-    tooltip_html = f"""
-    <style>
-    .tooltip-inline {{
-      display: inline-block;
-      position: relative;
-    }}
+    # ✅ Show title using Streamlit styling
+    col1, col2 = st.columns([0.97, 0.03])
+    with col1:
+        st.markdown(f"### {title}")
+    with col2:
+        tooltip_html = f"""
+        <div>
+        <style>
+        .tooltip-inline {{
+          display: inline-block;
+          position: relative;
+        }}
 
-    .tooltip-icon {{
-      cursor: help;
-      padding: 0 4px;
-    }}
+        .tooltip-icon {{
+          cursor: help;
+          padding: 0 4px;
+        }}
 
-    .tooltip-text-wrapper {{
-      position: absolute;
-      z-index: 9999;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      visibility: hidden;
-      opacity: 0;
-      width: 250px;
-      background-color: #333;
-      color: #fff;
-      border-radius: 6px;
-      padding: 8px;
-      transition: opacity 0.3s;
-      font-size: 0.85rem;
-      pointer-events: auto;
-    }}
+        .tooltip-text-wrapper {{
+          position: absolute;
+          z-index: 10000;
+          top: -120px;
+          left: -200px;
+          visibility: hidden;
+          opacity: 0;
+          width: 250px;
+          background-color: #333;
+          color: #fff;
+          border-radius: 6px;
+          padding: 8px;
+          transition: opacity 0.3s;
+          font-size: 0.85rem;
+          pointer-events: auto;
+        }}
 
-    .tooltip-inline.show-tooltip .tooltip-text-wrapper {{
-      visibility: visible;
-      opacity: 1;
-    }}
-    </style>
+        .tooltip-inline.show-tooltip .tooltip-text-wrapper {{
+          visibility: visible;
+          opacity: 1;
+        }}
+        </style>
 
-    <script>
-    let tooltipTimeout;
-    window.addEventListener('load', function() {{
-      const containers = document.querySelectorAll('.tooltip-inline');
-      containers.forEach(container => {{
-        const icon = container.querySelector('.tooltip-icon');
-        const tooltip = container.querySelector('.tooltip-text-wrapper');
+        <script>
+        (function() {{
+          let tooltipTimeout;
+          const container = document.currentScript.parentElement.querySelector('.tooltip-inline');
+          const tooltip = container.querySelector('.tooltip-text-wrapper');
 
-        container.addEventListener('mouseenter', () => {{
-          clearTimeout(tooltipTimeout);
-          container.classList.add('show-tooltip');
-        }});
+          container.addEventListener('mouseenter', () => {{
+            clearTimeout(tooltipTimeout);
+            container.classList.add('show-tooltip');
+          }});
 
-        container.addEventListener('mouseleave', () => {{
-          tooltipTimeout = setTimeout(() => {{
-            container.classList.remove('show-tooltip');
-          }}, 1500);
-        }});
+          container.addEventListener('mouseleave', () => {{
+            tooltipTimeout = setTimeout(() => {{
+              container.classList.remove('show-tooltip');
+            }}, 1500);
+          }});
 
-        tooltip.addEventListener('mouseenter', () => {{
-          clearTimeout(tooltipTimeout);
-        }});
-        tooltip.addEventListener('mouseleave', () => {{
-          tooltipTimeout = setTimeout(() => {{
-            container.classList.remove('show-tooltip');
-          }}, 1500);
-        }});
-      }});
-    }});
-    </script>
+          tooltip.addEventListener('mouseenter', () => {{
+            clearTimeout(tooltipTimeout);
+          }});
+          tooltip.addEventListener('mouseleave', () => {{
+            tooltipTimeout = setTimeout(() => {{
+              container.classList.remove('show-tooltip');
+            }}, 1500);
+          }});
+        }})();
+        </script>
 
-    <h4 style='display:flex; align-items:center; gap:0.5rem;'>
-      {title}
-      <div class='tooltip-inline'>
-        <span class='tooltip-icon'>❓</span>
-        <div class='tooltip-text-wrapper'>
-          <strong>{term}</strong><br>{short_desc}
-          {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
+        <div class='tooltip-inline'>
+          <span class='tooltip-icon'>❓</span>
+          <div class='tooltip-text-wrapper'>
+            <strong>{term}</strong><br>{short_desc}
+            {'<br><a href=\"' + glossary_url + '\" target=\"_blank\" style=\"color:#1F77B4;\">Read more</a>' if glossary_url else ''}
+          </div>
         </div>
-      </div>
-    </h4>
-    """
+        </div>
+        """
+        components.html(tooltip_html, height=0)
 
-    
-    components.html(tooltip_html, height=80)
-
+    # ✅ Now draw chart
     chart = chart_func(*args, **kwargs)
-
     if interactive and x_field and y_field:
         chart = add_interactivity(chart, x_field=x_field, y_field=y_field)
 
