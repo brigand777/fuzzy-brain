@@ -96,7 +96,6 @@ def chart_with_tooltip(
       left: 50%;
       transform: translateX(-50%);
       pointer-events: auto;
-
       transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
     }}
 
@@ -107,8 +106,8 @@ def chart_with_tooltip(
     }}
     </style>
 
-    <span style="display: inline-flex; align-items: flex-start; font-size: inherit; font-family: inherit; color: inherit;">
-      <span style="font-weight: 600;">{title}</span>
+    <h3 style="margin-bottom: 0.5rem;">
+      <span>{title}</span>
       <span class="tooltip-inline">
         <span class="tooltip-icon">❓</span>
         <div class="tooltip-text-wrapper">
@@ -116,12 +115,10 @@ def chart_with_tooltip(
           {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
         </div>
       </span>
-    </span>
+    </h3>
     """
-
-
-
     st.markdown(tooltip_html, unsafe_allow_html=True)
+
 
 
 
