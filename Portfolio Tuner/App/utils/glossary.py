@@ -76,7 +76,7 @@ def chart_with_tooltip(
     .tooltip-icon {{
       cursor: help;
       font-weight: bold;
-      font-size: 0.6em;  /* ✅ smaller icon */
+      font-size: 0.7em;  /* ✅ smaller icon */
       line-height: 1;
       color: inherit;
     }}
@@ -90,7 +90,7 @@ def chart_with_tooltip(
       text-align: left;
       border-radius: 6px;
       padding: 6px 8px;
-      font-size: 0.7em;  /* ✅ smaller tooltip text */
+      font-size: 0.65em;  /* ✅ smaller tooltip text */
       position: absolute;
       z-index: 10;
       bottom: 125%;
