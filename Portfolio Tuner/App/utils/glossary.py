@@ -61,44 +61,49 @@ def chart_with_tooltip(
         st.markdown(f"### {title}")
     with col2:
      tooltip_html = f"""
-        <div>
         <style>
         .tooltip-inline {{
-          display: inline-block;
           position: relative;
+          display: inline-block;
+          border-bottom: 1px dotted black;
         }}
 
-        .tooltip-icon {{
-          cursor: help;
-          padding: 0 4px;
-          font-weight: bold;
-        }}
-
-        .tooltip-text-wrapper {{
-          display: block;
-          margin-top: 8px;
+        .tooltip-inline .tooltip-text-wrapper {{
+          visibility: hidden;
+          width: 250px;
           background-color: #333;
           color: #fff;
+          text-align: left;
           border-radius: 6px;
           padding: 8px;
-          font-size: 0.85rem;
-          width: 250px;
-          z-index: 10000;
+          position: absolute;
+          z-index: 1;
+          bottom: 125%;  /* above icon */
+          left: 50%;
+          transform: translateX(-50%);
+          opacity: 0;
+          transition: opacity 0.3s;
+        }}
+
+        .tooltip-inline:hover .tooltip-text-wrapper {{
+          visibility: visible;
+          opacity: 1;
         }}
         </style>
 
-        <div class='tooltip-inline'>
-          <span class='tooltip-icon'>❓</span>
-          <div class='tooltip-text-wrapper'>
+        <div class="tooltip-inline">
+          ❓
+          <div class="tooltip-text-wrapper">
             <strong>{term}</strong><br>{short_desc}
             {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
           </div>
         </div>
-        </div>
         """
 
+    # Display in your narrow col2 block:
+    with col2:
+        st.markdown(tooltip_html, unsafe_allow_html=True)
 
-        components.html(tooltip_html, height=120)
 
     # ✅ Now draw chart
     chart = chart_func(*args, **kwargs)
