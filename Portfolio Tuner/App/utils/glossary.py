@@ -110,14 +110,7 @@ def chart_with_tooltip(
     <h3 style="margin-bottom: 0.5rem;">
       <span>{title}</span>
       <span class="tooltip-inline">
-        <span class="tooltip-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10
-                     10-4.48 10-10S17.52 2 12 2zm0 17c-.55 0-1-.45-1-1s.45-1 
-                     1-1 1 .45 1 1-.45 1-1 1zm1-4h-2V7h2v8z"/>
-          </svg>
-        </span>
-
+        <span class="tooltip-icon">ℹ️</span>
         <div class="tooltip-text-wrapper">
           <strong>{term}</strong><br>{short_desc}
           {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
