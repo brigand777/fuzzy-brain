@@ -54,7 +54,6 @@ def chart_with_tooltip(
     y_field: str = None,
     *args, **kwargs
     ):
-    from utils.plots import add_interactivity
 
     # ✅ Show title using Streamlit styling
     col1, col2 = st.columns([0.97, 0.03])
