@@ -43,7 +43,7 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None):
     </div>
     """
     components.html(tooltip_html, height=30)
- def chart_with_tooltip(
+def chart_with_tooltip(
     title: str,
     term: str,
     short_desc: str,
