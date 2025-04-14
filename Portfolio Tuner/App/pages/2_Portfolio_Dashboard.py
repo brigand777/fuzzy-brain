@@ -10,6 +10,7 @@ from utils.plots import (
     plot_gauge_charts,
     plot_portfolio_absolute_value
 )
+from utils.glossary import chart_with_tooltip, add_info_icon
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
@@ -37,11 +38,8 @@ if authentication_status:
         st.warning("No saved portfolio found. Please create one in the Portfolio Editor.")
         st.stop()
 
-    # --- Benchmark Selector (controlled via session_state) ---
     if "selected_benchmark" not in st.session_state:
         st.session_state.selected_benchmark = "BTC" if "BTC" in available_assets else "None"
-
-
 
     # --- Date range selector ---
     with st.expander("🕝 Select Date Range"):
@@ -55,7 +53,6 @@ if authentication_status:
             max_value=max_date
         )
 
-    # --- Dashboard Visualization ---
     selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
     benchmark = st.session_state.selected_benchmark
 
@@ -75,48 +72,50 @@ if authentication_status:
         start_date = ensure_utc(start_date)
         end_date = ensure_utc(end_date)
 
-        # --- Cumulative Portfolio Value Chart (Centered) ---
-        st.subheader("📊 Portfolio Value Over Time")
-        cumulative_chart = plot_portfolio_absolute_value(
-            data, selected_assets,
-            start=start_date, end=end_date,
-            portfolio_df=portfolio_df)
-        
-        
+        # --- Portfolio Value Chart ---
         col1, col2, col3 = st.columns([0.2, 8, 1])
         with col2:
-            st.altair_chart(cumulative_chart, use_container_width=True)
-        
+            chart_with_tooltip(
+                title="Portfolio Value Over Time",
+                term="Cumulative Return",
+                short_desc="Total portfolio value compounded over time.",
+                glossary_url="6_Glossary.py#cumulative-return",
+                chart_func=plot_portfolio_absolute_value,
+                data=data,
+                assets=selected_assets,
+                start=start_date,
+                end=end_date,
+                portfolio_df=portfolio_df
+            )
+
         st.selectbox(
             "🔍 Select a benchmark for your portfolio comparison:",
             options=["None"] + available_assets,
-            index=(available_assets.index(st.session_state.selected_benchmark) + 1) if st.session_state.selected_benchmark in available_assets else 0,
+            index=(available_assets.index(st.session_state.selected_benchmark) + 1)
+            if st.session_state.selected_benchmark in available_assets else 0,
             key="selected_benchmark"
         )
-        # --- Needle Charts (6 Porsche-inspired gauges) ---
-        st.markdown("### 🧭 Portfolio Metrics")
 
-        # Initialize session state for the toggle
+        # --- Needle Charts (Portfolio Metrics) ---
+        st.markdown("### 🧭 Portfolio Metrics")
+        add_info_icon("Portfolio Metrics", "Key risk and performance indicators.", "6_Glossary.py#sharpe-ratio")
+
         if "show_advanced_metrics" not in st.session_state:
             st.session_state.show_advanced_metrics = False
 
-        # Toggle button that updates session state
         st.checkbox("Show Advanced Metrics", key="show_advanced_metrics")
 
         if metrics_fig and len(metrics_fig) == 6:
             if st.session_state.show_advanced_metrics:
-                # Show all 6 metrics in two rows of 3
                 row1 = st.columns(3)
                 for col, fig in zip(row1, metrics_fig[:3]):
                     with col:
                         st.plotly_chart(fig, use_container_width=True)
-
                 row2 = st.columns(3)
                 for col, fig in zip(row2, metrics_fig[3:]):
                     with col:
                         st.plotly_chart(fig, use_container_width=True)
             else:
-                # Show only the first 3 metrics in one row
                 row = st.columns(3)
                 for col, fig in zip(row, metrics_fig[:3]):
                     with col:
@@ -124,30 +123,33 @@ if authentication_status:
         else:
             st.warning("Expected 6 metrics for layout, but received a different number.")
 
-
-        # --- Comparison Charts (2-column layout) ---
+        # --- Comparison Charts ---
         st.markdown("### 🔍 Portfolio Comparison")
         col1, col2 = st.columns(2)
 
         with col1:
-            st.subheader("Correlation Heatmap")
-            if heatmap_fig:
-                st.plotly_chart(heatmap_fig, use_container_width=True)
+            chart_with_tooltip(
+                title="Correlation Heatmap",
+                term="Correlation Heatmap",
+                short_desc="Visualize how assets move in relation to each other.",
+                glossary_url="6_Glossary.py#correlation-heatmap",
+                chart_func=lambda: heatmap_fig  # already created above
+            )
 
         with col2:
-            st.subheader("Cumulative Return vs. Benchmark")
-            benchmark_input = st.session_state.selected_benchmark
-
-            if benchmark_input != "None":
-                benchmark_chart = plot_asset_cumulative_returns(
-                    data, selected_assets,
-                    benchmark=benchmark_input,
-                    start=start_date, end=end_date,
-                    portfolio_df=portfolio_df
-                )
-                st.altair_chart(benchmark_chart, use_container_width=True)
-            else:
-                st.info("Select a benchmark to display comparison.")
+            chart_with_tooltip(
+                title="Cumulative Return vs. Benchmark",
+                term="Benchmark Comparison",
+                short_desc="Compare your portfolio’s return to a benchmark.",
+                glossary_url="6_Glossary.py#benchmark",
+                chart_func=plot_asset_cumulative_returns,
+                data=data,
+                assets=selected_assets,
+                benchmark=benchmark,
+                start=start_date,
+                end=end_date,
+                portfolio_df=portfolio_df
+            )
 
         # --- Optional historical charts toggle ---
         if "show_plot" not in st.session_state:
@@ -177,4 +179,3 @@ else:
 # --- Navigation ---
 if st.button("← Back to Portfolio Editor"):
     st.switch_page("pages/1_My_Portfolio.py")
-
