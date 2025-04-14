@@ -86,10 +86,10 @@ def chart_with_tooltip(
       bottom: 125%;
       left: 50%;
       transform: translateX(-50%);
-      pointer-events: none;
+      pointer-events: auto;
       
       /* This controls fade-out AND fade-in */
-      transition: opacity 1s ease-in-out, visibility 0s linear 1s;
+      transition: opacity 0.5s ease-in-out, visibility 0s linear 1s;
     }}
 
     .tooltip-inline:hover .tooltip-text-wrapper {{
