@@ -2,10 +2,10 @@ import streamlit as st
 import streamlit.components.v1 as components
 from utils.plots import add_interactivity
 
-def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
-    return f"""
+def inject_tooltip_css():
+    tooltip_css = """
     <style>
-    .info-tooltip {{
+    .info-tooltip {
       display: inline-block;
       position: relative;
       vertical-align: super;
@@ -13,15 +13,15 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
       font-size: 0.75em;
       font-family: inherit;
       color: inherit;
-    }}
-    .info-tooltip-icon {{
+    }
+    .info-tooltip-icon {
       cursor: help;
       font-weight: bold;
       font-size: 0.8em;
       line-height: 1;
       color: inherit;
-    }}
-    .info-tooltip-box {{
+    }
+    .info-tooltip-box {
       visibility: hidden;
       opacity: 0;
       width: 220px;
@@ -38,14 +38,18 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
       transform: translateX(-50%);
       pointer-events: auto;
       transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
-    }}
-    .info-tooltip:hover .info-tooltip-box {{
+    }
+    .info-tooltip:hover .info-tooltip-box {
       visibility: visible;
       opacity: 1;
       transition-delay: 0s, 0s;
-    }}
+    }
     </style>
+    """
+    st.markdown(tooltip_css, unsafe_allow_html=True)
 
+def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
+    return f"""
     <span class="info-tooltip">
       <span class="info-tooltip-icon">ℹ️</span>
       <div class="info-tooltip-box">
@@ -60,12 +64,11 @@ def section_heading(
     term: str,
     short_description: str,
     glossary_url: str = None,
-    level: int = 2  # Use 2 for "##", 3 for "###", etc.
+    level: int = 2
     ):
-    heading_tag = f"h{level}"
-    full_html = f"<{heading_tag}>{title} {add_info_icon(term, short_description, glossary_url)}</{heading_tag}>"
-    st.markdown(full_html, unsafe_allow_html=True)
-
+    tag = f"h{level}"
+    html = f"<{tag}>{title} {add_info_icon(term, short_description, glossary_url)}</{tag}>"
+    st.markdown(html, unsafe_allow_html=True)
 
 def chart_with_tooltip(
     title: str,

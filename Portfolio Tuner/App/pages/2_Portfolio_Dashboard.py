@@ -10,9 +10,10 @@ from utils.plots import (
     plot_gauge_charts,
     plot_portfolio_absolute_value
 )
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading,inject_tooltip_css
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
+inject_tooltip_css()
 authenticator, authentication_status, username = login_and_get_status()
 
 st.title("📊 Portfolio Dashboard")
