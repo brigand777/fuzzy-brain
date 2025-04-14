@@ -138,7 +138,8 @@ def chart_with_tooltip(
     </h4>
     """
 
-    st.markdown(tooltip_html, unsafe_allow_html=True)
+    import streamlit.components.v1 as components
+    components.html(tooltip_html, height=80)
 
     chart = chart_func(*args, **kwargs)
 
