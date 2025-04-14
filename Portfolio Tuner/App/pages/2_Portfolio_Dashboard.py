@@ -143,13 +143,14 @@ if authentication_status:
                 short_desc="Compare your portfolio’s return to a benchmark.",
                 glossary_url="6_Glossary.py#benchmark",
                 chart_func=plot_asset_cumulative_returns,
-                data=data,
+                price_data=data,
                 selected_assets=selected_assets,
                 benchmark=benchmark,
                 start=start_date,
                 end=end_date,
                 portfolio_df=portfolio_df
             )
+
 
         # --- Optional historical charts toggle ---
         if "show_plot" not in st.session_state:

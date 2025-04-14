@@ -53,23 +53,60 @@ def chart_with_tooltip(
     x_field: str = None,
     y_field: str = None,
     *args, **kwargs
-):
-    """Wraps a chart with a tooltip icon and optional interactivity."""
+    ):
     from utils.plots import add_interactivity
 
-    col1, col2 = st.columns([0.96, 0.04])
-    with col1:
-        st.markdown(f"### {title}")
-    with col2:
-        add_info_icon(term, short_desc, glossary_url)
+    # Header with inline tooltip
+    tooltip_html = f"""
+    <style>
+    .tooltip-inline {{
+      display: inline-block;
+      position: relative;
+      margin-left: 6px;
+      cursor: help;
+    }}
+    .tooltip-inline .tooltiptext {{
+      visibility: hidden;
+      width: 250px;
+      background-color: #333;
+      color: #fff;
+      text-align: left;
+      border-radius: 6px;
+      padding: 8px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.85rem;
+    }}
+    .tooltip-inline:hover .tooltiptext {{
+      visibility: visible;
+      opacity: 1;
+    }}
+    </style>
 
+    <h4 style='display:flex; align-items:center;'>{title}
+      <div class='tooltip-inline'>❓
+        <span class='tooltiptext'>
+          <strong>{term}</strong><br>{short_desc}
+          {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
+        </span>
+      </div>
+    </h4>
+    """
+    st.markdown(tooltip_html, unsafe_allow_html=True)
+
+    # Call the chart
     chart = chart_func(*args, **kwargs)
 
-    # Optional: wrap with add_interactivity
+    # Optional interactivity
     if interactive and x_field and y_field:
         chart = add_interactivity(chart, x_field=x_field, y_field=y_field)
 
-    # Auto-detect type
+    # Render
     if "plotly" in str(type(chart)).lower():
         st.plotly_chart(chart, use_container_width=True)
     else:
