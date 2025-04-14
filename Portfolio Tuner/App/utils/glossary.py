@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
+from utils.plots import add_interactivity
 
 def add_info_icon(term: str, short_description: str, glossary_url: str = None):
     """Displays a compact info icon with hover tooltip and optional glossary link."""
@@ -54,9 +55,6 @@ def chart_with_tooltip(
     y_field: str = None,
     *args, **kwargs
     ):
-    from utils.plots import add_interactivity
-
-    import streamlit as st
 
     # Tooltip with 1.5s decay timer, inline using CSS + minimal JS
     tooltip_html = f"""
@@ -138,7 +136,7 @@ def chart_with_tooltip(
     </h4>
     """
 
-    import streamlit.components.v1 as components
+    
     components.html(tooltip_html, height=80)
 
     chart = chart_func(*args, **kwargs)
