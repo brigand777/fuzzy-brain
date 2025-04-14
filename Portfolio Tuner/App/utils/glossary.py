@@ -76,7 +76,7 @@ def chart_with_tooltip(
     .tooltip-icon {{
       cursor: help;
       font-weight: bold;
-      font-size: 0.8em;  /* ✅ smaller icon */
+      font-size: 0.6em;  /* ✅ smaller icon */
       line-height: 1;
       color: inherit;
     }}
