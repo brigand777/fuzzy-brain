@@ -86,16 +86,19 @@ def chart_with_tooltip(
       bottom: 125%;
       left: 50%;
       transform: translateX(-50%);
-      pointer-events: none;  /* prevents blocking hover on icon */
-      transition: opacity 5s ease-in-out 5s, visibility 1s linear 0.5s;  /* fade out delayed */
+      pointer-events: none;
+      
+      /* This controls fade-out AND fade-in */
+      transition: opacity 1s ease-in-out, visibility 0s linear 1s;
     }}
 
     .tooltip-inline:hover .tooltip-text-wrapper {{
       visibility: visible;
       opacity: 1;
       pointer-events: auto;
-      transition-delay: 0s;  /* show immediately */
-      transition: opacity 10s ease-in-out 10s, visibility 10s linear 10s; 
+
+      /* Cancel the hide delay on hover */
+      transition-delay: 0s, 0s;
     }}
     </style>
 
@@ -107,6 +110,7 @@ def chart_with_tooltip(
       </div>
     </div>
     """
+
 
     with col2:
         st.markdown(tooltip_html, unsafe_allow_html=True)
