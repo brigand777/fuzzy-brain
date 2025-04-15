@@ -79,7 +79,7 @@ if authentication_status:
             chart_with_tooltip(
                 title="Portfolio Value Over Time",
                 term="Cumulative Return",
-                short_desc="Total portfolio value compounded over time.",
+                short_desc="This is it folks. How much is your investment worth over time, no fancy stuff just the money $",
                 glossary_url="6_Glossary.py#cumulative-return",
                 chart_func=plot_portfolio_absolute_value,
                 data=data,
@@ -101,7 +101,7 @@ if authentication_status:
         section_heading(
             "🧭 Portfolio Metrics",
             term="Portfolio Metrics",
-            short_description="Key risk and performance indicators.",
+            short_description="Here's where we get technical! We want to know how much risk are we taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).",
             glossary_url="/Glossary#sharpe-ratio",
             level=3  # or level=3 for subsection
         )
@@ -137,8 +137,9 @@ if authentication_status:
             chart_with_tooltip(
                 title="Correlation Heatmap",
                 term="Correlation Heatmap",
-                short_desc="Visualize how assets move in relation to each other.",
-                glossary_url="6_Glossary.py#correlation-heatmap",
+                short_desc="'Don't put all your eggs in one basket' well this is the basket! Higher correlations
+                mean the baskets are more similar, negative correlations mean they move oppositely, close to 0 means they're truly distinct.",
+                glossary_url="/Glossary#correlation-heatmap",
                 chart_func=lambda: heatmap_fig  # already created above
             )
 
@@ -146,8 +147,8 @@ if authentication_status:
             chart_with_tooltip(
                 title="Cumulative Return vs. Benchmark",
                 term="Benchmark Comparison",
-                short_desc="Compare your portfolio’s return to a benchmark.",
-                glossary_url="6_Glossary.py#benchmark",
+                short_desc="Mom always said comparison is the thief of joy, but in finance it's how we contextualize our investments. Check it out!",
+                glossary_url="/Glossary#benchmark",
                 chart_func=plot_asset_cumulative_returns,
                 price_data=data,
                 selected_assets=selected_assets,
