@@ -28,6 +28,9 @@ st.markdown("""
         border-radius: 10px;
         padding: 1.5rem;
         min-width: 280px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .page-header {
         font-size: 1.3rem;
@@ -39,6 +42,16 @@ st.markdown("""
         font-size: 1rem;
         color: #dddddd;
         margin-bottom: 1rem;
+    }
+    .page-button {
+        margin-top: auto;
+        background-color: #1F77B4;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -115,10 +128,11 @@ for title, desc, link in pages:
         <div class='page-box'>
             <div class='page-header'>{title}</div>
             <div class='page-desc'>{desc}</div>
+            <form action="{link}" method="get">
+                <button class='page-button' type='submit'>Go to {title}</button>
+            </form>
         </div>
     """, unsafe_allow_html=True)
-    if st.button(f"Go to {title}", key=title):
-        st.switch_page(link)
 st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("---")
