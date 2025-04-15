@@ -123,6 +123,27 @@ def section_heading(
     html = f"<{tag}>{title} {add_info_icon(term, short_description, glossary_url)}</{tag}>"
     st.markdown(html, unsafe_allow_html=True)
 
+def vintage_dropdown(title: str, content: str):
+    """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
+    styled_html = f"""
+    <style>
+    .vintage-box {{
+        background-color: #FFF8DC;
+        color: #000;
+        font-style: italic;
+        font-family: 'Lora', serif;
+        border-radius: 6px;
+        padding: 12px;
+        font-size: 0.85em;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }}
+    </style>
+    <div class="vintage-box">{content}</div>
+    """
+    with st.expander(title):
+        st.markdown(styled_html, unsafe_allow_html=True)
+
+
 def chart_with_tooltip(
     title: str,
     short_desc: str,

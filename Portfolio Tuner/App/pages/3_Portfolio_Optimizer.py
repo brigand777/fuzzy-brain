@@ -9,7 +9,7 @@ from optimizer import run_optimizers
 from utils.plots import pie_chart_allocation
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods
-
+from utils.glossary import vintage_dropdown
 st.set_page_config(page_title="Portfolio Optimizer", layout="wide")
 
 # --- Authentication ---
@@ -62,6 +62,12 @@ if portfolio_df.empty or "Asset" not in portfolio_df.columns:
 # --- Optimizer Trigger ---
 st.markdown("## 📌 Compare Optimization Methods")
 narrative("Run optimizations and compare different allocation strategies to your own.")
+vintage_dropdown(
+    "📜 What are we Optimizing?",
+    """We want to mitigate the risk the portfolio experiences by spreading our investements apart, but how much do we put in each basket?
+    Here we explore 3 different methods for that: Equal amounts in each asset, MVO, and HRB. MVO is a traditioal financial technique that uses the past to give the best results had we known the future
+   , HRB tries lumps similar invetments into baskets and gives each basket a risk budget to spread around."""
+)
 
 optimize_button = st.button("Optimize Portfolio")
 

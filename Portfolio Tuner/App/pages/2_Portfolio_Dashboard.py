@@ -82,7 +82,7 @@ if authentication_status:
         with col2:
             chart_with_tooltip(
                 title="Portfolio Value Over Time",
-                short_desc="This is it folks!\n\n How much is your investment worth?\n No fancy stuff — just the money $".replace("\n", "<br>"),
+                short_desc="This is it folks!\n How much is your investment worth?\n No fancy stuff — just the money $".replace("\n", "<br>"),
                 glossary_url="6_Glossary.py#cumulative-return",
                 chart_func=plot_portfolio_absolute_value,
                 data=data,
