@@ -15,15 +15,22 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
-    a.nav-link {
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 1rem;
+    .page-section {
+        margin-bottom: 2rem;
+    }
+    .page-header {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 0.3rem;
         color: #1F77B4;
     }
-    a.nav-link:hover {
-        text-decoration: underline;
-        color: #124c7e;
+    .page-desc {
+        font-size: 1rem;
+        color: #444;
+        margin-bottom: 0.5rem;
+    }
+    .page-button {
+        margin-bottom: 1.5rem;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -72,14 +79,38 @@ def call_fastapi_optimizer(price_df, asset_weights, lookback_days, nonnegative):
 
 # --- HOME PAGE ---
 
-display_video("Portfolio Tuner/App/assets/homepage_video.mp4", height=600)
-st.info("Select a page from the sidebar to begin exploring the optimization tools.")
+try:
+    display_video("Portfolio Tuner/App/assets/homepage_video.mp4", height=600)
+except:
+    st.warning("⚠️ Unable to load homepage video. Please ensure the file exists and is accessible.")
 
-st.markdown("## Welcome to the Crypto Portfolio Optimizer")
+st.markdown("## Welcome to Portfolio Tuner")
+
 st.write("""
-    This platform is designed to help retail crypto investors manage risk 
-    through advanced portfolio optimization techniques and interactive visualizations.
+Portfolio Tuner is your personal toolkit for building, analyzing, and optimizing a crypto portfolio. Whether you're a casual holder or a serious allocator, our tools help you manage risk and make data-driven investment decisions.
 """)
+
+st.markdown("---")
+
+pages = [
+    ("📝 My Portfolio", "Create and edit your crypto portfolio. This is your starting point—define how much you hold of each asset.", "pages/1_My_Portfolio.py"),
+    ("📊 Portfolio Dashboard", "Track performance, visualize metrics, and understand how your portfolio is evolving over time.", "pages/2_Portfolio_Dashboard.py"),
+    ("🎯 Optimizer", "Compare different allocation strategies using HRP, MVO, and other methods to find the most effective distribution.", "pages/3_Portfolio_Optimizer.py"),
+    ("⏳ Backtest Lab", "See how your strategies would have performed historically using flexible backtesting tools.", "pages/4_Backtest_Lab.py"),
+    ("🎮 Playground", "Tweak allocations freely and simulate potential outcomes to understand risk and return tradeoffs.", "pages/5_Playground.py"),
+    ("📖 Glossary", "Browse definitions and explanations of financial and crypto terms used throughout the app.", "pages/6_Glossary.py")
+]
+
+for title, desc, link in pages:
+    with st.container():
+        st.markdown(f"<div class='page-section'>", unsafe_allow_html=True)
+        st.markdown(f"<div class='page-header'>{title}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='page-desc'>{desc}</div>", unsafe_allow_html=True)
+        if st.button(f"Go to {title}", key=title):
+            st.switch_page(link)
+        st.markdown(f"</div>", unsafe_allow_html=True)
+
+st.markdown("---")
 
 # --- Registration ---
 if authentication_status is not True:
@@ -97,23 +128,3 @@ if authentication_status is not True:
                     st.sidebar.success("Registration successful! You can now log in.")
                 else:
                     st.sidebar.error("Username already exists.")
-
-# --- Website Navigation Grid ---
-st.markdown("## 🔍 Explore the App")
-st.markdown("Below is a breakdown of the app’s main sections. Click a button to jump directly to a tool:")
-
-pages = [
-    ("📝 My Portfolio", "Create and edit your crypto portfolio.", "pages/1_My_Portfolio.py"),
-    ("📊 Portfolio Dashboard", "Visualize key metrics, trends, and performance.", "pages/2_Portfolio_Dashboard.py"),
-    ("🎯 Optimizer", "Run different allocation strategies and compare results.", "pages/3_Portfolio_Optimizer.py"),
-    ("⏳ Backtest Lab", "Backtest allocation strategies over custom periods.", "pages/4_Backtest_Lab.py"),
-    ("🎮 Playground", "Experiment freely with weights and simulations.", "pages/5_Playground.py"),
-    ("📖 Glossary", "Learn key terms used throughout the platform.", "pages/6_Glossary.py")
-]
-
-for title, desc, link in pages:
-    st.markdown(f"**{title}**  ")
-    st.markdown(f"<span style='color:#555;'>{desc}</span>", unsafe_allow_html=True)
-    if st.button(f"Go to {title}", key=title):
-        st.switch_page(link)
-    st.markdown("---")
