@@ -15,8 +15,18 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
+    a.nav-link {
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 1rem;
+        color: #1F77B4;
+    }
+    a.nav-link:hover {
+        text-decoration: underline;
+        color: #124c7e;
+    }
     </style>
-    """, unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # --- Title + Tagline ---
 st.title("Portfolio Tuner")
@@ -43,10 +53,6 @@ else:
 
 # --- FastAPI Optimizer Integration ---
 def call_fastapi_optimizer(price_df, asset_weights, lookback_days, nonnegative):
-    """
-    This function sends user-selected price data and weights to the FastAPI backend for optimization.
-    Make sure both `price_df` and `asset_weights` come directly from user input or an uploaded portfolio.
-    """
     payload = {
         "assets": asset_weights,
         "price_data": price_df.to_dict(orient="list"),
@@ -91,3 +97,23 @@ if authentication_status is not True:
                     st.sidebar.success("Registration successful! You can now log in.")
                 else:
                     st.sidebar.error("Username already exists.")
+
+# --- Website Navigation Grid ---
+st.markdown("## 🔍 Explore the App")
+st.markdown("Below is a breakdown of the app’s main sections. Click a button to jump directly to a tool:")
+
+pages = [
+    ("📝 My Portfolio", "Create and edit your crypto portfolio.", "pages/1_My_Portfolio.py"),
+    ("📊 Portfolio Dashboard", "Visualize key metrics, trends, and performance.", "pages/2_Portfolio_Dashboard.py"),
+    ("🎯 Optimizer", "Run different allocation strategies and compare results.", "pages/3_Portfolio_Optimizer.py"),
+    ("⏳ Backtest Lab", "Backtest allocation strategies over custom periods.", "pages/4_Backtest_Lab.py"),
+    ("🎮 Playground", "Experiment freely with weights and simulations.", "pages/5_Playground.py"),
+    ("📖 Glossary", "Learn key terms used throughout the platform.", "pages/6_Glossary.py")
+]
+
+for title, desc, link in pages:
+    st.markdown(f"**{title}**  ")
+    st.markdown(f"<span style='color:#555;'>{desc}</span>", unsafe_allow_html=True)
+    if st.button(f"Go to {title}", key=title):
+        st.switch_page(link)
+    st.markdown("---")

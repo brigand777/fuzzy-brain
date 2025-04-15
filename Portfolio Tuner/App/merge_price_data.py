@@ -19,11 +19,11 @@ def merge_price_data(root_dir, output_path="prices.parquet"):
         folder_path = os.path.join(root_dir, coin_folder)
         if os.path.isdir(folder_path):
             for file in os.listdir(folder_path):
-                if file.endswith("_USD.parquet"):
+                if file.endswith("_USD.parquet") or file.endswith("_USDT.parquet"):
                     file_path = os.path.join(folder_path, file)
                     try:
                         df = pd.read_parquet(file_path)
-                        coin = file.replace("_USD.parquet", "")
+                        coin = file.replace("_USD.parquet", "").replace("_USDT.parquet", "")
                         df = df[["date", "close"]].copy()
                         df["date"] = pd.to_datetime(df["date"])
 
@@ -42,9 +42,6 @@ def merge_price_data(root_dir, output_path="prices.parquet"):
     # Backfill leading NaNs with first known price
     merged = merged.apply(fill_starting_nan)
 
-    # Forward-fill subsequent missing prices
-    merged = merged.ffill()
-
     # Drop rows where all assets are still NaN (before any coin had data)
     merged = merged.dropna(how="all")
 
@@ -55,4 +52,4 @@ def merge_price_data(root_dir, output_path="prices.parquet"):
 
 # Example usage
 if __name__ == "__main__":
-    merge_price_data('C:/Users/kfern/Desktop/Business/Crypto Site/App/Raw Data/')
+    merge_price_data('C:/Users/kfern/Desktop/Business/Crypto Site/Data/App Data/')
