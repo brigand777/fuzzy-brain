@@ -190,9 +190,10 @@ def chart_with_tooltip(
       <span class="tooltip-inline">
         <span class="tooltip-icon">ℹ️</span>
         <div class="tooltip-text-wrapper">
-          <strong>{term}</strong><br>{short_desc}
+          {f"<strong>{term}</strong><br>" if term else ""}{short_desc}
           {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
         </div>
+
       </span>
     </h3>
     """
