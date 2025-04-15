@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 from utils.plots import add_interactivity
 
-def inject_tooltip_css():
+def sinject_tooltip_css():
     tooltip_css = """
     <style>
     .info-tooltip {
@@ -47,6 +47,59 @@ def inject_tooltip_css():
     </style>
     """
     st.markdown(tooltip_css, unsafe_allow_html=True)
+
+def inject_tooltip_css():
+    tooltip_css = """
+    <style>
+    .info-tooltip {
+      display: inline-block;
+      position: relative;
+      vertical-align: super;
+      margin-left: 6px;
+      font-size: 0.75em;
+      font-family: inherit;
+      color: inherit;
+    }
+
+    .info-tooltip-icon {
+      cursor: help;
+      font-weight: bold;
+      font-size: 0.8em;
+      line-height: 1;
+      color: inherit;
+    }
+
+    .info-tooltip-box {
+      visibility: hidden;
+      opacity: 0;
+      width: 220px;
+      background-color: #FFF8DC; /* 🟡 vintage paper yellow */
+      color: #000000;             /* black text */
+      font-style: italic;         /* ✒️ handwritten look */
+      font-family: 'Georgia', serif;  /* optional script-style font */
+      text-align: left;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 0.7em;
+      position: absolute;
+      z-index: 10;
+      bottom: 125%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: auto;
+      transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .info-tooltip:hover .info-tooltip-box {
+      visibility: visible;
+      opacity: 1;
+      transition-delay: 0s, 0s;
+    }
+    </style>
+    """
+    st.markdown(tooltip_css, unsafe_allow_html=True)
+
 
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
     return f"""
