@@ -15,44 +15,6 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
-    .page-grid {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-        gap: 1.5rem;
-    }
-    .page-box {
-        flex: 1 1 calc(33% - 1rem);
-        background-color: rgba(255, 255, 255, 0.05);
-        border: 1px solid white;
-        border-radius: 10px;
-        padding: 1.5rem;
-        min-width: 280px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    .page-header {
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #ffffff;
-    }
-    .page-desc {
-        font-size: 1rem;
-        color: #dddddd;
-        margin-bottom: 1rem;
-    }
-    .page-button {
-        margin-top: auto;
-        background-color: #1F77B4;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-weight: 500;
-        cursor: pointer;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -122,18 +84,17 @@ pages = [
     ("📖 Glossary", "Browse definitions and explanations of financial and crypto terms used throughout the app.", "pages/6_Glossary.py")
 ]
 
-st.markdown("<div class='page-grid'>", unsafe_allow_html=True)
-for title, desc, link in pages:
-    st.markdown(f"""
-        <div class='page-box'>
-            <div class='page-header'>{title}</div>
-            <div class='page-desc'>{desc}</div>
-            <form action="{link}" method="get">
-                <button class='page-button' type='submit'>Go to {title}</button>
-            </form>
-        </div>
-    """, unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+cols = st.columns(3)
+for idx, (title, desc, link) in enumerate(pages):
+    with cols[idx % 3]:
+        st.markdown("""
+            <div style='border:1px solid white; border-radius:10px; padding:1rem; background-color:rgba(255,255,255,0.05);'>
+        """, unsafe_allow_html=True)
+        st.markdown(f"### {title}")
+        st.markdown(f"<span style='color:#dddddd'>{desc}</span>", unsafe_allow_html=True)
+        if st.button(f"Go to {title}", key=title):
+            st.switch_page(link)
+        st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("---")
 
