@@ -134,11 +134,8 @@ def chart_with_tooltip(
     y_field: str = None,
     *args, **kwargs
     ):
+    from utils.plots import add_interactivity
 
-    # ✅ Show title using Streamlit styling
-    col1, col2 = st.columns([0.97, 0.03])
-    #with col1:
-    #    st.markdown(f"### {title}")
     tooltip_html = f"""
     <style>
     .tooltip-inline {{
@@ -154,7 +151,7 @@ def chart_with_tooltip(
     .tooltip-icon {{
       cursor: help;
       font-weight: bold;
-      font-size: 0.7em;  /* ✅ smaller icon */
+      font-size: 0.7em;
       line-height: 1;
       color: inherit;
     }}
@@ -163,12 +160,14 @@ def chart_with_tooltip(
       visibility: hidden;
       opacity: 0;
       width: 220px;
-      background-color: #333;
-      color: #fff;
+      background-color: #FFF8DC; /* 🟡 parchment background */
+      color: #000;               /* black text */
+      font-style: italic;        /* handwritten look */
+      font-family: 'Georgia', serif;
       text-align: left;
       border-radius: 6px;
       padding: 6px 8px;
-      font-size: 0.65em;  /* ✅ smaller tooltip text */
+      font-size: 0.65em;
       position: absolute;
       z-index: 10;
       bottom: 125%;
@@ -176,6 +175,7 @@ def chart_with_tooltip(
       transform: translateX(-50%);
       pointer-events: auto;
       transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
     }}
 
     .tooltip-inline:hover .tooltip-text-wrapper {{
@@ -197,97 +197,9 @@ def chart_with_tooltip(
     </h3>
     """
 
-
     st.markdown(tooltip_html, unsafe_allow_html=True)
 
-
-
-
-    # ✅ Now draw chart
-    chart = chart_func(*args, **kwargs)
-    if interactive and x_field and y_field:
-        chart = add_interactivity(chart, x_field=x_field, y_field=y_field)
-
-    if "plotly" in str(type(chart)).lower():
-        st.plotly_chart(chart, use_container_width=True)
-    else:
-        st.altair_chart(chart, use_container_width=True)
-
-def chart_with_tooltips(
-    title: str,
-    term: str,
-    short_desc: str,
-    chart_func,
-    glossary_url: str = None,
-    interactive: bool = False,
-    x_field: str = None,
-    y_field: str = None,
-    *args, **kwargs
-    ):
-
-    # ✅ Show title using Streamlit styling
-    col1, col2 = st.columns([0.97, 0.03])
-    with col1:
-        st.markdown(f"### {title}")
-    tooltip_html = f"""
-    <style>
-    .tooltip-inline {{
-      position: relative;
-      display: inline-block;
-    }}
-
-    .tooltip-icon {{
-      cursor: help;
-      font-weight: bold;
-      padding: 2px;
-    }}
-
-    .tooltip-text-wrapper {{
-      visibility: hidden;
-      opacity: 0;
-      width: 250px;
-      background-color: #333;
-      color: #fff;
-      text-align: left;
-      border-radius: 6px;
-      padding: 8px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: auto;
-      
-      /* This controls fade-out AND fade-in */
-      transition: opacity 0.5s ease-in-out, visibility 0s linear 1s;
-    }}
-
-    .tooltip-inline:hover .tooltip-text-wrapper {{
-      visibility: visible;
-      opacity: 1;
-      pointer-events: auto;
-
-      /* Cancel the hide delay on hover */
-      transition-delay: 0s, 0s;
-    }}
-    </style>
-
-    <div class="tooltip-inline">
-      <span class="tooltip-icon">❓</span>
-      <div class="tooltip-text-wrapper">
-        <strong>{term}</strong><br>{short_desc}
-        {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
-      </div>
-    </div>
-    """
-
-
-    with col2:
-        st.markdown(tooltip_html, unsafe_allow_html=True)
-
-
-
-    # ✅ Now draw chart
+    # ✅ Draw chart
     chart = chart_func(*args, **kwargs)
     if interactive and x_field and y_field:
         chart = add_interactivity(chart, x_field=x_field, y_field=y_field)
