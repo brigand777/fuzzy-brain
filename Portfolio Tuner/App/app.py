@@ -22,11 +22,11 @@ st.markdown("""
         font-size: 1.3rem;
         font-weight: 600;
         margin-bottom: 0.3rem;
-        color: #1F77B4;
+        color: #ffffff;
     }
     .page-desc {
         font-size: 1rem;
-        color: #444;
+        color: #dddddd;
         margin-bottom: 0.5rem;
     }
     .page-button {
