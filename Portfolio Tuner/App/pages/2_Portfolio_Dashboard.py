@@ -15,7 +15,7 @@ from utils.glossary import chart_with_tooltip, add_info_icon, section_heading,in
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
 inject_tooltip_css()
 st.markdown("""
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
 authenticator, authentication_status, username = login_and_get_status()
