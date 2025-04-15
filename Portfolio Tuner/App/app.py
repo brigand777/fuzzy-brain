@@ -87,14 +87,10 @@ pages = [
 cols = st.columns(3)
 for idx, (title, desc, link) in enumerate(pages):
     with cols[idx % 3]:
-        st.markdown("""
-            <div style='border:1px solid white; border-radius:10px; padding:1rem; background-color:rgba(255,255,255,0.05);'>
-        """, unsafe_allow_html=True)
         st.markdown(f"### {title}")
         st.markdown(f"<span style='color:#dddddd'>{desc}</span>", unsafe_allow_html=True)
         if st.button(f"Go to {title}", key=title):
             st.switch_page(link)
-        st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("---")
 
