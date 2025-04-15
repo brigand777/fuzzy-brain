@@ -137,8 +137,8 @@ if authentication_status:
             chart_with_tooltip(
                 title="Correlation Heatmap",
                 term="Correlation Heatmap",
-                short_desc="'Don't put all your eggs in one basket' well this is the basket! Higher correlations
-                mean the baskets are more similar, negative correlations mean they move oppositely, close to 0 means they're truly distinct.",
+                short_desc="""'Don't put all your eggs in one basket' — well, this is the basket! Higher correlations
+                mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct.""",
                 glossary_url="/Glossary#correlation-heatmap",
                 chart_func=lambda: heatmap_fig  # already created above
             )
