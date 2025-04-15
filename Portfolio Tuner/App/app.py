@@ -15,22 +15,30 @@ st.markdown("""
     html, body, [class*="css"] {
         font-family: 'Inter', sans-serif;
     }
-    .page-section {
-        margin-bottom: 2rem;
+    .page-grid {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 1.5rem;
+    }
+    .page-box {
+        flex: 1 1 calc(33% - 1rem);
+        background-color: rgba(255, 255, 255, 0.05);
+        border: 1px solid white;
+        border-radius: 10px;
+        padding: 1.5rem;
+        min-width: 280px;
     }
     .page-header {
         font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.5rem;
         color: #ffffff;
     }
     .page-desc {
         font-size: 1rem;
         color: #dddddd;
-        margin-bottom: 0.5rem;
-    }
-    .page-button {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -101,14 +109,17 @@ pages = [
     ("📖 Glossary", "Browse definitions and explanations of financial and crypto terms used throughout the app.", "pages/6_Glossary.py")
 ]
 
+st.markdown("<div class='page-grid'>", unsafe_allow_html=True)
 for title, desc, link in pages:
-    with st.container():
-        st.markdown(f"<div class='page-section'>", unsafe_allow_html=True)
-        st.markdown(f"<div class='page-header'>{title}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div class='page-desc'>{desc}</div>", unsafe_allow_html=True)
-        if st.button(f"Go to {title}", key=title):
-            st.switch_page(link)
-        st.markdown(f"</div>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class='page-box'>
+            <div class='page-header'>{title}</div>
+            <div class='page-desc'>{desc}</div>
+        </div>
+    """, unsafe_allow_html=True)
+    if st.button(f"Go to {title}", key=title):
+        st.switch_page(link)
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("---")
 
