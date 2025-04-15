@@ -134,7 +134,7 @@ def vintage_dropdown(title: str, content: str):
         font-family: 'Lora', serif;
         border-radius: 6px;
         padding: 12px;
-        font-size: 0.85em;
+        font-size: 0.95em;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     }}
     </style>
