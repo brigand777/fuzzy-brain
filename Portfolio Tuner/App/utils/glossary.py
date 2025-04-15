@@ -163,7 +163,7 @@ def chart_with_tooltip(
       background-color: #FFF8DC; /* 🟡 parchment background */
       color: #000;               /* black text */
       font-style: italic;        /* handwritten look */
-      font-family: 'Georgia', serif;
+      font-family: 'Lora', serif;
       text-align: left;
       border-radius: 6px;
       padding: 6px 8px;

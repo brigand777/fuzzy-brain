@@ -14,6 +14,10 @@ from utils.glossary import chart_with_tooltip, add_info_icon, section_heading,in
 
 st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
 inject_tooltip_css()
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+""", unsafe_allow_html=True)
+
 authenticator, authentication_status, username = login_and_get_status()
 
 st.title("📊 Portfolio Dashboard")
@@ -100,7 +104,7 @@ if authentication_status:
         section_heading(
             "🧭 Portfolio Metrics",
             term="Here's where we get technical!",
-            short_description="We want to know how much risk are we taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).",
+            short_description="We want to know how much risk we are taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).",
             glossary_url="/Glossary#sharpe-ratio",
             level=3  # or level=3 for subsection
         )
