@@ -102,7 +102,7 @@ if authentication_status:
             "🧭 Portfolio Metrics",
             term="Portfolio Metrics",
             short_description="Key risk and performance indicators.",
-            glossary_url="6_Glossary.py#sharpe-ratio",
+            glossary_url="/Glossary#sharpe-ratio",
             level=3  # or level=3 for subsection
         )
 

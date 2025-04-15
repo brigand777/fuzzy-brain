@@ -210,12 +210,16 @@ def chart_with_tooltip(
         st.altair_chart(chart, use_container_width=True)
 
 def add_glossary_term(term, short, long, show_more=True):
-    """Displays a glossary term with an expandable explanation."""
-    st.markdown(f"### 🔹 {term}")
+    """Displays a glossary term with an anchor link for navigation."""
+    anchor = term.lower().replace(" ", "-")  # e.g. "Sharpe Ratio" → "sharpe-ratio"
+    
+    st.markdown(f'<h3 id="{anchor}">🔹 {term}</h3>', unsafe_allow_html=True)
     st.markdown(f"*{short}*")
+    
     if show_more:
         with st.expander("Show more"):
             st.markdown(long)
+
 
 # Optional: Store glossary items in a list for looping
 GLOSSARY_TERMS = [
