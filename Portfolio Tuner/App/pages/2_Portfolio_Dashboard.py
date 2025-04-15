@@ -79,7 +79,7 @@ if authentication_status:
             chart_with_tooltip(
                 title="Portfolio Value Over Time",
                 term="Cumulative Return",
-                short_desc="This is it folks. How much is your investment worth over time, no fancy stuff just the money $",
+                short_desc="This is it folks.\n How much is your investment worth over time?--no fancy stuff just the money $",
                 glossary_url="6_Glossary.py#cumulative-return",
                 chart_func=plot_portfolio_absolute_value,
                 data=data,
