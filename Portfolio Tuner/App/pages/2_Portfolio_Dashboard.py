@@ -78,7 +78,7 @@ if authentication_status:
         with col2:
             chart_with_tooltip(
                 title="Portfolio Value Over Time",
-                short_desc="This is it folks.\nHow much is your investment worth?\nNo fancy stuff — just the money $".replace("\n", "<br>"),
+                short_desc="This is it folks!\n\n How much is your investment worth?\n No fancy stuff — just the money $".replace("\n", "<br>"),
                 glossary_url="6_Glossary.py#cumulative-return",
                 chart_func=plot_portfolio_absolute_value,
                 data=data,
@@ -99,8 +99,8 @@ if authentication_status:
         # --- Needle Charts (Portfolio Metrics) ---
         section_heading(
             "🧭 Portfolio Metrics",
-            term="Portfolio Metrics",
-            short_description="Here's where we get technical! We want to know how much risk are we taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).",
+            term="Here's where we get technical!",
+            short_description="We want to know how much risk are we taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).",
             glossary_url="/Glossary#sharpe-ratio",
             level=3  # or level=3 for subsection
         )
@@ -135,9 +135,9 @@ if authentication_status:
         with col1:
             chart_with_tooltip(
                 title="Correlation Heatmap",
-                term="Correlation Heatmap",
-                short_desc="""'Don't put all your eggs in one basket' — well, this is the basket! Higher correlations
-                mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct.""",
+                term="'Don't put all your eggs in one basket'",
+                short_desc="""— well, this is the basket! Higher correlations
+                mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct!""",
                 glossary_url="/Glossary#correlation-heatmap",
                 chart_func=lambda: heatmap_fig  # already created above
             )
