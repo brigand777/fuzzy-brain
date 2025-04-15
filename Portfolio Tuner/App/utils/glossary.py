@@ -125,7 +125,7 @@ def section_heading(
 
 def chart_with_tooltip(
     title: str,
-    term: str,
+    term: str = "",
     short_desc: str,
     chart_func,
     glossary_url: str = None,
