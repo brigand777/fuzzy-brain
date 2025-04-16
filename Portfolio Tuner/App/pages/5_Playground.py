@@ -110,7 +110,15 @@ else:
 
 # --- Portfolio Metrics Calculation ---
 lookback_days = 365
-simulation_data = data[playground_assets].tail(lookback_days)
+# Replace this:
+# simulation_data = data[playground_assets].tail(lookback_days)
+
+# With this:
+cleaned_data = data[playground_assets].copy()
+cleaned_data = cleaned_data.replace(0, np.nan).ffill().dropna(how="any")  # Avoid zeros
+simulation_data = cleaned_data.tail(lookback_days)
+
+# Now calculate returns safely
 pct_returns = simulation_data.pct_change().dropna()
 
 portfolio_returns = pct_returns.dot(pd.Series(weights))
