@@ -119,15 +119,13 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- Advanced Settings ---
-# Strategy descriptions (placed BEFORE advanced settings)
 with st.expander("ℹ️ What do these strategies mean?", expanded=False):
-    st.markdown("""
-    - **Equal Weight**: Every asset gets the same amount of money.
-    - **Smart Spread (Mean Variance / MVO)**: Uses past price data to find what *would have worked best* historically.
-    - **Group & Balance (HRB)**: Groups similar investments and distributes risk evenly across them.
-    - **Your Portfolio**: Your custom investment mix.
-    """)
+        st.markdown("""
+        - **Equal Weight**: Every asset gets the same amount of money.
+        - **Smart Spread (Mean Variance / MVO)**: Uses past price data to find what *would have worked best* historically.
+        - **Group & Balance (HRB)**: Groups similar investments and distributes risk evenly across them.
+        - **Your Portfolio**: Your custom investment mix.
+        """)
 
 # --- Advanced Settings ---
 with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy Settings</span>", expanded=False):
@@ -156,6 +154,8 @@ with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy 
 
     st.markdown("#### 🧠 Choose Strategies to Compare")
 
+    
+
     default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
 
     selected_methods = st.multiselect(
@@ -164,6 +164,28 @@ with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy 
         default=default_methods,
         help="Choose one or more strategies to simulate and compare"
     )
+
+# --- Fallback Defaults if expander is not opened ---
+if "rebalance_days" not in locals():
+    rebalance_days = 30
+    lookback_days = 90
+    nonnegative_toggle = True
+    selected_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
+
+# --- Prepare Simulation Data ---
+selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
+
+if not selected_assets:
+    st.error("Your portfolio has no valid assets.")
+    st.stop()
+
+# Filter dataset to selected assets
+data = data[[col for col in selected_assets if col in data.columns]]
+simulation_data = data.loc[start_date:end_date]
+
+if simulation_data.empty:
+    st.error("❌ No data available for the selected backtest period.")
+    st.stop()
 
 
 if simulation_data.empty:
