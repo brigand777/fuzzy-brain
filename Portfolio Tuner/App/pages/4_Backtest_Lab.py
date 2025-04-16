@@ -107,9 +107,20 @@ end_date = pd.Timestamp(datetime.combine(end_naive, datetime.min.time()), tz="UT
 if start_date >= end_date:
     st.error("Start date must be before end date.")
     st.stop()
+st.markdown(
+    """
+    <style>
+    .streamlit-expanderHeader {
+        font-size: 20px !important;
+        color: #333;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- Advanced Settings ---
-with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy Settings</span>"):
+with st.expander("🛠️ Show Advanced Strategy Settings"):
     rebalance_days = st.slider(
         "🔁 How often should the portfolio be rebalanced?",
         min_value=7,
