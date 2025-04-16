@@ -130,29 +130,17 @@ if optimize_button:
 
         st.markdown("### 🥧 Allocation Pie Charts")
 
-        # Generate all pie charts using your function, suppress legend on all but last
         pie_charts = []
-        for i, method in enumerate(selected_methods):
+        for method in selected_methods:
             weights = pd.Series(all_allocations[method]).round(4)
-
             chart = pie_chart_allocation(weights, method)
-
-            # Remove legend from all but last chart
-            if i != len(selected_methods) - 1:
-                chart = chart.encode(
-                    color=alt.Color("Asset:N", legend=None)
-                )
-
             pie_charts.append(chart)
 
-        # Combine into one row
+        # Show all pie charts in one row
         st.altair_chart(
-            alt.hconcat(*pie_charts).resolve_scale(color="shared"),
+            alt.hconcat(*pie_charts),
             use_container_width=True
         )
-
-
-
 
         # 📊 BAR CHARTS: 2-column layout, legend only on last chart in top row
         st.markdown("### 📊 Allocation Bar Charts")
@@ -171,7 +159,7 @@ if optimize_button:
             ).properties(
                 title=df["Method"].iloc[0],
                 width=250,
-                height=250
+                height=350
             )
             cols[i % 2].altair_chart(chart, use_container_width=True)
 
