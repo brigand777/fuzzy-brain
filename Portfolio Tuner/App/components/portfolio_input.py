@@ -65,6 +65,8 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
     with col_chart:
         df_sorted = df.sort_values("Percent", ascending=False)
+        max_percent = df_sorted["Percent"].max()
+        y_axis_max = max_percent * 1.15  # Add 15% padding to the tallest bar
 
         fig = px.bar(
             df_sorted,
@@ -73,7 +75,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
             title="📊 Allocation Breakdown",
             text="Percent",
             labels={"Percent": "Allocation (%)", "Asset": "Token"},
-            color="Asset",  # 👈 optional color grouping
+            color="Asset",
             color_discrete_sequence=px.colors.qualitative.Safe
         )
 
@@ -81,9 +83,11 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
             texttemplate="%{text:.2f}%",
             textposition="outside"
         )
+
         fig.update_layout(
             xaxis_title="Asset",
             yaxis_title="Portfolio Allocation (%)",
+            yaxis=dict(range=[0, y_axis_max]),  # 👈 Add padding here
             uniformtext_minsize=8,
             uniformtext_mode="hide",
             height=350,
@@ -91,6 +95,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         )
 
         st.plotly_chart(fig, use_container_width=True)
+
 
 
 
