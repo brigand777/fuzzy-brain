@@ -3,6 +3,8 @@ import pandas as pd
 import os
 from utils.plots import plot_portfolio_allocation_3d
 from io import StringIO
+import plotly.express as px
+
 def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "editable_portfolio" not in st.session_state:
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
