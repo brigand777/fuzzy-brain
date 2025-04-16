@@ -126,9 +126,16 @@ with st.expander("ℹ️ What do these strategies mean?", expanded=False):
         - **Group & Balance (HRB)**: Groups similar investments and distributes risk evenly across them.
         - **Your Portfolio**: Your custom investment mix.
         """)
+default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
 
+    selected_methods = st.multiselect(
+        "🧠 Select optimization strategies to compare during the backtest:",
+        options=default_methods,
+        default=default_methods,
+        help="Choose one or more strategies to simulate and compare"
+    )
 # --- Advanced Settings ---
-with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy Settings</span>", expanded=False):
+with st.expander("🛠️ Show Advanced Strategy Settings", expanded=False):
     rebalance_days = st.slider(
         "🔁 How often should the portfolio be rebalanced?",
         min_value=7,
@@ -152,18 +159,8 @@ with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy 
         value=True
     )
 
-    st.markdown("#### 🧠 Choose Strategies to Compare")
+    #st.markdown("#### 🧠 Choose Strategies to Compare")
 
-    
-
-    default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
-
-    selected_methods = st.multiselect(
-        "🧠 Select optimization strategies to compare during the backtest:",
-        options=default_methods,
-        default=default_methods,
-        help="Choose one or more strategies to simulate and compare"
-    )
 
 # --- Fallback Defaults if expander is not opened ---
 if "rebalance_days" not in locals():
