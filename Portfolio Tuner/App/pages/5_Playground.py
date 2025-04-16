@@ -56,7 +56,7 @@ with st.expander("💼 Try a Sample Crypto Portfolio"):
     if preset == "Big 3 (BTC/ETH/SOL)":
         selected_assets = ["BTC", "ETH", "SOL"]
     elif preset == "DeFi Focus":
-        selected_assets = ["UNI", "AAVE", "COMP", "CRV"]
+        selected_assets = ["UNI", "AAVE", "COMP", "MANA"]
     elif preset == "Diversified Altcoins":
         selected_assets = ["MATIC", "DOT", "AVAX", "ADA", "LINK"]
     else:
