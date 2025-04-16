@@ -187,13 +187,13 @@ with chart_col:
             st.warning("Could not render Sharpe Ratio gauge.")
             st.exception(e)
 
-# --- Risk Score ---
-if risk_score > 0.05:
-    st.markdown("**Portfolio Risk Level:** 🔥 High")
-elif risk_score > 0.03:
-    st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
-else:
-    st.markdown("**Portfolio Risk Level:** 🧣 Low")
+    # --- Risk Score ---
+    if risk_score > 0.05:
+        st.markdown("**Portfolio Risk Level:** 🔥 High")
+    elif risk_score > 0.03:
+        st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
+    else:
+        st.markdown("**Portfolio Risk Level:** 🧣 Low")
 
 
 # --- Step 4: Monte Carlo Simulator ---
