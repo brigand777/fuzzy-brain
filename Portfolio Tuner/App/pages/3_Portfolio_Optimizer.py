@@ -135,9 +135,10 @@ if optimize_button:
 
 
         # --- PIE CHARTS ---
+        # --- Allocation Charts ---
         st.markdown("### 🧩 Allocation Comparison Charts")
 
-        # Combine all data into one DataFrame for shared legend
+        # Combine pie/bar data
         pie_dfs = []
         bar_dfs = []
 
@@ -148,44 +149,41 @@ if optimize_button:
             pie_dfs.append(df)
             bar_dfs.append(df)
 
-        # --- PIE CHARTS (shared legend)
-        all_pie_data = pd.concat(pie_dfs)
-
-        pie_chart = alt.hconcat(*[
-            alt.Chart(all_pie_data[all_pie_data["Method"] == method]).mark_arc(innerRadius=50).encode(
-                theta="Weight:Q",
-                color=alt.Color("Asset:N", title="Asset"),  # Shared legend
-                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
-            ).properties(
-                title=method,
-                width=200,
-                height=200
-            )
-            for method in selected_methods
-        ])
-
+        # Pie chart layout: 2 columns, fill left-to-right
         st.markdown("### 🥧 Allocation Pie Charts")
-        st.altair_chart(pie_chart, use_container_width=True)
-
-        # --- BAR CHARTS (shared legend)
-        all_bar_data = pd.concat(bar_dfs)
-
-        bar_chart = alt.hconcat(*[
-            alt.Chart(all_bar_data[all_bar_data["Method"] == method]).mark_bar().encode(
-                x=alt.X("Asset:N", sort="-y"),
-                y=alt.Y("Weight:Q", title="Weight"),
-                color=alt.Color("Asset:N", title="Asset"),  # Shared legend
+        cols = st.columns(2)
+        for i, df in enumerate(pie_dfs):
+            chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
+                theta="Weight:Q",
+                color=alt.Color("Asset:N", title="Asset"),
                 tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
             ).properties(
-                title=method,
-                width=200,
-                height=200
+                title=df["Method"].iloc[0],
+                width=250,
+                height=250
             )
-            for method in selected_methods
-        ])
+            cols[i % 2].altair_chart(chart, use_container_width=True)
 
+        # Bar chart layout: 2 columns, fill left-to-right + shared y-axis
         st.markdown("### 📊 Allocation Bar Charts")
-        st.altair_chart(bar_chart, use_container_width=True)
+
+        # Determine max Y for shared y-axis
+        max_weight = max(df["Weight"].max() for df in bar_dfs)
+
+        cols = st.columns(2)
+        for i, df in enumerate(bar_dfs):
+            chart = alt.Chart(df).mark_bar().encode(
+                x=alt.X("Asset:N", sort="-y"),
+                y=alt.Y("Weight:Q", title="Weight", scale=alt.Scale(domain=[0, max_weight])),
+                color=alt.Color("Asset:N", title="Asset"),
+                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
+            ).properties(
+                title=df["Method"].iloc[0],
+                width=250,
+                height=250
+            )
+            cols[i % 2].altair_chart(chart, use_container_width=True)
+
 
 
 
