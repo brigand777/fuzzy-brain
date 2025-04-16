@@ -3,15 +3,9 @@ import pandas as pd
 import os
 from utils.plots import plot_portfolio_allocation_3d
 from io import StringIO
-
 def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "editable_portfolio" not in st.session_state:
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
-
-    df = st.session_state.editable_portfolio.copy()
-
-    if "show_edit" not in st.session_state:
-        st.session_state.show_edit = False
 
     if "input_mode" not in st.session_state:
         st.session_state.input_mode = "Absolute"
@@ -19,147 +13,106 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     if "portfolio_base_value" not in st.session_state:
         st.session_state.portfolio_base_value = 10000.0
 
-    # --- Upload portfolio ---
-    st.markdown("### 📤 Upload Portfolio CSV")
-    uploaded_file = st.file_uploader("Upload a CSV file with columns: Asset,Amount", type=["csv"])
-    if uploaded_file is not None:
-        try:
-            uploaded_df = pd.read_csv(uploaded_file)
-            if set(["Asset", "Amount"]).issubset(uploaded_df.columns):
-                st.session_state.editable_portfolio = uploaded_df[["Asset", "Amount"]].drop_duplicates().reset_index(drop=True)
-                if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                    username = st.session_state["username"]
-                    file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-                    os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
-                    uploaded_df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                    st.success("✅ Portfolio uploaded and saved.")
-                    st.rerun()
-                else:
-                    st.success("✅ Portfolio uploaded for this session.")
-                    st.rerun()
-            else:
-                st.error("CSV must contain 'Asset' and 'Amount' columns.")
-        except Exception as e:
-            st.error(f"Error reading uploaded file: {e}")
-
-    # --- Get latest prices per asset ---
+    df = st.session_state.editable_portfolio.copy()
     latest_prices = prices.iloc[-1]
 
-    # --- Compute derived value columns ---
+    # --- Upload Section ---
+    with st.expander("📤 Upload Portfolio CSV"):
+        uploaded_file = st.file_uploader("Upload CSV with columns: `Asset`, `Amount`", type=["csv"])
+        if uploaded_file:
+            try:
+                uploaded_df = pd.read_csv(uploaded_file)
+                if {"Asset", "Amount"}.issubset(uploaded_df.columns):
+                    df = uploaded_df[["Asset", "Amount"]].dropna().drop_duplicates()
+                    st.session_state.editable_portfolio = df
+                    if persistent and st.session_state.get("auth_status"):
+                        username = st.session_state["username"]
+                        path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+                        os.makedirs(os.path.dirname(path), exist_ok=True)
+                        df.to_csv(path, index=False)
+                        st.success("✅ Uploaded and saved!")
+                    else:
+                        st.success("✅ Uploaded (session only)")
+                    st.rerun()
+                else:
+                    st.error("CSV must contain both 'Asset' and 'Amount' columns.")
+            except Exception as e:
+                st.error(f"Upload error: {e}")
+
+    # --- Display Portfolio ---
     df["Price"] = df["Asset"].map(latest_prices)
     df["Value"] = df["Amount"] * df["Price"]
     total_value = df["Value"].sum()
     df["Percent"] = df["Value"] / total_value * 100 if total_value > 0 else 0
 
-    # --- Display value summary and table/chart ---
-    col1, col2 = st.columns([1, 1.4])
+    st.markdown("### 📊 Your Portfolio Overview")
+    st.markdown(f"**💼 Total Value:** `${total_value:,.2f}`")
+    st.dataframe(
+        df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
+            "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:,.2f}", "Percent": "{:.2f}%"
+        }),
+        use_container_width=True
+    )
+
+    csv_download = df[["Asset", "Amount"]].to_csv(index=False)
+    st.download_button("📥 Download CSV", csv_download, "portfolio.csv", "text/csv")
+
+    # --- Edit Portfolio ---
+    st.markdown("### ✏️ Modify Portfolio Holdings")
+    col1, col2 = st.columns([3, 1])
+
     with col1:
-        st.markdown("### Your Portfolio")
-        st.markdown(f"**💰 Total Portfolio Value:** `${total_value:,.2f}`")
-        st.dataframe(df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
-            "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:.2f}", "Percent": "{:.2f}%"
-        }), use_container_width=True, height=300)
-
-        # --- Download portfolio button ---
-        csv = df[["Asset", "Amount"]].to_csv(index=False)
-        st.download_button("📥 Download Portfolio CSV", csv, "portfolio.csv", "text/csv")
-
+        asset = st.selectbox("Select Asset to Add/Update", options=sorted(available_assets), placeholder="Search or select asset...")
     with col2:
-        plot_portfolio_allocation_3d(df)
+        input_mode = st.radio("Input Mode", ["Absolute", "Percentage"], key="input_mode", horizontal=True)
 
-    # --- Toggle edit ---
-    if st.button("✏️ Edit My Holdings"):
-        st.session_state.show_edit = not st.session_state.show_edit
+    label = "Amount" if input_mode == "Absolute" else "% of Portfolio"
+    user_input = st.number_input(label, min_value=0.0, step=0.01, format="%.4f")
 
-    if st.session_state.show_edit:
-        st.markdown("### Manage Your Portfolio")
-        st.radio("Select Input Mode:", ["Absolute", "Percentage"], key="input_mode", horizontal=True)
+    if st.button("➕ Add / Update Asset"):
+        if input_mode == "Percentage":
+            base_value = st.session_state.portfolio_base_value
+            price = latest_prices.get(asset, 0)
+            if price <= 0 or base_value <= 0:
+                st.warning("❌ Invalid base value or price.")
+            else:
+                allocation_value = (user_input / 100) * base_value
+                new_amount = allocation_value / price
+                df = df[df["Asset"] != asset]  # Remove if exists
+                df = pd.concat([df, pd.DataFrame([[asset, new_amount]], columns=["Asset", "Amount"])])
+        else:
+            df = df[df["Asset"] != asset]
+            df = pd.concat([df, pd.DataFrame([[asset, user_input]], columns=["Asset", "Amount"])])
 
-        with st.form("add_asset_form"):
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                asset = st.selectbox("Select Asset", options=sorted(available_assets))
-            with col2:
-                label = "Amount" if st.session_state.input_mode == "Absolute" else "Portfolio %"
-                user_input = st.number_input(label, min_value=0.0, step=0.01, format="%.4f")
-            submitted = st.form_submit_button("Add / Update Asset")
-            if submitted:
-                price = latest_prices.get(asset, 0)
-                base_value = st.session_state.portfolio_base_value
+        df = df.drop_duplicates(subset="Asset").reset_index(drop=True)
+        st.session_state.editable_portfolio = df
 
-                if st.session_state.input_mode == "Percentage":
-                    if price > 0 and base_value > 0:
-                        pct = user_input / 100
-                        new_value = pct * base_value
-                        new_amount = new_value / price
+        if persistent and st.session_state.get("auth_status"):
+            username = st.session_state["username"]
+            path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            df.to_csv(path, index=False)
+            st.success("✅ Saved changes.")
+        else:
+            st.toast("✅ Updated (not saved).")
+        st.rerun()
 
-                        # Remove the existing asset if present
-                        if asset in df["Asset"].values:
-                            df = df[df["Asset"] != asset].copy()
-
-                        # Scale all other assets
-                        df["Price"] = df["Asset"].map(latest_prices)
-                        df["Value"] = df["Amount"] * df["Price"]
-                        remaining_value = base_value - new_value
-                        old_total = df["Value"].sum()
-                        if old_total > 0:
-                            df["Amount"] *= (remaining_value / old_total)
-
-                        # Add or update the new asset
-                        df = pd.concat([
-                            df,
-                            pd.DataFrame([[asset, new_amount]], columns=["Asset", "Amount"])
-                        ], ignore_index=True)
-                    else:
-                        st.warning("Invalid price or portfolio value. Cannot add by percentage.")
-                        return
-                else:
-                    amount = user_input
-                    if asset in df["Asset"].values:
-                        df.loc[df["Asset"] == asset, "Amount"] = amount
-                    else:
-                        df = pd.concat([df, pd.DataFrame([[asset, amount]], columns=["Asset", "Amount"])], ignore_index=True)
-
-                df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
+    # --- Rescale Section ---
+    with st.expander("🧮 Rescale Portfolio"):
+        suggested = round(total_value, 2)
+        rescale_val = st.number_input("Target Total Value ($)", min_value=0.0, step=100.0, value=suggested)
+        if st.button("Rescale"):
+            if total_value > 0:
+                factor = rescale_val / total_value
+                df["Amount"] *= factor
+                st.session_state.portfolio_base_value = rescale_val
                 st.session_state.editable_portfolio = df[["Asset", "Amount"]]
-
-                if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                    username = st.session_state["username"]
-                    file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-                    os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
-                    try:
-                        df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                    except Exception as e:
-                        st.error(f"❌ Failed to save portfolio: {e}")
-                else:
-                    st.toast("⚠️ Changes saved for session only (not persistent).")
+                if persistent and st.session_state.get("auth_status"):
+                    path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+                    df[["Asset", "Amount"]].to_csv(path, index=False)
+                st.success("📏 Rescaled portfolio.")
                 st.rerun()
-
-        # --- Portfolio rescaling ---
-        if not df.empty:
-            st.markdown("### 🧮 Rescale Portfolio")
-            rescale_value = st.number_input("Target total portfolio value ($):", value=st.session_state.portfolio_base_value, min_value=0.0, step=100.0, format="%.2f")
-            if st.button("Rescale Portfolio"):
-                df["Price"] = df["Asset"].map(latest_prices)
-                current_value = (df["Amount"] * df["Price"]).sum()
-                if current_value > 0:
-                    scale_factor = rescale_value / current_value
-                    df["Amount"] *= scale_factor
-                    st.session_state.portfolio_base_value = rescale_value
-                    df = df.drop_duplicates(subset="Asset", keep="last").reset_index(drop=True)
-                    st.session_state.editable_portfolio = df[["Asset", "Amount"]]
-                    if persistent and st.session_state.get("auth_status") and st.session_state.get("username"):
-                        username = st.session_state["username"]
-                        file_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
-                        os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
-                        try:
-                            df[["Asset", "Amount"]].to_csv(file_path, index=False)
-                        except Exception as e:
-                            st.error(f"❌ Failed to save portfolio: {e}")
-                    else:
-                        st.toast("⚠️ Rescale saved in session only (not persistent).")
-                    st.rerun()
-                else:
-                    st.warning("Current portfolio value is zero. Cannot rescale.")
+            else:
+                st.warning("⚠️ Total value must be greater than 0.")
 
     return st.session_state.editable_portfolio
