@@ -62,7 +62,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         )
 
         csv_download = df[["Asset", "Amount"]].to_csv(index=False)
-    st.download_button("📥 Download CSV", csv_download, "portfolio.csv", "text/csv")
+        st.download_button("📥 Download CSV", csv_download, "portfolio.csv", "text/csv")
 
     with col_chart:
         df_sorted = df.sort_values("Percent", ascending=False)

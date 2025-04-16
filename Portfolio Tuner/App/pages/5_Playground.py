@@ -97,7 +97,7 @@ with slider_col:
     total_weight = 0
 
     for asset in playground_assets:
-        default_value = float(st.session_state.get(f"weight_{asset}", 5.0) or 5.0)
+        default_value = float(st.session_state.get(f"weight_{asset}", 1.0 / len(playground_assets) if playground_assets else 0.05))
         weight = st.slider(
             f"{asset} (%)",
             min_value=0.0,
