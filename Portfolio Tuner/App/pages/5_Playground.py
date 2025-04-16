@@ -113,16 +113,31 @@ lookback_days = 365
 # Replace this:
 # simulation_data = data[playground_assets].tail(lookback_days)
 
-# With this:
+# --- Clean simulation data ---
 cleaned_data = data[playground_assets].copy()
-cleaned_data = cleaned_data.replace(0, np.nan).ffill().dropna(how="any")  # Avoid zeros
+cleaned_data = cleaned_data.replace(0, np.nan).ffill().dropna(how="any")
+
 simulation_data = cleaned_data.tail(lookback_days)
+returns = simulation_data.pct_change().dropna()
 
-# Now calculate returns safely
-pct_returns = simulation_data.pct_change().dropna()
+# --- Calculate weights using current price and slider values ---
+latest_prices = simulation_data.iloc[-1]
+portfolio_df = pd.DataFrame({
+    "Asset": list(weights.keys()),
+    "SliderWeight": list(weights.values()),
+    "Price": [latest_prices.get(a, np.nan) for a in weights.keys()]
+})
+portfolio_df["Value"] = portfolio_df["SliderWeight"] * portfolio_df["Price"]
+total_value = portfolio_df["Value"].sum()
+portfolio_df["NormalizedWeight"] = portfolio_df["Value"] / total_value
 
-portfolio_returns = pct_returns.dot(pd.Series(weights))
+# Align weights with returns columns
+aligned_weights = portfolio_df.set_index("Asset")["NormalizedWeight"].reindex(simulation_data.columns).fillna(0)
+
+# --- Portfolio returns ---
+portfolio_returns = returns.dot(aligned_weights)
 cumulative_returns = (1 + portfolio_returns).cumprod()
+
 mean_daily_return = portfolio_returns.mean()
 volatility = portfolio_returns.std()
 sharpe_ratio = (mean_daily_return / volatility) * np.sqrt(365.0) if volatility > 0 else 0
