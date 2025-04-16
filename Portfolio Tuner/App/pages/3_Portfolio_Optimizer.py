@@ -82,14 +82,16 @@ selected_methods = st.multiselect(
 )
 
 # --- Step 3: Settings (Optional) ---
-with st.expander("⚙️ Advanced Settings (Optional)"):
+st.markdown("## Step 3: ⚙️ Advanced Settings (Optional)")
+
+lookback = 90  # sensible default
+with st.expander("Adjust analysis period?"):
     lookback = st.selectbox(
         "📅 How many days of data should we use?",
         options=[30, 60, 90, 180, 365],
         index=2
     )
-else:
-    lookback = 90  # sensible default
+
 
 # --- Step 4: Optimization Trigger ---
 st.markdown("## Step 3: 🚀 Run the Optimization")
