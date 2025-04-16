@@ -128,9 +128,6 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
     }
 
 # ---- Single Gauge using Plotly ----
-import plotly.graph_objects as go
-import numpy as np
-
 def plot_single_gauge(
     title: str,
     value: float,
@@ -140,14 +137,18 @@ def plot_single_gauge(
     title_font_size: int = 18,
     number_font_size: int = 30,
     tick_font_size: int = 12
-) -> go.Figure:
+    ) -> go.Figure:
 
     # Handle invalid values
-    if value is None or np.isnan(value):
-        value = 0  # or optionally: return a blank gauge or None
+    def is_nan(val):
+        return isinstance(val, float) and np.isnan(val)
 
-    if benchmark_value is not None and (np.isnan(benchmark_value) or benchmark_value is None):
-        benchmark_value = None  # Don't pass it into delta config
+    # Handle invalid values
+    if is_nan(value) or value is None:
+        value = 0
+
+    if benchmark_value is not None and is_nan(benchmark_value):
+        benchmark_value = None
 
     label_to_metric = {
         "cumulative returns": "cumulative",
