@@ -130,38 +130,27 @@ if optimize_button:
 
         st.markdown("### 🥧 Allocation Pie Charts")
 
-        # Combine pie chart data from all methods
-        pie_dfs = []
-        for method in selected_methods:
-            weights = pd.Series(all_allocations[method]).round(4)
-            df = pd.DataFrame({'Asset': weights.index, 'Weight': weights.values, 'Method': method})
-            pie_dfs.append(df)
-
-        # Build pie charts without legends
+        # Generate all pie charts using your function, suppress legend on all but last
         pie_charts = []
-        for df in pie_dfs:
-            chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
-                theta="Weight:Q",
-                color=alt.Color("Asset:N", legend=None),
-                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
-            ).properties(
-                title=df["Method"].iloc[0],
-                width=220,
-                height=220
-            )
+        for i, method in enumerate(selected_methods):
+            weights = pd.Series(all_allocations[method]).round(4)
+
+            chart = pie_chart_allocation(weights, method)
+
+            # Remove legend from all but last chart
+            if i != len(selected_methods) - 1:
+                chart = chart.encode(
+                    color=alt.Color("Asset:N", legend=None)
+                )
+
             pie_charts.append(chart)
 
-        # Create a dummy chart that only renders the legend
-        legend_df = pie_dfs[-1][["Asset"]].drop_duplicates()
-        legend_chart = alt.Chart(legend_df).mark_point().encode(
-            color=alt.Color("Asset:N", legend=alt.Legend(title="Asset"))
-        ).properties(width=20, height=220)
-
-        # Display all pie charts in a row with a working legend
+        # Combine into one row
         st.altair_chart(
-            alt.hconcat(*pie_charts, legend_chart),
+            alt.hconcat(*pie_charts).resolve_scale(color="shared"),
             use_container_width=True
         )
+
 
 
 
