@@ -82,58 +82,49 @@ st.markdown("## Step 2: 🎚️ Adjust Your Hypothetical Portfolio")
 slider_col, chart_col = st.columns([1, 2], gap="medium")
 
 # --- Weight Sliders and Pie Chart ---
+# --- Weight Sliders and Pie Chart ---
 with slider_col:
     st.markdown("#### Set your asset weights:")
+    
+    # Reset button (reruns app and resets values)
+    if st.button("🔁 Reset Weights to Even Split"):
+        for asset in playground_assets:
+            st.session_state[f"weight_{asset}"] = round(1.0 / len(playground_assets), 2)
+        st.rerun()
+
     auto_normalize = st.checkbox("🔄 Automatically normalize weights to 100%", value=True)
 
     weights = {}
     total_weight = 0
+
+    # Render sliders with session_state-backed keys
     for asset in playground_assets:
-        weight = st.slider(f"{asset}", 0.0, 1.0, 0.05, 0.005, key=asset)
+        default_value = float(st.session_state.get(f"weight_{asset}", 0.05) or 0.05)
+        weight = st.slider(
+            f"{asset}",
+            min_value=0.0,
+            max_value=1.0,
+            step=0.005,
+            value=default_value,
+            key=f"weight_{asset}"  # ✅ ensures unique key
+        )
         weights[asset] = weight
         total_weight += weight
 
-    # Normalize if requested
+    # Normalize weights if requested
     if auto_normalize and total_weight > 0:
         weights = {k: v / total_weight for k, v in weights.items()}
     else:
         if abs(total_weight - 1) > 0.01:
             st.warning(f"⚠️ Your weights add up to {total_weight:.2f}. This may skew the simulation.")
 
-    # -- Reset weights via button (sets flag)
-    if st.button("🔁 Reset Weights to Even Split"):
-        for asset in playground_assets:
-            st.session_state[f"weight_{asset}"] = round(1.0 / len(playground_assets), 2)
-        st.rerun()  # 🔄 Force rerun so sliders reload cleanly
-
-    # Weight Sliders and Pie Chart
-    # -- Render sliders
-    with slider_col:
-        st.markdown("#### Set your asset weights:")
-
-        weights = {}
-        total_weight = 0
-
-        for asset in playground_assets:
-            default_value = st.session_state.get(f"weight_{asset}", 0.05)
-            weight = st.slider(
-                f"{asset}",
-                0.0, 1.0, 0.05,
-                step=0.005,
-                value=default_value,
-                key=f"weight_{asset}"  # ✅ Use prefixed unique keys
-            )
-            weights[asset] = weight
-            total_weight += weight
-
-
-
-    # Pie chart under sliders
+    # Pie chart for weight visualization
     if total_weight > 0:
         pie_df = pd.DataFrame({"Asset": list(weights.keys()), "Weight": list(weights.values())})
         pie_fig = px.pie(pie_df, names="Asset", values="Weight", title="📊 Token Allocation")
         pie_fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
         st.plotly_chart(pie_fig, use_container_width=True)
+
 
 
 if auto_normalize and total_weight > 0:
