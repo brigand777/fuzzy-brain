@@ -80,7 +80,7 @@ with st.expander("⚙️ Optimization Settings"):
         help="Use the dropdown to choose a lookback period"
     )
 
-    default_methods = ["Equal Weight", "Mean Variance", "HRP", "User Portfolio"]
+    default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
     selected_methods = st.multiselect(
         "🧠 Select optimization methods to display",
         options=default_methods,
@@ -129,14 +129,33 @@ if optimize_button:
             bar_charts.append(bar)
 
 
-        # Display all pie charts in a row
-        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+        max_width = 900  # max usable screen width
+        num_charts = min(3, len(pie_charts))
+        chart_width = int(max_width / num_charts)
 
-        # Display all bar charts in a row
-        st.altair_chart(alt.hconcat(*bar_charts), use_container_width=True)
 
-    except Exception as e:
-        st.error("An error occurred during optimization.")
-        st.error(f"Details: {e}")
+        # --- PIE CHARTS ---
+        st.markdown("### 🥧 Allocation Pie Charts")
+        pie_chunks = [pie_charts[i:i + 3] for i in range(0, len(pie_charts), 3)]
+        for chunk in pie_chunks:
+            cols = st.columns(len(chunk))
+            for col, chart in zip(cols, chunk):
+                with col:
+                    st.altair_chart(chart.properties(width=chart_width), use_container_width=True)
+
+        # --- BAR CHARTS ---
+        st.markdown("### 📊 Allocation Bar Charts")
+        bar_chunks = [bar_charts[i:i + 3] for i in range(0, len(bar_charts), 3)]
+        for chunk in bar_chunks:
+            cols = st.columns(len(chunk))
+            for col, chart in zip(cols, chunk):
+                with col:
+                    st.altair_chart(chart.properties(width=chart_width), use_container_width=True)
+
+
+
+            except Exception as e:
+                st.error("An error occurred during optimization.")
+                st.error(f"Details: {e}")
 else:
     st.info("Click the 'Optimize Portfolio' button to see initial allocations.")
