@@ -109,7 +109,7 @@ if start_date >= end_date:
     st.stop()
 
 # --- Advanced Settings ---
-with st.expander("🛠️ Show Advanced Strategy Settings"):
+with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy Settings</span>"):
     rebalance_days = st.slider(
         "🔁 How often should the portfolio be rebalanced?",
         min_value=7,
