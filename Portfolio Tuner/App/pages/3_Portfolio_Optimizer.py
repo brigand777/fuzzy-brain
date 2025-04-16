@@ -128,7 +128,6 @@ if optimize_button:
             pie_dfs.append(df)
             bar_dfs.append(df)
 
-        # 🥧 PIE CHARTS: all in one row, separate legend chart
         st.markdown("### 🥧 Allocation Pie Charts")
 
         # Build pie charts without legends
@@ -145,20 +144,24 @@ if optimize_button:
             )
             pie_charts.append(chart)
 
-        # Legend-only chart using dummy bar chart from final pie chart's data
-        legend_chart = alt.Chart(pie_dfs[-1]).mark_bar().encode(
+        # Create a legend-only chart using dummy data
+        legend_assets = pie_dfs[-1]["Asset"].unique()
+        legend_df = pd.DataFrame({"Asset": legend_assets, "Weight": [1.0] * len(legend_assets)})
+
+        legend_chart = alt.Chart(legend_df).mark_bar().encode(
+            x=alt.X("Weight:Q", axis=None),
             y=alt.Y("Asset:N", axis=None),
             color=alt.Color("Asset:N", legend=alt.Legend(title="Asset"))
-        ).properties(width=0, height=0)
+        ).properties(
+            width=100,
+            height=220
+        )
 
-        # Display all charts + separate legend
+        # Display all pie charts + the external legend
         st.altair_chart(
             alt.hconcat(*pie_charts, legend_chart),
             use_container_width=True
         )
-
-
-
 
 
         # 📊 BAR CHARTS: 2-column layout, legend only on last chart in top row
