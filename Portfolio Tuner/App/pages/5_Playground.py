@@ -100,10 +100,14 @@ with slider_col:
         if abs(total_weight - 1) > 0.01:
             st.warning(f"⚠️ Your weights add up to {total_weight:.2f}. This may skew the simulation.")
 
-    # Reset button
-    reset_weights = st.button("🔁 Reset Weights to Even Split")
+    # -- Reset weights via button (sets flag)
+    if st.button("🔁 Reset Weights to Even Split"):
+        for asset in playground_assets:
+            st.session_state[f"weight_{asset}"] = round(1.0 / len(playground_assets), 2)
+        st.rerun()  # 🔄 Force rerun so sliders reload cleanly
 
     # Weight Sliders and Pie Chart
+    # -- Render sliders
     with slider_col:
         st.markdown("#### Set your asset weights:")
 
@@ -111,20 +115,17 @@ with slider_col:
         total_weight = 0
 
         for asset in playground_assets:
-            # Set session_state only before widget is used
-            if reset_weights:
-                st.session_state[asset] = round(1.0 / len(playground_assets), 2)
-
+            default_value = st.session_state.get(f"weight_{asset}", 0.05)
             weight = st.slider(
                 f"{asset}",
-                min_value=0.0,
-                max_value=1.0,
+                0.0, 1.0, 0.05,
                 step=0.005,
-                value=st.session_state.get(asset, 0.05),
-                key=asset
+                value=default_value,
+                key=f"weight_{asset}"  # ✅ Use prefixed unique keys
             )
             weights[asset] = weight
             total_weight += weight
+
 
 
     # Pie chart under sliders
