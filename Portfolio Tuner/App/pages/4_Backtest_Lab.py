@@ -3,6 +3,8 @@ import pandas as pd
 import altair as alt
 import os
 from datetime import timedelta
+from datetime import datetime
+import pytz
 
 from auth import login_and_get_status
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
@@ -72,57 +74,71 @@ if portfolio_df.empty or "Asset" not in portfolio_df.columns:
 
 st.dataframe(portfolio_df, use_container_width=True)
 
-# --- Step 2: Backtest Settings ---
-st.markdown("## Step 2: ⚙️ Customize Backtest")
-
-narrative("Here you can simulate how your portfolio would have performed over a past period using different strategies and rebalancing rules.")
-
-# --- Step 2: Backtest Settings ---
-st.markdown("## Step 2: ⚙️ Customize Your Backtest")
-
-narrative("Here you can simulate how your portfolio would have performed in the past using different strategies and rebalancing rules.")
-
-import pytz
-from datetime import datetime
 
 utc = pytz.UTC
 
-# Raw date inputs (naive)
-start_naive = st.date_input("📅 Start Date", value=available_dates[-252].date())
-end_naive = st.date_input("📅 End Date", value=available_dates[-1].date())
+st.markdown("## Step 2: ⚙️ Customize Your Backtest")
+narrative("Select the period you want to test and adjust optional strategy settings.")
+
+# --- Dates (always shown) ---
+col1, col2 = st.columns(2)
+
+with col1:
+    start_naive = st.date_input(
+        "📅 Start Date",
+        value=available_dates[-252].date(),
+        min_value=available_dates[0].date(),
+        max_value=available_dates[-2].date()
+    )
+
+with col2:
+    end_naive = st.date_input(
+        "📅 End Date",
+        value=available_dates[-1].date(),
+        min_value=start_naive,
+        max_value=available_dates[-1].date()
+    )
 
 # Convert to UTC-aware timestamps
 start_date = pd.Timestamp(datetime.combine(start_naive, datetime.min.time()), tz="UTC")
 end_date = pd.Timestamp(datetime.combine(end_naive, datetime.min.time()), tz="UTC")
 
+# --- Validate Date Range ---
 if start_date >= end_date:
     st.error("Start date must be before end date.")
     st.stop()
 
-st.markdown("#### 🔄 Rebalancing Strategy")
+# --- Advanced Settings ---
+with st.expander("🛠️ Show Advanced Strategy Settings"):
+    rebalance_days = st.slider(
+        "🔁 How often should the portfolio be rebalanced?",
+        min_value=7,
+        max_value=90,
+        step=7,
+        value=30,
+        help="How frequently we recalculate and adjust the portfolio"
+    )
 
-rebalance_days = st.slider(
-    "How often should the portfolio be rebalanced?",
-    min_value=7,
-    max_value=90,
-    step=7,
-    value=30,
-    help="How frequently we recalculate and adjust the portfolio"
-)
+    lookback_days = st.slider(
+        "📊 Lookback window (in days)",
+        min_value=30,
+        max_value=365,
+        step=30,
+        value=90,
+        help="More days = more historical data, but may be slower to adapt"
+    )
 
-lookback_days = st.slider(
-    "How far back should we look when calculating risk & returns?",
-    min_value=30,
-    max_value=365,
-    step=30,
-    value=90,
-    help="More days = more data, but may reduce responsiveness"
-)
+    nonnegative_toggle = st.toggle(
+        "📉 Disallow negative weights (no short-selling)?",
+        value=True
+    )
 
-nonnegative_toggle = st.toggle(
-    "📉 Disallow negative weights (no short-selling)?",
-    value=True
-)
+# --- Fallback Defaults if not opened ---
+if "rebalance_days" not in locals():
+    rebalance_days = 30
+    lookback_days = 90
+    nonnegative_toggle = True
+
 
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 data = data[[col for col in selected_assets if col in data.columns]]
