@@ -64,29 +64,34 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         st.download_button("📥 Download CSV", csv_download, "portfolio.csv", "text/csv")
 
     with col_chart:
-        #st.markdown("### 🧮 Allocation Breakdown")
-        allocation_bar = df.sort_values("Percent", ascending=True)
+        df_sorted = df.sort_values("Percent", ascending=False)
 
         fig = px.bar(
-            df.sort_values("Percent", ascending=False),
+            df_sorted,
             x="Asset",
             y="Percent",
-            orientation="v",
             title="📊 Allocation Breakdown",
             text="Percent",
-            labels={"Percent": "Percent ($)", "Asset": "Asset"}
+            labels={"Percent": "Allocation (%)", "Asset": "Token"},
+            color="Asset",  # 👈 optional color grouping
+            color_discrete_sequence=px.colors.qualitative.Safe
         )
 
-
+        fig.update_traces(
+            texttemplate="%{text:.2f}%",
+            textposition="outside"
+        )
         fig.update_layout(
-            xaxis_title="Portfolio Allocation (%)",
-            yaxis_title="Asset",
-            margin=dict(t=10, b=10, l=10, r=10),
-            height=300,
-            coloraxis_showscale=False
+            xaxis_title="Asset",
+            yaxis_title="Portfolio Allocation (%)",
+            uniformtext_minsize=8,
+            uniformtext_mode="hide",
+            height=350,
+            margin=dict(t=40, b=30, l=10, r=10)
         )
-        fig.update_traces(textposition="outside")
+
         st.plotly_chart(fig, use_container_width=True)
+
 
 
     # --- Edit Portfolio ---
