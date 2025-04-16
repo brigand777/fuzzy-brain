@@ -67,12 +67,12 @@ No spreadsheets. No stress.
 st.markdown("## 🔧 What would you like to do today?")
 
 pages = [
-    ("📝 My Portfolio", "Start here! Create or edit your crypto portfolio.", "/My%20Portfolio"),
-    ("📊 Dashboard", "See how your portfolio is performing with visual insights.", "/Portfolio%20Dashboard"),
-    ("🎯 Optimizer", "Compare strategies and rebalance based on your risk comfort.", "/Portfolio%20Optimizer"),
-    ("⏳ Backtest Lab", "Look into the past to see how strategies would’ve performed.", "/Backtest%20Lab"),
-    ("🎮 Playground", "Tweak allocations and experiment freely — no pressure.", "/Playground"),
-    ("📖 Glossary", "New to some of the terms? This glossary has you covered.", "/Glossary")
+    ("📝 My Portfolio", "Start here! Create or edit your crypto portfolio.",  "pages/1_My_Portfolio.py"),
+    ("📊 Dashboard", "See how your portfolio is performing with visual insights.", "pages/2_Portfolio_Dashboard.py"),
+    ("🎯 Optimizer", "Compare strategies and rebalance based on your risk comfort.", "pages/3_Portfolio_Optimizer.py"),
+    ("⏳ Backtest Lab", "Look into the past to see how strategies would’ve performed.", "pages/4_Backtest_Lab.py"),
+    ("🎮 Playground", "Tweak allocations and experiment freely — no pressure.", "pages/5_Playground.py"),
+    ("📖 Glossary", "New to some of the terms? This glossary has you covered.", "pages/6_Glossary.py")
 ]
 
 cols = st.columns(3)
