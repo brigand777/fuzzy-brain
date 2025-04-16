@@ -107,10 +107,6 @@ else:
     if abs(total_weight - 1) > 0.01:
         st.warning(f"⚠️ Your weights add up to {total_weight:.2f}. This may skew the simulation.")
 
-# Reset button
-if st.button("🔁 Reset Weights to Even Split"):
-    for asset in playground_assets:
-        st.session_state[asset] = round(1.0 / len(playground_assets), 2)
 
 # --- Portfolio Metrics Calculation ---
 lookback_days = 365
