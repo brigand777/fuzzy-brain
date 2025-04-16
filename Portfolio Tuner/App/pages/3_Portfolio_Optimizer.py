@@ -6,7 +6,7 @@ import os
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from optimizer import run_optimizers
-from utils.plots import pie_chart_allocation, bar_chart_allocation  # This stays as-is
+from utils.plots import pie_chart_allocation  # bar chart defined below
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods
 from utils.glossary import vintage_dropdown
@@ -71,10 +71,25 @@ vintage_dropdown(
     HRB--lumps similar invetments into baskets and gives each basket a fixed risk budget to spread around""",
 )
 
-lookback = st.selectbox("Select backtest window (days)", [30, 60, 90, 180, 365], index=2)
+# --- User Controls BEFORE optimization ---
+with st.expander("⚙️ Optimization Settings"):
+    lookback = st.selectbox(
+        "🔁 Select backtest window (days)", 
+        options=[30, 60, 90, 180, 365],
+        index=2,
+        help="Use the dropdown to choose a lookback period"
+    )
+
+    default_methods = ["Equal Weight", "Mean Variance", "HRP", "User Portfolio"]
+    selected_methods = st.multiselect(
+        "🧠 Select optimization methods to display",
+        options=default_methods,
+        default=default_methods,
+        help="Search and select multiple methods to visualize"
+    )
 
 # --- Optimizer Trigger ---
-optimize_button = st.button("Optimize Portfolio")
+optimize_button = st.button("🚀 Optimize Portfolio")
 
 if optimize_button:
     try:
@@ -95,19 +110,30 @@ if optimize_button:
         # Add user's portfolio
         all_allocations["User Portfolio"] = pd.Series(user_weights)
 
-        # Select methods
-        method_options = list(all_allocations.keys())
-        selected_methods = st.multiselect("Select optimization methods to compare", method_options, default=method_options)
+        # Filter to selected methods only (in case user unchecked some)
+        filtered_allocs = {m: all_allocations[m] for m in selected_methods if m in all_allocations}
 
         # --- Allocation Charts ---
-        st.markdown("### 📊 Initial Allocations")
-        for method in selected_methods:
-            st.markdown(f"#### {method}")
-            pie = pie_chart_allocation(pd.Series(all_allocations[method]).round(4), method)
-            bar = bar_chart_allocation(pd.Series(all_allocations[method]).round(4), method)
+        st.markdown("### 🧩 Allocation Comparison Charts")
 
-            st.altair_chart(pie, use_container_width=True)
-            st.altair_chart(bar, use_container_width=True)
+        pie_charts = []
+        bar_charts = []
+
+        for method, weights_raw in filtered_allocs.items():
+            weights = pd.Series(weights_raw).round(4)
+            
+            pie = pie_chart_allocation(weights, method)
+            bar = bar_chart_allocation(weights, method)
+
+            pie_charts.append(pie)
+            bar_charts.append(bar)
+
+
+        # Display all pie charts in a row
+        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+
+        # Display all bar charts in a row
+        st.altair_chart(alt.hconcat(*bar_charts), use_container_width=True)
 
     except Exception as e:
         st.error("An error occurred during optimization.")
