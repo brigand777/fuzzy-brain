@@ -1,6 +1,16 @@
 from datetime import timedelta
 import pandas as pd
 
+
+def ensure_utc(dt):
+    """
+    Ensure a datetime object is timezone-aware (UTC).
+    Useful for date pickers and ranges in Streamlit apps.
+    """
+    dt = pd.to_datetime(dt)
+    return dt.tz_localize("UTC") if dt.tzinfo is None else dt.tz_convert("UTC")
+
+
 def downsample_results_dict(results_dict, start_date, end_date, target_points=365):
     """
     Downsamples time-series results to a target number of points per method.
