@@ -47,15 +47,46 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
     st.markdown("### 📊 Your Portfolio Overview")
     st.markdown(f"**💼 Total Value:** `${total_value:,.2f}`")
-    st.dataframe(
-        df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
-            "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:,.2f}", "Percent": "{:.2f}%"
-        }),
-        use_container_width=True
-    )
+    col_table, col_chart = st.columns([1, 1.2])
 
-    csv_download = df[["Asset", "Amount"]].to_csv(index=False)
-    st.download_button("📥 Download CSV", csv_download, "portfolio.csv", "text/csv")
+    with col_table:
+        st.markdown("### 📊 Your Portfolio Overview")
+        st.markdown(f"**💼 Total Value:** `${total_value:,.2f}`")
+        st.dataframe(
+            df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
+                "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:,.2f}", "Percent": "{:.2f}%"
+            }),
+            use_container_width=True
+        )
+
+        csv_download = df[["Asset", "Amount"]].to_csv(index=False)
+        st.download_button("📥 Download CSV", csv_download, "portfolio.csv", "text/csv")
+
+    with col_chart:
+        st.markdown("### 🧮 Allocation Breakdown")
+        allocation_bar = df.sort_values("Percent", ascending=True)
+
+        fig = px.bar(
+            allocation_bar,
+            x="Percent",
+            y="Asset",
+            orientation="h",
+            text=allocation_bar["Percent"].apply(lambda x: f"{x:.2f}%"),
+            color="Percent",
+            color_continuous_scale="Blues",
+            labels={"Percent": "Allocation (%)"}
+        )
+
+        fig.update_layout(
+            xaxis_title="Portfolio Allocation (%)",
+            yaxis_title="Asset",
+            margin=dict(t=10, b=10, l=10, r=10),
+            height=300,
+            coloraxis_showscale=False
+        )
+        fig.update_traces(textposition="outside")
+        st.plotly_chart(fig, use_container_width=True)
+
 
     # --- Edit Portfolio ---
     st.markdown("### ✏️ Modify Portfolio Holdings")
