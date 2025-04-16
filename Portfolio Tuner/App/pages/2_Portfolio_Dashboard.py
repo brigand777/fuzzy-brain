@@ -190,7 +190,7 @@ if authentication_status:
     # --- Navigation ---
     st.markdown("---")
     if st.button("🔙 Go to Portfolio Editor"):
-        st.switch_page("pages/1_My_Portfolio.py")
+        st.switch_page("Portfolio Editor")
 
 else:
     st.warning("Please log in to view saved portfolio data.")
