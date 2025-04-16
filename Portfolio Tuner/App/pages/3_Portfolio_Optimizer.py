@@ -6,7 +6,7 @@ import os
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from optimizer import run_optimizers
-from utils.plots import pie_chart_allocation  # bar chart defined below
+from utils.plots import pie_chart_allocation, bar_chart_allocation  # bar chart defined below
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods
 from utils.glossary import vintage_dropdown
