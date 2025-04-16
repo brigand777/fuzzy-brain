@@ -71,15 +71,37 @@ auto_normalize = st.checkbox("🔄 Automatically normalize weights to 100%", val
 
 slider_col, chart_col = st.columns([1, 2], gap="medium")
 
-# --- Weight Sliders ---
+# --- Weight Sliders and Pie Chart ---
 with slider_col:
+    st.markdown("#### Set your asset weights:")
+    auto_normalize = st.checkbox("🔄 Automatically normalize weights to 100%", value=True)
+
     weights = {}
     total_weight = 0
-    st.markdown("#### Set your asset weights:")
     for asset in playground_assets:
         weight = st.slider(f"{asset}", 0.0, 1.0, 0.05, 0.005, key=asset)
         weights[asset] = weight
         total_weight += weight
+
+    # Normalize if requested
+    if auto_normalize and total_weight > 0:
+        weights = {k: v / total_weight for k, v in weights.items()}
+    else:
+        if abs(total_weight - 1) > 0.01:
+            st.warning(f"⚠️ Your weights add up to {total_weight:.2f}. This may skew the simulation.")
+
+    # Reset button
+    if st.button("🔁 Reset Weights to Even Split"):
+        for asset in playground_assets:
+            st.session_state[asset] = round(1.0 / len(playground_assets), 2)
+
+    # Pie chart under sliders
+    if total_weight > 0:
+        pie_df = pd.DataFrame({"Asset": list(weights.keys()), "Weight": list(weights.values())})
+        pie_fig = px.pie(pie_df, names="Asset", values="Weight", title="📊 Token Allocation")
+        pie_fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
+        st.plotly_chart(pie_fig, use_container_width=True)
+
 
 if auto_normalize and total_weight > 0:
     weights = {k: v / total_weight for k, v in weights.items()}
@@ -118,26 +140,20 @@ with chart_col:
     }, show_legend=False)
     st.altair_chart(add_interactivity(chart, x_field="date", y_field="cumulative"), use_container_width=True)
 
-    # Pie chart of allocation
-    if total_weight > 0:
-        pie_df = pd.DataFrame({"Asset": list(weights.keys()), "Weight": list(weights.values())})
-        fig = px.pie(pie_df, names="Asset", values="Weight", title="📊 Allocation Breakdown")
-        st.plotly_chart(fig, use_container_width=True)
-
 # --- Portfolio Gauges ---
 col1, col2, col3 = st.columns(3)
 with col1:
-    fig = plot_single_gauge("Cumulative Return", cumulative_return * 100, "cumulative")
+    fig = plot_single_gauge("Cumulative Return", cumulative_return * 100, metric_name = "cumulative")
     st.plotly_chart(fig, use_container_width=True)
     st.caption("📈 % growth over the past year")
 
 with col2:
-    fig = plot_single_gauge("Annualized Volatility", annualized_volatility * 100, "volatility")
+    fig = plot_single_gauge("Annualized Volatility", annualized_volatility * 100,metric_name = "volatility")
     st.plotly_chart(fig, use_container_width=True)
     st.caption("💡 Measures portfolio bumpiness")
 
 with col3:
-    fig = plot_single_gauge("Sharpe Ratio", sharpe_ratio, "sharpe")
+    fig = plot_single_gauge("Sharpe Ratio", sharpe_ratio, metric_name = "sharpe")
     st.plotly_chart(fig, use_container_width=True)
     st.caption("📊 Return per unit of risk (above 1 is strong)")
 
