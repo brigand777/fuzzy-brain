@@ -189,11 +189,12 @@ if authentication_status:
 
     # --- Navigation ---
     st.markdown("---")
+    from streamlit.source_util import get_pages
+    st.write("All known pages:", [page["page_name"] for page in get_pages("").values()])
+
     if st.button("🔙 Go to Portfolio Editor"):
         st.switch_page("1_Portfolio_Editor")
-        from streamlit.source_util import get_pages
-        st.write("All known pages:", [page["page_name"] for page in get_pages("").values()])
-
+        
 
 else:
     st.warning("Please log in to view saved portfolio data.")
