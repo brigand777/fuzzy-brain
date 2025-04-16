@@ -128,6 +128,9 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
     }
 
 # ---- Single Gauge using Plotly ----
+import plotly.graph_objects as go
+import numpy as np
+
 def plot_single_gauge(
     title: str,
     value: float,
@@ -139,15 +142,14 @@ def plot_single_gauge(
     tick_font_size: int = 12
     ) -> go.Figure:
 
-    # Handle invalid values
     def is_nan(val):
         return isinstance(val, float) and np.isnan(val)
 
-    # Handle invalid values
-    if is_nan(value) or value is None:
-        value = 0
+    # --- Sanitize inputs ---
+    if not isinstance(value, (int, float)) or is_nan(value):
+        value = 0.0
 
-    if benchmark_value is not None and is_nan(benchmark_value):
+    if benchmark_value is not None and (not isinstance(benchmark_value, (int, float)) or is_nan(benchmark_value)):
         benchmark_value = None
 
     label_to_metric = {
@@ -182,7 +184,6 @@ def plot_single_gauge(
     is_bad = value < threshold if better == "above" else value > threshold
     needle_color = "green" if not is_bad else "red"
 
-    # ✅ Safe delta config
     delta_config = None
     if benchmark_value is not None:
         delta_config = {
@@ -194,6 +195,46 @@ def plot_single_gauge(
             "suffix": f" vs {benchmark_label.upper()}",
             "position": "bottom"
         }
+
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number" + ("+delta" if benchmark_value is not None else ""),
+        value=value,
+        number={
+            'suffix': suffix,
+            'font': {'color': 'white', 'size': number_font_size}
+        },
+        delta=delta_config,
+        title={'text': title, 'font': {'size': title_font_size, 'color': 'white'}},
+        gauge={
+            'axis': {
+                'range': [min_val, max_val],
+                'tickwidth': 1,
+                'tickcolor': "gray",
+                'tickfont': {'size': tick_font_size, 'color': 'white'}
+            },
+            'bar': {'color': needle_color, 'thickness': 0.3},
+            'bgcolor': "black",
+            'borderwidth': 2,
+            'bordercolor': "gray",
+            'steps': [],
+            'threshold': {
+                'line': {'color': "white", 'width': 3},
+                'thickness': 0.75,
+                'value': value
+            }
+        },
+        domain={'x': [0, 1], 'y': [0, 1]}
+    ))
+
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font={'color': "white"},
+        height=250,
+        margin=dict(t=50, b=40, l=20, r=20)
+    )
+
+    return fig if isinstance(fig, go.Figure) else go.Figure()
 
 # ---- Layout for Multiple Gauges ----
 def plot_gauge_charts(metrics: dict, benchmark_metrics: dict = None,benchmark_name: str = None):

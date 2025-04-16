@@ -136,20 +136,33 @@ with chart_col:
 
 # --- Portfolio Gauges ---
 col1, col2, col3 = st.columns(3)
+
 with col1:
-    fig = plot_single_gauge("Cumulative Return", cumulative_return * 100, metric_name = "cumulative")
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption("📈 % growth over the past year")
+    try:
+        fig = plot_single_gauge("Cumulative Return", cumulative_return * 100, metric_name="cumulative")
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("📈 % growth over the past year")
+    except Exception as e:
+        st.warning("Could not render Cumulative Return gauge.")
+        st.exception(e)
 
 with col2:
-    fig = plot_single_gauge("Annualized Volatility", annualized_volatility * 100,metric_name = "volatility")
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption("💡 Measures portfolio bumpiness")
+    try:
+        fig = plot_single_gauge("Annualized Volatility", annualized_volatility * 100, metric_name="volatility")
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("💡 Measures portfolio bumpiness")
+    except Exception as e:
+        st.warning("Could not render Volatility gauge.")
+        st.exception(e)
 
 with col3:
-    fig = plot_single_gauge("Sharpe Ratio", sharpe_ratio, metric_name = "sharpe")
-    st.plotly_chart(fig, use_container_width=True)
-    st.caption("📊 Return per unit of risk (above 1 is strong)")
+    try:
+        fig = plot_single_gauge("Sharpe Ratio", sharpe_ratio, metric_name="sharpe")
+        st.plotly_chart(fig, use_container_width=True)
+        st.caption("📊 Return per unit of risk (above 1 is strong)")
+    except Exception as e:
+        st.warning("Could not render Sharpe Ratio gauge.")
+        st.exception(e)
 
 # --- Risk Score ---
 if risk_score > 0.05:
