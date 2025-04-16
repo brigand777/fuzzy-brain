@@ -132,7 +132,7 @@ if optimize_button:
         st.markdown("### 🥧 Allocation Pie Charts")
         cols = st.columns(2)
         for i, df in enumerate(pie_dfs):
-            show_legend = (i % 2 == 1) or (i == len(pie_dfs) - 1 and len(pie_dfs) % 2 == 1)
+            show_legend = show_legend = (i == len(pie_dfs) - 1)  # only the final chart gets the legend
             chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
                 theta="Weight:Q",
                 color=alt.Color("Asset:N", title="Asset", legend=None if not show_legend else alt.Legend(title="Asset")),
@@ -149,7 +149,7 @@ if optimize_button:
         max_weight = max(df["Weight"].max() for df in bar_dfs)
         cols = st.columns(2)
         for i, df in enumerate(bar_dfs):
-            show_legend = (i % 2 == 1) or (i == len(bar_dfs) - 1 and len(bar_dfs) % 2 == 1)
+            show_legend = (i == len(bar_dfs) - 1)  
             chart = alt.Chart(df).mark_bar().encode(
                 x=alt.X("Asset:N", sort="-y"),
                 y=alt.Y("Weight:Q", title="Weight", scale=alt.Scale(domain=[0, max_weight])),
@@ -158,7 +158,7 @@ if optimize_button:
             ).properties(
                 title=df["Method"].iloc[0],
                 width=250,
-                height=250
+                height=350
             )
             cols[i % 2].altair_chart(chart, use_container_width=True)
 
