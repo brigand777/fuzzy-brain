@@ -190,7 +190,7 @@ if authentication_status:
     # --- Navigation ---
     st.markdown("---")
     if st.button("🔙 Go to Portfolio Editor"):
-        st.switch_page("pages/2_Portfolio_Editor.py")
+        st.switch_page("pages/1_Portfolio_Editor.py")
         
 
 else:
