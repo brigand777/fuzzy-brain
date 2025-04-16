@@ -128,37 +128,45 @@ if optimize_button:
             pie_dfs.append(df)
             bar_dfs.append(df)
 
-        # PIE CHARTS
+        # 🥧 PIE CHARTS: all in one row, only last has legend
         st.markdown("### 🥧 Allocation Pie Charts")
-        cols = st.columns(2)
+
+        pie_charts = []
         for i, df in enumerate(pie_dfs):
-            show_legend = show_legend = (i == len(pie_dfs) - 1)  # only the final chart gets the legend
+            show_legend = (i == len(pie_dfs) - 1)  # only last chart
             chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
                 theta="Weight:Q",
-                color=alt.Color("Asset:N", title="Asset", legend=None if not show_legend else alt.Legend(title="Asset")),
+                color=alt.Color("Asset:N", title="Asset", legend=alt.Legend(title="Asset") if show_legend else None),
+                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
+            ).properties(
+                title=df["Method"].iloc[0],
+                width=220,
+                height=220
+            )
+            pie_charts.append(chart)
+
+        # Show all pie charts side by side
+        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+
+
+        # 📊 BAR CHARTS: 2-column layout, legend only on last chart in top row
+        st.markdown("### 📊 Allocation Bar Charts")
+
+        max_weight = max(df["Weight"].max() for df in bar_dfs)
+
+        cols = st.columns(2)
+        for i, df in enumerate(bar_dfs):
+            # Show legend only on rightmost top-row chart (index 1), or chart 0 if only one
+            show_legend = (i == 1) or (len(bar_dfs) == 1 and i == 0)
+            chart = alt.Chart(df).mark_bar().encode(
+                x=alt.X("Asset:N", sort="-y"),
+                y=alt.Y("Weight:Q", title="Weight", scale=alt.Scale(domain=[0, max_weight])),
+                color=alt.Color("Asset:N", title="Asset", legend=alt.Legend(title="Asset") if show_legend else None),
                 tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
             ).properties(
                 title=df["Method"].iloc[0],
                 width=250,
                 height=250
-            )
-            cols[i % 2].altair_chart(chart, use_container_width=True)
-
-        # BAR CHARTS
-        st.markdown("### 📊 Allocation Bar Charts")
-        max_weight = max(df["Weight"].max() for df in bar_dfs)
-        cols = st.columns(2)
-        for i, df in enumerate(bar_dfs):
-            show_legend = (i == len(bar_dfs) - 1)  
-            chart = alt.Chart(df).mark_bar().encode(
-                x=alt.X("Asset:N", sort="-y"),
-                y=alt.Y("Weight:Q", title="Weight", scale=alt.Scale(domain=[0, max_weight])),
-                color=alt.Color("Asset:N", title="Asset", legend=None if not show_legend else alt.Legend(title="Asset")),
-                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
-            ).properties(
-                title=df["Method"].iloc[0],
-                width=250,
-                height=350
             )
             cols[i % 2].altair_chart(chart, use_container_width=True)
 
