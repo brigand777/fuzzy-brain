@@ -154,8 +154,8 @@ if optimize_button:
 
 
 
-            except Exception as e:
-                st.error("An error occurred during optimization.")
-                st.error(f"Details: {e}")
+    except Exception as e:
+        st.error("An error occurred during optimization.")
+        st.error(f"Details: {e}")
 else:
     st.info("Click the 'Optimize Portfolio' button to see initial allocations.")
