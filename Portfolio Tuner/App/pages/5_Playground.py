@@ -82,48 +82,48 @@ st.markdown("## Step 2: 🎚️ Adjust Your Hypothetical Portfolio")
 slider_col, chart_col = st.columns([1, 2], gap="medium")
 
 # --- Weight Sliders and Pie Chart ---
-# --- Weight Sliders and Pie Chart ---
 with slider_col:
-    st.markdown("#### Set your asset weights:")
-    
+    st.markdown("#### Set your asset weights (%):")
+
     # Reset button (reruns app and resets values)
     if st.button("🔁 Reset Weights to Even Split"):
         for asset in playground_assets:
-            st.session_state[f"weight_{asset}"] = round(1.0 / len(playground_assets), 2)
+            st.session_state[f"weight_{asset}"] = round(100.0 / len(playground_assets), 2)
         st.rerun()
 
-    auto_normalize = st.checkbox("🔄 Automatically normalize weights to 100%", value=True)
+    auto_normalize = st.checkbox("🔄 Automatically normalize to 100%", value=True)
 
     weights = {}
     total_weight = 0
 
-    # Render sliders with session_state-backed keys
     for asset in playground_assets:
-        default_value = float(st.session_state.get(f"weight_{asset}", 0.05) or 0.05)
+        default_value = float(st.session_state.get(f"weight_{asset}", 5.0) or 5.0)
         weight = st.slider(
-            f"{asset}",
+            f"{asset} (%)",
             min_value=0.0,
-            max_value=1.0,
-            step=0.005,
+            max_value=100.0,
             value=default_value,
-            key=f"weight_{asset}"  # ✅ ensures unique key
+            step=0.5,
+            key=f"weight_{asset}"
         )
         weights[asset] = weight
         total_weight += weight
 
-    # Normalize weights if requested
+    st.markdown(f"**Total Allocation: {total_weight:.2f}%**")
+
     if auto_normalize and total_weight > 0:
         weights = {k: v / total_weight for k, v in weights.items()}
     else:
-        if abs(total_weight - 1) > 0.01:
-            st.warning(f"⚠️ Your weights add up to {total_weight:.2f}. This may skew the simulation.")
+        weights = {k: v / 100.0 for k, v in weights.items()}  # convert % → fraction
+        if abs(total_weight - 100) > 1:
+            st.warning(f"⚠️ Your weights add up to {total_weight:.2f}%. Consider normalizing.")
 
-    # Pie chart for weight visualization
-    if total_weight > 0:
-        pie_df = pd.DataFrame({"Asset": list(weights.keys()), "Weight": list(weights.values())})
-        pie_fig = px.pie(pie_df, names="Asset", values="Weight", title="📊 Token Allocation")
-        pie_fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
-        st.plotly_chart(pie_fig, use_container_width=True)
+    # Show pie chart of final weights
+    pie_df = pd.DataFrame({"Asset": list(weights.keys()), "Weight": list(weights.values())})
+    pie_fig = px.pie(pie_df, names="Asset", values="Weight", title="📊 Token Allocation")
+    pie_fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
+    st.plotly_chart(pie_fig, use_container_width=True)
+
 
 
 
@@ -153,15 +153,13 @@ portfolio_df = pd.DataFrame({
     "SliderWeight": list(weights.values()),
     "Price": [latest_prices.get(a, np.nan) for a in weights.keys()]
 })
-portfolio_df["Value"] = portfolio_df["SliderWeight"] * portfolio_df["Price"]
-total_value = portfolio_df["Value"].sum()
-portfolio_df["NormalizedWeight"] = portfolio_df["Value"] / total_value
+#portfolio_df["Value"] = portfolio_df["SliderWeight"] * portfolio_df["Price"]
+#total_value = portfolio_df["Value"].sum()
+#portfolio_df["NormalizedWeight"] = portfolio_df["Value"] / total_value
 
-# Align weights with returns columns
-aligned_weights = portfolio_df.set_index("Asset")["NormalizedWeight"].reindex(simulation_data.columns).fillna(0)
-
-# --- Portfolio returns ---
+aligned_weights = pd.Series(weights).reindex(simulation_data.columns).fillna(0)
 portfolio_returns = returns.dot(aligned_weights)
+# --- Portfolio returns ---
 cumulative_returns = (1 + portfolio_returns).cumprod()
 
 mean_daily_return = portfolio_returns.mean()
