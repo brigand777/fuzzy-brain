@@ -67,8 +67,6 @@ latest_prices = data.iloc[-1]
 # --- Step 2: 🎚️ Adjust Your Hypothetical Portfolio ---
 st.markdown("## Step 2: 🎚️ Adjust Your Hypothetical Portfolio")
 
-auto_normalize = st.checkbox("🔄 Automatically normalize weights to 100%", value=True)
-
 slider_col, chart_col = st.columns([1, 2], gap="medium")
 
 # --- Weight Sliders and Pie Chart ---
