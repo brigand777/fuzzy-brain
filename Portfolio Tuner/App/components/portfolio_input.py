@@ -52,8 +52,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     col_table, col_chart = st.columns([1, 1.2])
 
     with col_table:
-        st.markdown("### 📊 Your Portfolio Overview")
-        st.markdown(f"**💼 Total Value:** `${total_value:,.2f}`")
+        #st.markdown("### 📊 Your Portfolio Overview")
         st.dataframe(
             df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
                 "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:,.2f}", "Percent": "{:.2f}%"
@@ -65,19 +64,19 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         st.download_button("📥 Download CSV", csv_download, "portfolio.csv", "text/csv")
 
     with col_chart:
-        st.markdown("### 🧮 Allocation Breakdown")
+        #st.markdown("### 🧮 Allocation Breakdown")
         allocation_bar = df.sort_values("Percent", ascending=True)
 
         fig = px.bar(
-            allocation_bar,
-            x="Percent",
-            y="Asset",
-            orientation="h",
-            text=allocation_bar["Percent"].apply(lambda x: f"{x:.2f}%"),
-            color="Percent",
-            color_continuous_scale="Blues",
-            labels={"Percent": "Allocation (%)"}
+            df.sort_values("Percent", ascending=False),
+            x="Asset",
+            y="Percent",
+            orientation="v",
+            title="📊 Allocation Breakdown",
+            text="Percent",
+            labels={"Percent": "Percent ($)", "Asset": "Asset"}
         )
+
 
         fig.update_layout(
             xaxis_title="Portfolio Allocation (%)",
