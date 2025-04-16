@@ -130,7 +130,7 @@ if optimize_button:
 
 
         max_width = 900  # max usable screen width
-        num_charts = min(3, len(pie_charts))
+        num_charts = min(4, len(pie_charts))
         chart_width = int(max_width / num_charts)
 
 
