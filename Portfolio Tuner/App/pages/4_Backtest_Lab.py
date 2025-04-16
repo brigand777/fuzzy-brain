@@ -120,7 +120,7 @@ st.markdown(
 )
 
 # --- Advanced Settings ---
-with st.expander("🛠️ Show Advanced Strategy Settings"):
+with st.expander("🛠️ <span style='font-size: 20px;'>Show Advanced Strategy Settings</span>", expanded=False):
     rebalance_days = st.slider(
         "🔁 How often should the portfolio be rebalanced?",
         min_value=7,
@@ -144,16 +144,32 @@ with st.expander("🛠️ Show Advanced Strategy Settings"):
         value=True
     )
 
-# --- Fallback Defaults if not opened ---
+    st.markdown("#### 🧠 Choose Strategies to Compare")
+
+    with st.expander("ℹ️ What do these strategies mean?", expanded=False):
+        st.markdown("""
+        - **Equal Weight**: Every asset gets the same amount of money.
+        - **Smart Spread (Mean Variance / MVO)**: Uses past price data to find what *would have worked best* historically.
+        - **Group & Balance (HRB)**: Groups similar investments and distributes risk evenly across them.
+        - **Your Portfolio**: Your custom investment mix.
+        """)
+
+    default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
+
+    selected_methods = st.multiselect(
+        "🧠 Select optimization strategies to compare during the backtest:",
+        options=default_methods,
+        default=default_methods,
+        help="Choose one or more strategies to simulate and compare"
+    )
+
+# --- Fallback Defaults if expander is not opened ---
 if "rebalance_days" not in locals():
     rebalance_days = 30
     lookback_days = 90
     nonnegative_toggle = True
+    selected_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
 
-
-selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
-data = data[[col for col in selected_assets if col in data.columns]]
-simulation_data = data.loc[start_date:end_date]
 
 if simulation_data.empty:
     st.error("❌ No data available for the selected backtest period.")
@@ -181,7 +197,9 @@ if run_test:
             lookback_window = data.loc[pd.to_datetime(start_date) - pd.Timedelta(days=lookback_days):start_date]
             initial_allocations = run_optimizers(lookback_window[selected_assets], nonnegative_mvo=nonnegative_toggle)
             initial_allocations["User Portfolio"] = user_weights
-            selected_methods = get_optimization_methods(initial_allocations)
+            # Use the user-selected methods from the advanced settings
+            selected_methods = [m for m in selected_methods if m in initial_allocations]
+
 
             results_dict = {}
             for method in selected_methods:
