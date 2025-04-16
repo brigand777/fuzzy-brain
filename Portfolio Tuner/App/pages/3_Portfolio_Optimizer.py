@@ -140,7 +140,7 @@ if optimize_button:
                 tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
             ).properties(
                 title=df["Method"].iloc[0],
-                width=210,
+                width=200,
                 height=220
             )
             pie_charts.append(chart)
