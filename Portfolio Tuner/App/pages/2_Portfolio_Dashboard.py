@@ -191,6 +191,8 @@ if authentication_status:
     st.markdown("---")
     if st.button("🔙 Go to Portfolio Editor"):
         st.switch_page("1_Portfolio_Editor")
+        from streamlit.source_util import get_pages
+        st.write("All known pages:", [page["page_name"] for page in get_pages("").values()])
 
 
 else:
