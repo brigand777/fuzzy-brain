@@ -146,7 +146,11 @@ if optimize_button:
             pie_charts.append(chart)
 
         # Show all pie charts side by side
-        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+        st.altair_chart(
+            alt.hconcat(*pie_charts).resolve_scale(color='shared'),
+            use_container_width=True
+        )
+
 
 
         # 📊 BAR CHARTS: 2-column layout, legend only on last chart in top row
