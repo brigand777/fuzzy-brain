@@ -15,6 +15,18 @@ st.set_page_config(page_title="Portfolio Optimizer", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
 st.title("🎯 Portfolio Optimizer")
 
+st.markdown(
+    """
+    <style>
+    .streamlit-expanderHeader {
+        font-size: 20px !important;
+        color: #333;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # --- Style Helper ---
 def narrative(text):
     st.markdown(

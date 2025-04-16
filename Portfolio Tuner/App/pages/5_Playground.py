@@ -13,6 +13,18 @@ from utils.simulation import run_smart_monte_carlo_simulation
 st.set_page_config(page_title="Playground", layout="wide")
 st.title("🎮 Portfolio Playground")
 
+st.markdown(
+    """
+    <style>
+    .streamlit-expanderHeader {
+        font-size: 20px !important;
+        color: #333;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # --- Narrative Helper ---
 def narrative(text):
     st.markdown(
@@ -89,9 +101,31 @@ with slider_col:
             st.warning(f"⚠️ Your weights add up to {total_weight:.2f}. This may skew the simulation.")
 
     # Reset button
-    if st.button("🔁 Reset Weights to Even Split"):
+    reset_weights = st.button("🔁 Reset Weights to Even Split")
+
+    # Weight Sliders and Pie Chart
+    with slider_col:
+        st.markdown("#### Set your asset weights:")
+
+        weights = {}
+        total_weight = 0
+
         for asset in playground_assets:
-            st.session_state[asset] = round(1.0 / len(playground_assets), 2)
+            # Set session_state only before widget is used
+            if reset_weights:
+                st.session_state[asset] = round(1.0 / len(playground_assets), 2)
+
+            weight = st.slider(
+                f"{asset}",
+                min_value=0.0,
+                max_value=1.0,
+                step=0.005,
+                value=st.session_state.get(asset, 0.05),
+                key=asset
+            )
+            weights[asset] = weight
+            total_weight += weight
+
 
     # Pie chart under sliders
     if total_weight > 0:
