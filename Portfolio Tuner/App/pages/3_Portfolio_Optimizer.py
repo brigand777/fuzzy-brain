@@ -133,23 +133,28 @@ if optimize_button:
 
         pie_charts = []
         for i, df in enumerate(pie_dfs):
-            show_legend = (i == len(pie_dfs) - 1)  # only last chart
+            show_legend = (i == len(pie_dfs) - 1)
             chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
                 theta="Weight:Q",
-                color=alt.Color("Asset:N", title="Asset", legend=alt.Legend(title="Asset") if show_legend else None),
+                color=alt.Color(
+                    "Asset:N",
+                    title="Asset",
+                    legend=alt.Legend(title="Asset", orient="right") if show_legend else None
+                ),
                 tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
             ).properties(
                 title=df["Method"].iloc[0],
-                width=200,
+                width=220,
                 height=220
             )
             pie_charts.append(chart)
 
-        # Show all pie charts side by side
+        # Use resolve_scale to unify color scale and allow legend rendering
         st.altair_chart(
             alt.hconcat(*pie_charts).resolve_scale(color='shared'),
             use_container_width=True
         )
+
 
 
 
