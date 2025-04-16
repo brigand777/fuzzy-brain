@@ -6,90 +6,94 @@ import os
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from optimizer import run_optimizers
-from utils.plots import pie_chart_allocation, bar_chart_allocation  # bar chart defined below
+from utils.plots import pie_chart_allocation, bar_chart_allocation
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods
-from utils.glossary import vintage_dropdown
 
+# --- Page Setup ---
 st.set_page_config(page_title="Portfolio Optimizer", layout="wide")
-
-# --- Authentication ---
 authenticator, authentication_status, username = login_and_get_status()
 st.title("🎯 Portfolio Optimizer")
 
-# --- Helper ---
+# --- Style Helper ---
 def narrative(text):
     st.markdown(
-        f"""<div style="background-color: rgba(31, 119, 180, 0.2); padding: 10px; border-left: 4px solid #1F77B4; font-size: 18px; margin-bottom: 10px;">
+        f"""<div style="background-color: rgba(31, 119, 180, 0.1); padding: 10px; border-left: 4px solid #1F77B4; font-size: 18px; margin-bottom: 10px;">
         {text}
         </div>""",
         unsafe_allow_html=True
     )
 
-# --- Load data ---
+# --- Load Data ---
 @st.cache_data
 def load_data():
     return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
 
 data = load_data()
 available_assets = data.columns.tolist()
-st.success("Loaded historical price data.")
+st.success("✅ Historical price data loaded.")
 
-# --- Portfolio Selection ---
-input_mode = st.radio("Choose Portfolio Input Method", ["Use My Portfolio", "Build Portfolio Here"])
+# --- Step 1: Portfolio Setup ---
+st.markdown("## Step 1: 📁 Select Your Portfolio")
+
+input_mode = st.radio("Where is your portfolio?", ["Use My Saved Portfolio", "Build Portfolio Here"])
 portfolio_df = None
 persistent = False
 
-if input_mode == "Use My Portfolio":
+if input_mode == "Use My Saved Portfolio":
     if authentication_status:
         portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
         if os.path.exists(portfolio_path):
             portfolio_df = pd.read_csv(portfolio_path)
-            st.success("Loaded your saved portfolio.")
+            st.success("📂 Loaded your saved portfolio.")
             persistent = True
         else:
-            st.warning("No saved portfolio found. Please add assets in 'My Portfolio'.")
+            st.warning("⚠️ No saved portfolio found. Please switch to 'Build Portfolio Here'.")
             st.stop()
     else:
-        st.warning("Login required to use saved portfolio.")
+        st.warning("🔒 Please log in to use your saved portfolio.")
         st.stop()
 else:
     portfolio_df = edit_portfolio(available_assets, data, persistent=False)
 
 if portfolio_df.empty or "Asset" not in portfolio_df.columns:
-    st.warning("Your portfolio is empty. Please add assets.")
+    st.warning("🚫 Your portfolio is empty. Please add assets.")
     st.stop()
 
-# --- Optimization Settings ---
-st.markdown("## 📌 Compare Optimization Methods")
-narrative("Run optimizations and compare different allocation strategies to your own.")
-vintage_dropdown(
-    "📜 What are we Optimizing?",
-    """We want to mitigate the risk the portfolio experiences by spreading our investements apart, but how much do we put in each basket?<br>
-    Here we explore 3 different methods for that: Equal Weight, Mean  Variance (MVO), and Hierarchical Risk Budgeting (HRB): <br>
-    MVO--is a traditioal financial technique that uses the past to give the best results had we known the future <br>
-    HRB--lumps similar invetments into baskets and gives each basket a fixed risk budget to spread around""",
+st.dataframe(portfolio_df, use_container_width=True)
+
+# --- Step 2: Strategy Selection ---
+st.markdown("## Step 2: 🧠 Choose Optimization Strategies")
+narrative("These strategies help you decide how to split your money across different assets for better balance and lower risk.")
+
+with st.expander("📖 What do these mean?"):
+    st.markdown("""
+    - **Equal Weight**: Every asset gets the same amount of money.
+    - **Smart Spread (Mean Variance / MVO)**: Uses past price data to find what *would have worked best* historically.
+    - **Group & Balance (HRB)**: Groups similar investments together and spreads risk across those groups.
+    """)
+
+default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
+selected_methods = st.multiselect(
+    "Which strategies do you want to compare?",
+    options=default_methods,
+    default=default_methods,
+    help="Select one or more optimization methods to visualize"
 )
 
-# --- User Controls BEFORE optimization ---
-with st.expander("⚙️ Optimization Settings"):
+# --- Step 3: Settings (Optional) ---
+with st.expander("⚙️ Advanced Settings (Optional)"):
     lookback = st.selectbox(
-        "🔁 Select backtest window (days)", 
+        "📅 How many days of data should we use?",
         options=[30, 60, 90, 180, 365],
-        index=2,
-        help="Use the dropdown to choose a lookback period"
+        index=2
     )
+else:
+    lookback = 90  # sensible default
 
-    default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
-    selected_methods = st.multiselect(
-        "🧠 Select optimization methods to display",
-        options=default_methods,
-        default=default_methods,
-        help="Search and select multiple methods to visualize"
-    )
-
-# --- Optimizer Trigger ---
-optimize_button = st.button("🚀 Optimize Portfolio")
+# --- Step 4: Optimization Trigger ---
+st.markdown("## Step 3: 🚀 Run the Optimization")
+optimize_button = st.button("Optimize My Portfolio")
 
 if optimize_button:
     try:
@@ -107,17 +111,16 @@ if optimize_button:
         lookback_df = data[user_weights.keys()].tail(lookback)
         all_allocations = run_optimizers(lookback_df, nonnegative_mvo=True)
 
-        # Add user's portfolio
+        # Add user’s original weights
         all_allocations["User Portfolio"] = pd.Series(user_weights)
 
-        # Filter to selected methods only (in case user unchecked some)
+        # Filter selected
         filtered_allocs = {m: all_allocations[m] for m in selected_methods if m in all_allocations}
 
-  
-        # --- Allocation Charts ---
-        st.markdown("### 🧩 Allocation Comparison Charts")
+        # --- Step 5: Results ---
+        st.markdown("## Step 4: 📊 Review Allocation Results")
+        narrative("Here’s how each strategy suggests splitting your money across the assets in your portfolio.")
 
-        # Combine pie/bar data
         pie_dfs = []
         bar_dfs = []
 
@@ -128,28 +131,19 @@ if optimize_button:
             pie_dfs.append(df)
             bar_dfs.append(df)
 
-        st.markdown("### 🥧 Allocation Pie Charts")
+        # 🥧 Pie Charts
+        st.markdown("### 🥧 Pie Charts (Investment Mix)")
 
-        pie_charts = []
-        for method in selected_methods:
-            weights = pd.Series(all_allocations[method]).round(4)
-            chart = pie_chart_allocation(weights, method)
-            pie_charts.append(chart)
+        pie_charts = [pie_chart_allocation(pd.Series(all_allocations[method]), method) for method in selected_methods]
+        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
 
-        # Show all pie charts in one row
-        st.altair_chart(
-            alt.hconcat(*pie_charts),
-            use_container_width=True
-        )
-
-        # 📊 BAR CHARTS: 2-column layout, legend only on last chart in top row
-        st.markdown("### 📊 Allocation Bar Charts")
+        # 📊 Bar Charts
+        st.markdown("### 📈 Bar Charts (Compare Strategies)")
 
         max_weight = max(df["Weight"].max() for df in bar_dfs)
-
         cols = st.columns(2)
+
         for i, df in enumerate(bar_dfs):
-            # Show legend only on rightmost top-row chart (index 1), or chart 0 if only one
             show_legend = (i == 1) or (len(bar_dfs) == 1 and i == 0)
             chart = alt.Chart(df).mark_bar().encode(
                 x=alt.X("Asset:N", sort="-y"),
@@ -163,12 +157,12 @@ if optimize_button:
             )
             cols[i % 2].altair_chart(chart, use_container_width=True)
 
-
-
-
+        # 📘 Summary
+        st.markdown("### 📘 Summary")
+        st.markdown(f"✅ You compared **{len(selected_methods)}** strategies over the last **{lookback} days**.\n\nScroll up to review which mix feels best for your goals.")
 
     except Exception as e:
-        st.error("An error occurred during optimization.")
+        st.error("❌ An error occurred during optimization.")
         st.error(f"Details: {e}")
 else:
-    st.info("Click the 'Optimize Portfolio' button to see initial allocations.")
+    st.info("👆 Click the 'Optimize My Portfolio' button to generate strategy comparisons.")
