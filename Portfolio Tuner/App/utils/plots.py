@@ -731,6 +731,21 @@ def plot_allocations_per_method(allocations, method):
     ).properties(title=f"Asset Allocations Over Time ({method})", width=700, height=400)
     return chart
 
+def bar_chart_allocation(initial_weights, method):
+    df = pd.DataFrame({'Asset': initial_weights.index, 'Weight': initial_weights.values})
+    chart = alt.Chart(df).mark_bar().encode(
+        x=alt.X("Asset:N", sort="-y"),
+        y=alt.Y("Weight:Q", title="Weight"),
+        color=alt.Color("Asset:N"),
+        tooltip=[alt.Tooltip("Asset:N"), alt.Tooltip("Weight:Q", format=".2%")]
+    ).properties(
+        title=f"Initial Allocation (Bar) - {method}",
+        width=300,
+        height=200
+    )
+    return chart
+
+
 def pie_chart_allocation(initial_weights, method):
     # initial_weights: a pandas Series with asset weights.
     df = pd.DataFrame({'Asset': initial_weights.index, 'Weight': initial_weights.values})

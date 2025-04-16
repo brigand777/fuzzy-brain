@@ -6,10 +6,11 @@ import os
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from optimizer import run_optimizers
-from utils.plots import pie_chart_allocation
+from utils.plots import pie_chart_allocation, bar_chart_allocation  # This stays as-is
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods
 from utils.glossary import vintage_dropdown
+
 st.set_page_config(page_title="Portfolio Optimizer", layout="wide")
 
 # --- Authentication ---
@@ -59,17 +60,20 @@ if portfolio_df.empty or "Asset" not in portfolio_df.columns:
     st.warning("Your portfolio is empty. Please add assets.")
     st.stop()
 
-# --- Optimizer Trigger ---
+# --- Optimization Settings ---
 st.markdown("## 📌 Compare Optimization Methods")
 narrative("Run optimizations and compare different allocation strategies to your own.")
 vintage_dropdown(
     "📜 What are we Optimizing?",
     """We want to mitigate the risk the portfolio experiences by spreading our investements apart, but how much do we put in each basket?<br>
-    Here we explore 3 different methods for that: Equal amounts in each asset, MVO, and HRB. <br>
+    Here we explore 3 different methods for that: Equal Weight, Mean  Variance (MVO), and Hierarchical Risk Budgeting (HRB): <br>
     MVO--is a traditioal financial technique that uses the past to give the best results had we known the future <br>
     HRB--lumps similar invetments into baskets and gives each basket a fixed risk budget to spread around""",
 )
 
+lookback = st.selectbox("Select backtest window (days)", [30, 60, 90, 180, 365], index=2)
+
+# --- Optimizer Trigger ---
 optimize_button = st.button("Optimize Portfolio")
 
 if optimize_button:
@@ -85,20 +89,25 @@ if optimize_button:
         }
 
         # Optimizer input
-        lookback = 90
         lookback_df = data[user_weights.keys()].tail(lookback)
         all_allocations = run_optimizers(lookback_df, nonnegative_mvo=True)
 
         # Add user's portfolio
         all_allocations["User Portfolio"] = pd.Series(user_weights)
-        selected_methods = get_optimization_methods(all_allocations)
 
+        # Select methods
+        method_options = list(all_allocations.keys())
+        selected_methods = st.multiselect("Select optimization methods to compare", method_options, default=method_options)
+
+        # --- Allocation Charts ---
         st.markdown("### 📊 Initial Allocations")
-        pie_charts = [
-            pie_chart_allocation(pd.Series(all_allocations[m]).round(4), m)
-            for m in selected_methods
-        ]
-        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+        for method in selected_methods:
+            st.markdown(f"#### {method}")
+            pie = pie_chart_allocation(pd.Series(all_allocations[method]).round(4), method)
+            bar = bar_chart_allocation(pd.Series(all_allocations[method]).round(4), method)
+
+            st.altair_chart(pie, use_container_width=True)
+            st.altair_chart(bar, use_container_width=True)
 
     except Exception as e:
         st.error("An error occurred during optimization.")
