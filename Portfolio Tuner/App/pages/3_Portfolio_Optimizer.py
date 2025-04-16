@@ -135,22 +135,58 @@ if optimize_button:
 
 
         # --- PIE CHARTS ---
-        st.markdown("### 🥧 Allocation Pie Charts")
-        pie_chunks = [pie_charts[i:i + 3] for i in range(0, len(pie_charts), 3)]
-        for chunk in pie_chunks:
-            cols = st.columns(len(chunk))
-            for col, chart in zip(cols, chunk):
-                with col:
-                    st.altair_chart(chart.properties(width=chart_width), use_container_width=True)
+        st.markdown("### 🧩 Allocation Comparison Charts")
 
-        # --- BAR CHARTS ---
+        # Combine all data into one DataFrame for shared legend
+        pie_dfs = []
+        bar_dfs = []
+
+        for method in selected_methods:
+            weights = pd.Series(all_allocations[method]).round(4)
+            df = pd.DataFrame({'Asset': weights.index, 'Weight': weights.values})
+            df["Method"] = method
+            pie_dfs.append(df)
+            bar_dfs.append(df)
+
+        # --- PIE CHARTS (shared legend)
+        all_pie_data = pd.concat(pie_dfs)
+
+        pie_chart = alt.hconcat(*[
+            alt.Chart(all_pie_data[all_pie_data["Method"] == method]).mark_arc(innerRadius=50).encode(
+                theta="Weight:Q",
+                color=alt.Color("Asset:N", title="Asset"),  # Shared legend
+                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
+            ).properties(
+                title=method,
+                width=200,
+                height=200
+            )
+            for method in selected_methods
+        ])
+
+        st.markdown("### 🥧 Allocation Pie Charts")
+        st.altair_chart(pie_chart, use_container_width=True)
+
+        # --- BAR CHARTS (shared legend)
+        all_bar_data = pd.concat(bar_dfs)
+
+        bar_chart = alt.hconcat(*[
+            alt.Chart(all_bar_data[all_bar_data["Method"] == method]).mark_bar().encode(
+                x=alt.X("Asset:N", sort="-y"),
+                y=alt.Y("Weight:Q", title="Weight"),
+                color=alt.Color("Asset:N", title="Asset"),  # Shared legend
+                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
+            ).properties(
+                title=method,
+                width=200,
+                height=200
+            )
+            for method in selected_methods
+        ])
+
         st.markdown("### 📊 Allocation Bar Charts")
-        bar_chunks = [bar_charts[i:i + 3] for i in range(0, len(bar_charts), 3)]
-        for chunk in bar_chunks:
-            cols = st.columns(len(chunk))
-            for col, chart in zip(cols, chunk):
-                with col:
-                    st.altair_chart(chart.properties(width=chart_width), use_container_width=True)
+        st.altair_chart(bar_chart, use_container_width=True)
+
 
 
 
