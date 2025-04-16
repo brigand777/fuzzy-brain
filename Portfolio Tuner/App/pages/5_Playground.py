@@ -125,15 +125,6 @@ with slider_col:
     st.plotly_chart(pie_fig, use_container_width=True)
 
 
-
-
-if auto_normalize and total_weight > 0:
-    weights = {k: v / total_weight for k, v in weights.items()}
-else:
-    if abs(total_weight - 1) > 0.01:
-        st.warning(f"⚠️ Your weights add up to {total_weight:.2f}. This may skew the simulation.")
-
-
 # --- Portfolio Metrics Calculation ---
 lookback_days = 365
 # Replace this:
