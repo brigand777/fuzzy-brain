@@ -77,7 +77,52 @@ st.markdown("## Step 2: ⚙️ Customize Backtest")
 
 narrative("Here you can simulate how your portfolio would have performed over a past period using different strategies and rebalancing rules.")
 
-start_date, end_date, lookback_days, rebalance_days, nonnegative_toggle = get_backtest_settings(available_dates)
+# --- Step 2: Backtest Settings ---
+st.markdown("## Step 2: ⚙️ Customize Your Backtest")
+
+narrative("Here you can simulate how your portfolio would have performed in the past using different strategies and rebalancing rules.")
+
+import pytz
+from datetime import datetime
+
+utc = pytz.UTC
+
+# Raw date inputs (naive)
+start_naive = st.date_input("📅 Start Date", value=available_dates[-252].date())
+end_naive = st.date_input("📅 End Date", value=available_dates[-1].date())
+
+# Convert to UTC-aware timestamps
+start_date = pd.Timestamp(datetime.combine(start_naive, datetime.min.time()), tz="UTC")
+end_date = pd.Timestamp(datetime.combine(end_naive, datetime.min.time()), tz="UTC")
+
+if start_date >= end_date:
+    st.error("Start date must be before end date.")
+    st.stop()
+
+st.markdown("#### 🔄 Rebalancing Strategy")
+
+rebalance_days = st.slider(
+    "How often should the portfolio be rebalanced?",
+    min_value=7,
+    max_value=90,
+    step=7,
+    value=30,
+    help="How frequently we recalculate and adjust the portfolio"
+)
+
+lookback_days = st.slider(
+    "How far back should we look when calculating risk & returns?",
+    min_value=30,
+    max_value=365,
+    step=30,
+    value=90,
+    help="More days = more data, but may reduce responsiveness"
+)
+
+nonnegative_toggle = st.toggle(
+    "📉 Disallow negative weights (no short-selling)?",
+    value=True
+)
 
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 data = data[[col for col in selected_assets if col in data.columns]]
