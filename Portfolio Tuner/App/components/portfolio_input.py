@@ -48,11 +48,12 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     df["Percent"] = df["Value"] / total_value * 100 if total_value > 0 else 0
 
     st.markdown("### 📊 Your Portfolio Overview")
-    st.markdown(f"**💼 Total Value:** `${total_value:,.2f}`")
+    
     col_table, col_chart = st.columns([1, 1.2])
 
     with col_table:
         #st.markdown("### 📊 Your Portfolio Overview")
+        st.markdown(f"**💼 Total Value:** `${total_value:,.2f}`")
         st.dataframe(
             df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
                 "Amount": "{:.4f}", "Price": "${:.2f}", "Value": "${:,.2f}", "Percent": "{:.2f}%"
