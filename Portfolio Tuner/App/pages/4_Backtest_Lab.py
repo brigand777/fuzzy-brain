@@ -128,12 +128,12 @@ with st.expander("ℹ️ What do these strategies mean?", expanded=False):
         """)
 default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
 
-    selected_methods = st.multiselect(
-        "🧠 Select optimization strategies to compare during the backtest:",
-        options=default_methods,
-        default=default_methods,
-        help="Choose one or more strategies to simulate and compare"
-    )
+selected_methods = st.multiselect(
+    "🧠 Select optimization strategies to compare during the backtest:",
+    options=default_methods,
+    default=default_methods,
+    help="Choose one or more strategies to simulate and compare"
+)
 # --- Advanced Settings ---
 with st.expander("🛠️ Show Advanced Strategy Settings", expanded=False):
     rebalance_days = st.slider(
