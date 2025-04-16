@@ -128,19 +128,15 @@ if optimize_button:
             pie_dfs.append(df)
             bar_dfs.append(df)
 
-        # 🥧 PIE CHARTS: all in one row, only last has legend
+        # 🥧 PIE CHARTS: all in one row, separate legend chart
         st.markdown("### 🥧 Allocation Pie Charts")
 
+        # Build pie charts without legends
         pie_charts = []
-        for i, df in enumerate(pie_dfs):
-            show_legend = (i == len(pie_dfs) - 1)
+        for df in pie_dfs:
             chart = alt.Chart(df).mark_arc(innerRadius=50).encode(
                 theta="Weight:Q",
-                color=alt.Color(
-                    "Asset:N",
-                    title="Asset",
-                    legend=alt.Legend(title="Asset", orient="right") if show_legend else None
-                ),
+                color=alt.Color("Asset:N", legend=None),
                 tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
             ).properties(
                 title=df["Method"].iloc[0],
@@ -149,11 +145,18 @@ if optimize_button:
             )
             pie_charts.append(chart)
 
-        # Use resolve_scale to unify color scale and allow legend rendering
+        # Legend-only chart using dummy bar chart from final pie chart's data
+        legend_chart = alt.Chart(pie_dfs[-1]).mark_bar().encode(
+            y=alt.Y("Asset:N", axis=None),
+            color=alt.Color("Asset:N", legend=alt.Legend(title="Asset"))
+        ).properties(width=0, height=0)
+
+        # Display all charts + separate legend
         st.altair_chart(
-            alt.hconcat(*pie_charts).resolve_scale(color='shared'),
+            alt.hconcat(*pie_charts, legend_chart),
             use_container_width=True
         )
+
 
 
 
