@@ -128,13 +128,6 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
     }
 
 # ---- Single Gauge using Plotly ----
-import plotly.graph_objects as go
-
-import plotly.graph_objects as go
-import numpy as np
-
-import plotly.graph_objects as go
-
 def plot_single_gauge(
     title: str,
     value: float,
@@ -744,7 +737,6 @@ def bar_chart_allocation(initial_weights, method):
         height=200
     )
     return chart
-
 
 def pie_chart_allocation(initial_weights, method):
     # initial_weights: a pandas Series with asset weights.
