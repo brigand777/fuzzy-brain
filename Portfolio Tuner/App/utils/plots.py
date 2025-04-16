@@ -128,9 +128,6 @@ def calculate_portfolio_metrics(price_data: pd.DataFrame, portfolio_df: pd.DataF
     }
 
 # ---- Single Gauge using Plotly ----
-import plotly.graph_objects as go
-import numpy as np
-
 def plot_single_gauge(
     title: str,
     value: float,

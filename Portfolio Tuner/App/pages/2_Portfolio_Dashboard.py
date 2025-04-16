@@ -56,7 +56,11 @@ if authentication_status:
     # --- Quick Date Range Presets ---
     st.markdown("## 📅 Date Range & Benchmark")
 
-    preset_range = st.selectbox("Quick Date Range:", ["Last 30 days", "Last 90 days", "Last 1 year", "Custom"])
+    preset_range = st.selectbox(
+        "Quick Date Range:",
+        ["Last 30 days", "Last 90 days", "Last 1 year", "Custom"],
+        index=1  # ✅ Sets "Last 90 days" as the default
+    )
 
     max_date = data.index.max()
     min_date = data.index.min()
@@ -74,6 +78,7 @@ if authentication_status:
         days = {"Last 30 days": 30, "Last 90 days": 90, "Last 1 year": 365}[preset_range]
         end_date = max_date
         start_date = max_date - pd.Timedelta(days=days)
+
 
     # --- Benchmark selector (moved up here) ---
     st.selectbox(

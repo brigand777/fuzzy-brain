@@ -5,6 +5,7 @@ import os
 from auth import login_and_get_status
 from components.portfolio_input import edit_portfolio
 
+# --- Page Setup ---
 st.set_page_config(page_title="My Portfolio", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
 
@@ -18,20 +19,25 @@ def load_data():
 data = load_data()
 available_assets = data.columns.tolist()
 
-# --- Load or initialize portfolio ---
+# --- Ensure portfolios directory exists ---
+os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
+
+# --- Load or initialize user portfolio ---
 if authentication_status:
     portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
     if os.path.exists(portfolio_path):
-        st.success("Loaded saved portfolio.")
+        st.success("✅ Loaded your saved portfolio.")
         st.session_state.editable_portfolio = pd.read_csv(portfolio_path)
     else:
-        os.makedirs("Portfolio Tuner/App/portfolios", exist_ok=True)
+        st.info("👤 No saved portfolio found. Start building one below.")
 else:
-    st.info("Using temporary portfolio (not saved).")
+    st.warning("⚠️ You are not logged in. Your portfolio changes will not be saved.")
 
-# --- Portfolio input section ---
+# --- Portfolio Input UI ---
+st.markdown("### 📌 Add or Adjust Assets")
 portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_status)
 
-# --- Navigation ---
-if st.button("📈 Go to Portfolio Dashboard"):
-    st.switch_page("pages/2_Portfolio_Dashboard.py")
+# --- Navigation Link to Dashboard ---
+st.markdown("---")
+if st.button("🔙 Go to Portfolio Dasboard"):
+        st.switch_page("pages/2_Portfolio_Dashboard.py")
