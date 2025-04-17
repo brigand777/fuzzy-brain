@@ -211,8 +211,8 @@ with chart_col:
         st.markdown("**Portfolio Risk Level:** 🧣 Low")
 
 
-# --- Step 4: Monte Carlo Simulator ---
-st.markdown("## Step 4: 🔮 Forecast the Future")
+# --- Step 3: Monte Carlo Simulator ---
+st.markdown("## Step 3: 🔮 Forecast the Future")
 
 with st.expander("🔮 Monte Carlo Future Simulator", expanded=False):
     narrative("We run 100 randomized future paths using fitted distributions and correlations. Useful for stress testing your allocation.")

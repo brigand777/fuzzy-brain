@@ -8,6 +8,50 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from datetime import timedelta
 
+import plotly.express as px
+import plotly.graph_objects as go
+
+def plotly_pie_allocation(weights: pd.Series, title: str = "📊 Allocation") -> go.Figure:
+    df = pd.DataFrame({"Asset": weights.index, "Weight": weights.values})
+    fig = px.pie(df, names="Asset", values="Weight", title=title)
+    fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
+    return fig
+
+def plotly_bar_allocation(weights: pd.Series, title: str = "📊 Allocation Breakdown") -> go.Figure:
+    df = pd.DataFrame({"Asset": weights.index, "Percent": weights.values * 100})
+    df_sorted = df.sort_values("Percent", ascending=False)
+    max_percent = df_sorted["Percent"].max()
+    y_axis_max = max_percent * 1.15
+
+    fig = px.bar(
+        df_sorted,
+        x="Asset",
+        y="Percent",
+        title=title,
+        text="Percent",
+        labels={"Percent": "Allocation (%)", "Asset": "Token"},
+        color="Asset",
+        color_discrete_sequence=px.colors.qualitative.Safe
+    )
+
+    fig.update_traces(
+        texttemplate="%{text:.2f}%",
+        textposition="outside"
+    )
+
+    fig.update_layout(
+        xaxis_title="Asset",
+        yaxis_title="Portfolio Allocation (%)",
+        yaxis=dict(range=[0, y_axis_max]),
+        uniformtext_minsize=8,
+        uniformtext_mode="hide",
+        height=350,
+        margin=dict(t=40, b=30, l=10, r=10)
+    )
+
+    return fig
+
+
 
 def plot_portfolio_absolute_value(
     data, selected_assets, start, end, portfolio_df,

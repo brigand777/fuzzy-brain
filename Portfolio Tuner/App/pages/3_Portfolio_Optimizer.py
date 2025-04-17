@@ -6,7 +6,7 @@ import os
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from optimizer import run_optimizers
-from utils.plots import pie_chart_allocation, bar_chart_allocation
+from utils.plots import plotly_pie_allocation, plotly_bar_allocation
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods
 
@@ -145,31 +145,25 @@ if optimize_button:
             pie_dfs.append(df)
             bar_dfs.append(df)
 
-        # 🥧 Pie Charts
+        # 🥧 Pie Charts — Side by Side
         st.markdown("### 🥧 Pie Charts (Investment Mix)")
+        cols = st.columns(len(selected_methods))
+        for i, method in enumerate(selected_methods):
+            weights = pd.Series(all_allocations[method])
+            fig = plotly_pie_allocation(weights, title=f"{method} Allocation")
+            with cols[i]:
+                st.plotly_chart(fig, use_container_width=True)
 
-        pie_charts = [pie_chart_allocation(pd.Series(all_allocations[method]), method) for method in selected_methods]
-        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
-
-        # 📊 Bar Charts
+        # 📊 Bar Charts — 2 Columns Max
         st.markdown("### 📈 Bar Charts (Compare Strategies)")
+        bar_cols = st.columns(2)
+        for i, method in enumerate(selected_methods):
+            weights = pd.Series(all_allocations[method])
+            fig = plotly_bar_allocation(weights, title=f"{method} Allocation Breakdown")
+            with bar_cols[i % 2]:
+                st.plotly_chart(fig, use_container_width=True)
 
-        max_weight = max(df["Weight"].max() for df in bar_dfs)
-        cols = st.columns(2)
 
-        for i, df in enumerate(bar_dfs):
-            show_legend = (i == 1) or (len(bar_dfs) == 1 and i == 0)
-            chart = alt.Chart(df).mark_bar().encode(
-                x=alt.X("Asset:N", sort="-y"),
-                y=alt.Y("Weight:Q", title="Weight", scale=alt.Scale(domain=[0, max_weight])),
-                color=alt.Color("Asset:N", title="Asset", legend=alt.Legend(title="Asset") if show_legend else None),
-                tooltip=["Asset:N", alt.Tooltip("Weight:Q", format=".2%")]
-            ).properties(
-                title=df["Method"].iloc[0],
-                width=250,
-                height=350
-            )
-            cols[i % 2].altair_chart(chart, use_container_width=True)
 
         # 📘 Summary
         st.markdown("### 📘 Summary")
