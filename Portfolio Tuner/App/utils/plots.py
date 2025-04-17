@@ -11,10 +11,11 @@ from datetime import timedelta
 import plotly.express as px
 import plotly.graph_objects as go
 
-def plotly_pie_allocation(weights: pd.Series, title: str = "📊 Allocation") -> go.Figure:
+def plotly_pie_allocation(weights: pd.Series, title: str = "📊 Allocation", show_legend: bool = True) -> go.Figure:
     df = pd.DataFrame({"Asset": weights.index, "Weight": weights.values})
     fig = px.pie(df, names="Asset", values="Weight", title=title)
     fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
+    fig.update_layout(showlegend=show_legend)
     return fig
 
 def plotly_bar_allocation(weights: pd.Series, title: str = "📊 Allocation Breakdown") -> go.Figure:

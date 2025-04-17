@@ -148,9 +148,10 @@ if optimize_button:
         # 🥧 Pie Charts — Side by Side
         st.markdown("### 🥧 Pie Charts (Investment Mix)")
         cols = st.columns(len(selected_methods))
+        show_legend = False
         for i, method in enumerate(selected_methods):
             weights = pd.Series(all_allocations[method])
-            fig = plotly_pie_allocation(weights, title=f"{method} Allocation")
+            fig = plotly_pie_allocation(weights, title=f"{method} Allocation", show_legend=show_legend)
             with cols[i]:
                 st.plotly_chart(fig, use_container_width=True)
 
