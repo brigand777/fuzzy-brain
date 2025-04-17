@@ -54,11 +54,12 @@ except:
 st.markdown("## 👋 Welcome to Portfolio Tuner")
 
 st.markdown("""
-Whether you're new to crypto or just want to get a better handle on your holdings, **Portfolio Tuner** helps you:
+Whether you're new to crypto or a seasoned pro, **Portfolio Tuner** helps you:
 - ✅ Create and manage a custom portfolio
-- 📊 See how your assets are performing
-- 🎯 Explore strategies for better diversification
+- 📊 Analytically track your investments
+- 🎯 Diversify your portfolio using quantitative insights
 - ⏳ Simulate your returns over time
+- 🔮 Manage your future risk
 
 No spreadsheets. No stress.
 """)
@@ -67,12 +68,12 @@ No spreadsheets. No stress.
 st.markdown("## 🔧 What would you like to do today?")
 
 pages = [
-    ("📝 My Portfolio", "Start here! Create or edit your crypto portfolio.",  "pages/1_My_Portfolio.py"),
-    ("📊 Dashboard", "See how your portfolio is performing with visual insights.", "pages/2_Portfolio_Dashboard.py"),
-    ("🎯 Optimizer", "Compare strategies and rebalance based on your risk comfort.", "pages/3_Portfolio_Optimizer.py"),
+    ("📝 My Portfolio", "Start here! Create and visualize your crypto portfolio.",  "pages/1_My_Portfolio.py"),
+    ("📊 Dashboard", "Checkout how your portfolio performed historically with quantitative insights.", "pages/2_Portfolio_Dashboard.py"),
+    ("🎯 Optimizer", "See how your portfolio allocations compare with industry grade risk balancing strategies.", "pages/3_Portfolio_Optimizer.py"),
     ("⏳ Backtest Lab", "Look into the past to see how strategies would’ve performed.", "pages/4_Backtest_Lab.py"),
-    ("🎮 Playground", "Tweak allocations and experiment freely — no pressure.", "pages/5_Playground.py"),
-    ("📖 Glossary", "New to some of the terms? This glossary has you covered.", "pages/6_Glossary.py")
+    ("🎮 Playground", "Explore new crypto portfolios and see how they would have performed.", "pages/5_Playground.py"),
+    ("📖 Glossary", "New to quantitative portfolio analysis? Checkout our educational materials.", "pages/6_Glossary.py")
 ]
 
 cols = st.columns(3)

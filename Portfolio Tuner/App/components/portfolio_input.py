@@ -6,6 +6,11 @@ from io import StringIO
 import plotly.express as px
 
 def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
+    import os
+    import pandas as pd
+    import streamlit as st
+    import plotly.express as px
+
     if "editable_portfolio" not in st.session_state:
         st.session_state.editable_portfolio = pd.DataFrame(columns=["Asset", "Amount"])
 
@@ -48,11 +53,10 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     df["Percent"] = df["Value"] / total_value * 100 if total_value > 0 else 0
 
     st.markdown("### 📊 Your Portfolio Overview")
-    
+
     col_table, col_chart = st.columns([1, 1.2])
 
     with col_table:
-        #st.markdown("### 📊 Your Portfolio Overview")
         st.markdown(f"**💼 Total Value:** `${total_value:,.2f}`")
         st.dataframe(
             df[["Asset", "Amount", "Price", "Value", "Percent"]].style.format({
@@ -88,7 +92,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
         fig.update_layout(
             xaxis_title="Asset",
             yaxis_title="Portfolio Allocation (%)",
-            yaxis=dict(range=[0, y_axis_max]),  # 👈 Add padding here
+            yaxis=dict(range=[0, y_axis_max]),
             uniformtext_minsize=8,
             uniformtext_mode="hide",
             height=350,
@@ -97,15 +101,13 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
 
         st.plotly_chart(fig, use_container_width=True)
 
-
-
-
     # --- Edit Portfolio ---
     st.markdown("### ✏️ Modify Portfolio Holdings")
     col1, col2 = st.columns([3, 1])
 
     with col1:
         asset = st.selectbox("Select Asset to Add/Update", options=sorted(available_assets), placeholder="Search or select asset...")
+
     with col2:
         input_mode = st.radio("Input Mode", ["Absolute", "Percentage"], key="input_mode", horizontal=True)
 
@@ -113,31 +115,63 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     user_input = st.number_input(label, min_value=0.0, step=0.01, format="%.4f")
 
     if st.button("➕ Add / Update Asset"):
-        if input_mode == "Percentage":
-            base_value = st.session_state.portfolio_base_value
-            price = latest_prices.get(asset, 0)
-            if price <= 0 or base_value <= 0:
-                st.warning("❌ Invalid base value or price.")
-            else:
-                allocation_value = (user_input / 100) * base_value
-                new_amount = allocation_value / price
-                df = df[df["Asset"] != asset]  # Remove if exists
-                df = pd.concat([df, pd.DataFrame([[asset, new_amount]], columns=["Asset", "Amount"])])
-        else:
-            df = df[df["Asset"] != asset]
-            df = pd.concat([df, pd.DataFrame([[asset, user_input]], columns=["Asset", "Amount"])])
+        price = latest_prices.get(asset, 0)
+        base_value = st.session_state.portfolio_base_value
 
-        df = df.drop_duplicates(subset="Asset").reset_index(drop=True)
-        st.session_state.editable_portfolio = df
+        if price <= 0 or base_value <= 0:
+            st.warning("❌ Invalid price or base value.")
+        else:
+            existing = df[df["Asset"] == asset]
+            remaining_df = df[df["Asset"] != asset]
+
+            if input_mode == "Percentage":
+                new_value = (user_input / 100) * base_value
+                new_amount = new_value / price
+
+                if not remaining_df.empty:
+                    remaining_total = remaining_df["Value"].sum()
+                    if remaining_total > 0:
+                        scale = (base_value - new_value) / remaining_total
+                        remaining_df["Amount"] *= scale
+
+                updated_df = pd.concat([
+                    remaining_df,
+                    pd.DataFrame([[asset, new_amount]], columns=["Asset", "Amount"])
+                ])
+            else:  # Absolute mode
+                new_amount = user_input
+                updated_df = pd.concat([
+                    remaining_df,
+                    pd.DataFrame([[asset, new_amount]], columns=["Asset", "Amount"])
+                ])
+
+            st.session_state.editable_portfolio = updated_df.drop_duplicates(subset="Asset").reset_index(drop=True)
+
+            if persistent and st.session_state.get("auth_status"):
+                username = st.session_state["username"]
+                path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+                os.makedirs(os.path.dirname(path), exist_ok=True)
+                st.session_state.editable_portfolio.to_csv(path, index=False)
+                st.success("✅ Saved changes.")
+            else:
+                st.toast("✅ Updated (not saved).")
+            st.rerun()
+
+    # --- Delete Asset ---
+    st.markdown("### 🗑️ Delete Asset from Portfolio")
+    delete_asset = st.selectbox("Select Asset to Delete", options=df["Asset"].tolist(), key="delete_asset")
+    if st.button("❌ Delete Selected Asset"):
+        df = df[df["Asset"] != delete_asset]
+        st.session_state.editable_portfolio = df.reset_index(drop=True)
 
         if persistent and st.session_state.get("auth_status"):
             username = st.session_state["username"]
             path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
             os.makedirs(os.path.dirname(path), exist_ok=True)
             df.to_csv(path, index=False)
-            st.success("✅ Saved changes.")
+            st.success("🗑️ Deleted and saved.")
         else:
-            st.toast("✅ Updated (not saved).")
+            st.toast("🗑️ Deleted (not saved).")
         st.rerun()
 
     # --- Rescale Section ---
