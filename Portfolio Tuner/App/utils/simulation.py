@@ -145,20 +145,21 @@ def run_monte_carlo_with_rebalancing(
         ))
 
     fig.update_layout(
-        title=\"Monte Carlo Forecast — Rebalancing Strategies\",
-        xaxis_title=\"Day\",
-        yaxis_title=\"Portfolio Value\",
-        hovermode=\"x unified\",
-        template=\"plotly_white\"
+        title="Monte Carlo Forecast — Rebalancing Strategies",
+        xaxis_title="Day",
+        yaxis_title="Portfolio Value",
+        hovermode="x unified",
+        template="plotly_white"
     )
 
     return {
-        \"chart\": fig,
-        \"paths\": {name: result[\"paths\"] for name, result in strategy_paths.items()},
-        \"summary\": summary_stats,
-        \"distribution_used_per_asset\": distribution_used_per_asset,
-        \"correlation_strategy\": correlation_strategy
+        "chart": fig,
+        "paths": {name: result["paths"] for name, result in strategy_paths.items()},
+        "summary": summary_stats,
+        "distribution_used_per_asset": distribution_used_per_asset,
+        "correlation_strategy": correlation_strategy
     }
+
 
 
 def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, horizon_days=180, n_sims=100,
