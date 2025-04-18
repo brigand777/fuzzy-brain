@@ -230,7 +230,7 @@ if run_mc:
         from scipy.stats import norm, t, johnsonsu
         from sklearn.covariance import LedoitWolf
         import plotly.graph_objects as go
-        from optimizer import run_monte_carlo_multi_strategy
+        from utils.simulation import run_monte_carlo_multi_strategy
 
         if "optimizer_allocations" not in st.session_state:
             st.warning("⚠️ Run the optimizer first to generate strategies for simulation.")
