@@ -37,9 +37,15 @@ def narrative(text, color="#1F77B4"):
 def load_data():
     return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
 
-data = load_data()
-available_assets = data.columns.tolist()
-available_dates = data.index.sort_values()
+with st.spinner("Loading price data..."):
+    try:
+        data = load_data()
+        available_assets = data.columns.tolist()
+        available_dates = data.index.sort_values()
+    except Exception as e:
+        st.error(f"❌ Failed to load price data: {e}")
+        st.stop()
+
 
 # --- Step 1: Portfolio Setup ---
 st.markdown("## Step 1: 📁 Select Portfolio")
