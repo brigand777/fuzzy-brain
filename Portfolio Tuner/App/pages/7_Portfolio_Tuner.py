@@ -198,9 +198,10 @@ if optimize_now:
 if "optimizer_allocations" in st.session_state:
     st.markdown("### 🥧 Pie Charts (Investment Mix)")
     pie_cols = st.columns(len(st.session_state.optimizer_methods))
+    show_legend = False
     for i, method in enumerate(st.session_state.optimizer_methods):
         weights = st.session_state.optimizer_allocations[method]
-        fig = plotly_pie_allocation(weights, title=f"{method} Allocation")
+        fig = plotly_pie_allocation(weights, title=f"{method} Allocation", show_legend=show_legend)
         with pie_cols[i]:
             st.plotly_chart(fig, use_container_width=True)
 
@@ -211,3 +212,45 @@ if "optimizer_allocations" in st.session_state:
         fig = plotly_bar_allocation(weights, title=f"{method} Allocation Breakdown")
         with bar_cols[i % 2]:
             st.plotly_chart(fig, use_container_width=True)
+
+# ------------------- MONTE CARLO SIMULATION SECTION -------------------
+
+st.markdown("## 🎲 Monte Carlo Forecast (Multi-Strategy)")
+narrative("Simulate future portfolio performance under random market conditions.", color="#9C27B0")
+
+horizon_days = st.slider("⏳ Forecast Horizon (days)", 30, 365, 180, step=30)
+n_sims = st.slider("🎯 Number of Simulations", 100, 2000, 500, step=100)
+corr_mode = st.selectbox("📊 Correlation Assumption", ["shrinkage", "historical", "independent"], index=0)
+run_mc = st.button("Run Monte Carlo Simulation")
+
+if run_mc:
+    try:
+        import numpy as np
+        from fitter import Fitter
+        from scipy.stats import norm, t, johnsonsu
+        from sklearn.covariance import LedoitWolf
+        import plotly.graph_objects as go
+        from optimizer import run_monte_carlo_multi_strategy
+
+        if "optimizer_allocations" not in st.session_state:
+            st.warning("⚠️ Run the optimizer first to generate strategies for simulation.")
+        else:
+            strategies = {
+                k: v.to_dict() if hasattr(v, "to_dict") else v
+                for k, v in st.session_state.optimizer_allocations.items()
+            }
+            mc_data = data[[asset for asset in portfolio_df["Asset"] if asset in data.columns]].dropna()
+            mc_result = run_monte_carlo_multi_strategy(
+                strategies=strategies,
+                price_data=mc_data,
+                horizon_days=horizon_days,
+                n_sims=n_sims,
+                correlation_strategy=corr_mode
+            )
+
+            st.plotly_chart(mc_result["chart"], use_container_width=True)
+            st.markdown("### 📋 Simulation Summary")
+            st.dataframe(pd.DataFrame(mc_result["summary"]).T, use_container_width=True)
+    except Exception as e:
+        st.error("❌ Monte Carlo simulation failed.")
+        st.error(f"Details: {e}")
