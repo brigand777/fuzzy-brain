@@ -221,6 +221,11 @@ narrative("Simulate future portfolio performance under random market conditions.
 horizon_days = st.slider("⏳ Forecast Horizon (days)", 30, 365, 180, step=30)
 n_sims = st.slider("🎯 Number of Simulations", 100, 2000, 500, step=100)
 corr_mode = st.selectbox("📊 Correlation Assumption", ["shrinkage", "historical", "independent"], index=0)
+
+with st.expander("🛠️ Advanced Simulation Settings"):
+    dynamic_rebal_toggle = st.toggle("Enable Rebalancing in MC Simulation", value=False)
+    rebalance_interval_mc = st.slider("🔁 Rebalance Interval (days)", 10, 90, 30, step=10, disabled=not dynamic_rebal_toggle)
+
 run_mc = st.button("Run Monte Carlo Simulation")
 
 if run_mc:
@@ -230,7 +235,7 @@ if run_mc:
         from scipy.stats import norm, t, johnsonsu
         from sklearn.covariance import LedoitWolf
         import plotly.graph_objects as go
-        from utils.simulation import run_monte_carlo_multi_strategy
+        from utils.simulation import run_monte_carlo_multi_strategy, run_monte_carlo_with_rebalancing
 
         if "optimizer_allocations" not in st.session_state:
             st.warning("⚠️ Run the optimizer first to generate strategies for simulation.")
@@ -240,13 +245,24 @@ if run_mc:
                 for k, v in st.session_state.optimizer_allocations.items()
             }
             mc_data = data[[asset for asset in portfolio_df["Asset"] if asset in data.columns]].dropna()
-            mc_result = run_monte_carlo_multi_strategy(
-                strategies=strategies,
-                price_data=mc_data,
-                horizon_days=horizon_days,
-                n_sims=n_sims,
-                correlation_strategy=corr_mode
-            )
+
+            if dynamic_rebal_toggle:
+                mc_result = run_monte_carlo_with_rebalancing(
+                    strategies=strategies,
+                    price_data=mc_data,
+                    horizon_days=horizon_days,
+                    n_sims=n_sims,
+                    rebalance_interval=rebalance_interval_mc,
+                    correlation_strategy=corr_mode
+                )
+            else:
+                mc_result = run_monte_carlo_multi_strategy(
+                    strategies=strategies,
+                    price_data=mc_data,
+                    horizon_days=horizon_days,
+                    n_sims=n_sims,
+                    correlation_strategy=corr_mode
+                )
 
             st.plotly_chart(mc_result["chart"], use_container_width=True)
             st.markdown("### 📋 Simulation Summary")

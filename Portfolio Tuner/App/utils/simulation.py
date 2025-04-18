@@ -12,6 +12,155 @@ from scipy.stats import norm, t, johnsonsu
 from sklearn.covariance import LedoitWolf
 import plotly.graph_objects as go
 
+from optimizer import run_optimizers  # Make sure this points to your real optimizer logic
+
+def run_monte_carlo_with_rebalancing(
+    strategies: dict,
+    price_data: pd.DataFrame,
+    horizon_days: int = 180,
+    n_sims: int = 100,
+    rebalance_interval: int = 30,
+    correlation_strategy: str = "shrinkage",
+    percentiles: tuple = (25, 75)
+    ):
+    log_returns = np.log(price_data / price_data.shift(1)).dropna()
+    assets = price_data.columns.tolist()
+
+    # --- Fit Distributions per Asset
+    dist_map = {'norm': norm, 't': t, 'johnsonsu': johnsonsu}
+    asset_distributions = {}
+    distribution_used_per_asset = {}
+
+    for asset in assets:
+        try:
+            f = Fitter(log_returns[asset].values, distributions=list(dist_map.keys()), timeout=5, verbose=False)
+            f.fit()
+            best_name = next(iter(f.get_best()))
+            best_params = f.fitted_param[best_name]
+        except Exception:
+            best_name = "norm"
+            best_params = norm.fit(log_returns[asset].values)
+
+        asset_distributions[asset] = (dist_map[best_name], best_params)
+        distribution_used_per_asset[asset] = best_name
+
+    # --- Correlation Matrix
+    if correlation_strategy == "independent":
+        corr_matrix = np.eye(len(assets))
+    elif correlation_strategy == "historical":
+        corr_matrix = log_returns.corr().values
+    else:
+        lw = LedoitWolf().fit(log_returns.values)
+        cov = lw.covariance_
+        d = np.sqrt(np.diag(cov))
+        corr_matrix = cov / np.outer(d, d)
+
+    # --- Simulate Returns
+    mvn_shocks = np.random.multivariate_normal(
+        mean=np.zeros(len(assets)),
+        cov=corr_matrix,
+        size=horizon_days * n_sims
+    ).reshape(horizon_days, n_sims, len(assets))
+
+    sim_returns = np.empty_like(mvn_shocks)
+    for i, asset in enumerate(assets):
+        dist, params = asset_distributions[asset]
+        sim_returns[:, :, i] = dist.ppf(norm.cdf(mvn_shocks[:, :, i]), *params)
+
+    strategy_paths = {}
+    summary_stats = {}
+
+    for name in strategies:
+        portfolio_paths = np.ones((horizon_days, n_sims))
+
+        # Initial weights from strategy
+        weights = strategies[name]
+        weights_array = np.array([weights.get(asset, 0) for asset in assets])
+
+        for day in range(horizon_days):
+            if day % rebalance_interval == 0 and name != "User Portfolio":
+                # Simulate lookback window from simulated returns
+                sim_slice = sim_returns[:day + 1, :, :].mean(axis=1)  # approx price path
+                sim_prices = pd.DataFrame(
+                    np.cumprod(1 + sim_slice, axis=0),
+                    columns=assets
+                )
+                try:
+                    rebalanced_allocs = run_optimizers(sim_prices, nonnegative_mvo=True)
+                    new_weights = rebalanced_allocs.get(name, weights)
+                    weights_array = np.array([new_weights.get(asset, 0) for asset in assets])
+                except:
+                    pass  # fallback to last weights if error
+
+            day_returns = sim_returns[day, :, :]
+            if day == 0:
+                portfolio_paths[day, :] = np.sum(1 + day_returns * weights_array[np.newaxis, :], axis=1)
+            else:
+                portfolio_paths[day, :] = portfolio_paths[day - 1, :] * np.sum(1 + day_returns * weights_array[np.newaxis, :], axis=1)
+
+        median = np.median(portfolio_paths, axis=1)
+        ci_low = np.percentile(portfolio_paths, percentiles[0], axis=1)
+        ci_high = np.percentile(portfolio_paths, percentiles[1], axis=1)
+
+        strategy_paths[name] = {
+            "paths": portfolio_paths,
+            "median": median,
+            "ci_low": ci_low,
+            "ci_high": ci_high,
+        }
+
+        summary_stats[name] = {
+            "ci_low": ci_low[-1] - 1,
+            "ci_high": ci_high[-1] - 1,
+            "min": portfolio_paths[-1].min() - 1,
+            "max": portfolio_paths[-1].max() - 1
+        }
+
+    # --- Plot
+    fig = go.Figure()
+    for name, result in strategy_paths.items():
+        fig.add_trace(go.Scatter(
+            x=np.arange(horizon_days),
+            y=result["ci_high"],
+            name=f"{name} CI High",
+            line=dict(width=0),
+            mode='lines',
+            showlegend=False
+        ))
+        fig.add_trace(go.Scatter(
+            x=np.arange(horizon_days),
+            y=result["ci_low"],
+            name=f"{name} CI Low",
+            line=dict(width=0),
+            mode='lines',
+            fill='tonexty',
+            fillcolor='rgba(173,216,230,0.15)',
+            showlegend=False
+        ))
+        fig.add_trace(go.Scatter(
+            x=np.arange(horizon_days),
+            y=result["median"],
+            name=f"{name} Median",
+            mode='lines'
+        ))
+
+    fig.update_layout(
+        title=\"Monte Carlo Forecast — Rebalancing Strategies\",
+        xaxis_title=\"Day\",
+        yaxis_title=\"Portfolio Value\",
+        hovermode=\"x unified\",
+        template=\"plotly_white\"
+    )
+
+    return {
+        \"chart\": fig,
+        \"paths\": {name: result[\"paths\"] for name, result in strategy_paths.items()},
+        \"summary\": summary_stats,
+        \"distribution_used_per_asset\": distribution_used_per_asset,
+        \"correlation_strategy\": correlation_strategy
+    }
+
+
 def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, horizon_days=180, n_sims=100,
                                     corr_matrix=None, correlation_strategy="shrinkage", percentiles=(25, 75)):
     """
