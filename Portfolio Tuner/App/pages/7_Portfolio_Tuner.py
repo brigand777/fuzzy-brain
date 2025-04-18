@@ -46,7 +46,6 @@ with st.spinner("Loading price data..."):
         st.error(f"❌ Failed to load price data: {e}")
         st.stop()
 
-
 # --- Step 1: Portfolio Setup ---
 st.markdown("## Step 1: 📁 Select Portfolio")
 input_mode = st.radio("Where is your portfolio coming from?", ["Use My Saved Portfolio", "Build Portfolio Now"])
@@ -140,21 +139,29 @@ if st.button("Run Backtest"):
 
             downsampled = downsample_results_dict(results_dict, start_date, end_date)
 
-            st.markdown("## 📊 Backtest Results")
-            st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative"), use_container_width=True)
-            st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
-            st.altair_chart(add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown"), use_container_width=True)
+            st.session_state.backtest_results = results_dict
+            st.session_state.downsampled = downsampled
+            st.session_state.selected_methods = selected_methods
 
-            for method in selected_methods:
-                with st.expander(f"{method} Allocations Over Time"):
-                    st.altair_chart(
-                        add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
-                        use_container_width=True
-                    )
-
-            st.dataframe(generate_styled_summary_table(downsampled), use_container_width=True)
         except Exception as e:
             st.error(f"💥 Error: {e}")
+
+if "downsampled" in st.session_state:
+    st.markdown("## 📊 Backtest Results")
+    downsampled = st.session_state.downsampled
+    selected_methods = st.session_state.selected_methods
+    st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative"), use_container_width=True)
+    st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
+    st.altair_chart(add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown"), use_container_width=True)
+
+    for method in selected_methods:
+        with st.expander(f"{method} Allocations Over Time"):
+            st.altair_chart(
+                add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
+                use_container_width=True
+            )
+
+    st.dataframe(generate_styled_summary_table(downsampled), use_container_width=True)
 
 # ------------------- OPTIMIZER SECTION -------------------
 
@@ -179,19 +186,28 @@ if optimize_now:
         all_allocations = run_optimizers(lookback_df, nonnegative_mvo=True)
         all_allocations["User Portfolio"] = pd.Series(user_weights)
 
-        pie_cols = st.columns(len(selected_methods))
-        for i, method in enumerate(selected_methods):
-            fig = plotly_pie_allocation(all_allocations[method], title=f"{method} Allocation")
-            with pie_cols[i]:
-                st.plotly_chart(fig, use_container_width=True)
-
-        bar_cols = st.columns(2)
-        for i, method in enumerate(selected_methods):
-            fig = plotly_bar_allocation(all_allocations[method], title=f"{method} Allocation Breakdown")
-            with bar_cols[i % 2]:
-                st.plotly_chart(fig, use_container_width=True)
+        st.session_state.optimizer_allocations = all_allocations
+        st.session_state.optimizer_methods = selected_methods
 
         st.success("✅ Allocation analysis complete.")
+
     except Exception as e:
         st.error("❌ Optimization failed.")
         st.error(f"Details: {e}")
+
+if "optimizer_allocations" in st.session_state:
+    st.markdown("### 🥧 Pie Charts (Investment Mix)")
+    pie_cols = st.columns(len(st.session_state.optimizer_methods))
+    for i, method in enumerate(st.session_state.optimizer_methods):
+        weights = st.session_state.optimizer_allocations[method]
+        fig = plotly_pie_allocation(weights, title=f"{method} Allocation")
+        with pie_cols[i]:
+            st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("### 📈 Bar Charts (Compare Strategies)")
+    bar_cols = st.columns(2)
+    for i, method in enumerate(st.session_state.optimizer_methods):
+        weights = st.session_state.optimizer_allocations[method]
+        fig = plotly_bar_allocation(weights, title=f"{method} Allocation Breakdown")
+        with bar_cols[i % 2]:
+            st.plotly_chart(fig, use_container_width=True)
