@@ -177,7 +177,13 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     # --- Rescale Section ---
     with st.expander("🧮 Rescale Portfolio"):
         suggested = round(total_value, 2)
-        rescale_val = st.number_input("Target Total Value ($)", min_value=0.0, step=100.0, value=suggested)
+        rescale_val = st.number_input(
+            "Target Total Value ($)",
+            min_value=0.0,
+            value=float(suggested),
+            step=0.01
+        )
+
         if st.button("Rescale"):
             if total_value > 0:
                 factor = rescale_val / total_value
