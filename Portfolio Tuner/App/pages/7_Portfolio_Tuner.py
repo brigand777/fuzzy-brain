@@ -218,11 +218,13 @@ if "optimizer_allocations" in st.session_state:
 st.markdown("## 🎲 Monte Carlo Forecast (Multi-Strategy)")
 narrative("Simulate future portfolio performance under random market conditions.", color="#9C27B0")
 
-horizon_days = st.slider("⏳ Forecast Horizon (days)", 30, 365, 180, step=30)
-n_sims = st.slider("🎯 Number of Simulations", 100, 2000, 500, step=100)
-corr_mode = st.selectbox("📊 Correlation Assumption", ["shrinkage", "historical", "independent"], index=0)
 
-with st.expander("🛠️ Advanced Simulation Settings"):
+
+with st.expander("🛠️ Simulation Settings"):
+    horizon_days = st.slider("⏳ Forecast Horizon (days)", 30, 365, 180, step=30)
+    n_sims = st.slider("🎯 Number of Simulations", 100, 2000, 500, step=100)
+    corr_mode = st.selectbox("📊 Correlation Assumption", ["shrinkage", "historical", "independent"], index=0)
+    
     dynamic_rebal_toggle = st.toggle("Enable Rebalancing in MC Simulation", value=False)
     rebalance_interval_mc = st.slider("🔁 Rebalance Interval (days)", 10, 90, 30, step=10, disabled=not dynamic_rebal_toggle)
 

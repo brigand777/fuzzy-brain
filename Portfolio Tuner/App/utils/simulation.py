@@ -26,7 +26,6 @@ def run_monte_carlo_with_rebalancing(
     log_returns = np.log(price_data / price_data.shift(1)).dropna()
     assets = price_data.columns.tolist()
 
-    # --- Fit Distributions per Asset
     dist_map = {'norm': norm, 't': t, 'johnsonsu': johnsonsu}
     asset_distributions = {}
     distribution_used_per_asset = {}
@@ -40,11 +39,9 @@ def run_monte_carlo_with_rebalancing(
         except Exception:
             best_name = "norm"
             best_params = norm.fit(log_returns[asset].values)
-
         asset_distributions[asset] = (dist_map[best_name], best_params)
         distribution_used_per_asset[asset] = best_name
 
-    # --- Correlation Matrix
     if correlation_strategy == "independent":
         corr_matrix = np.eye(len(assets))
     elif correlation_strategy == "historical":
@@ -55,7 +52,6 @@ def run_monte_carlo_with_rebalancing(
         d = np.sqrt(np.diag(cov))
         corr_matrix = cov / np.outer(d, d)
 
-    # --- Simulate Returns
     mvn_shocks = np.random.multivariate_normal(
         mean=np.zeros(len(assets)),
         cov=corr_matrix,
@@ -72,31 +68,28 @@ def run_monte_carlo_with_rebalancing(
 
     for name in strategies:
         portfolio_paths = np.ones((horizon_days, n_sims))
-
-        # Initial weights from strategy
         weights = strategies[name]
         weights_array = np.array([weights.get(asset, 0) for asset in assets])
+        weights_array = weights_array / weights_array.sum()
 
         for day in range(horizon_days):
             if day % rebalance_interval == 0 and name != "User Portfolio":
-                # Simulate lookback window from simulated returns
-                sim_slice = sim_returns[:day + 1, :, :].mean(axis=1)  # approx price path
-                sim_prices = pd.DataFrame(
-                    np.cumprod(1 + sim_slice, axis=0),
-                    columns=assets
-                )
+                sim_slice = sim_returns[:day + 1, :, :].mean(axis=1)
+                sim_prices = pd.DataFrame(np.cumprod(1 + sim_slice, axis=0), columns=assets)
                 try:
                     rebalanced_allocs = run_optimizers(sim_prices, nonnegative_mvo=True)
                     new_weights = rebalanced_allocs.get(name, weights)
                     weights_array = np.array([new_weights.get(asset, 0) for asset in assets])
-                except:
-                    pass  # fallback to last weights if error
+                    weights_array = weights_array / weights_array.sum()
+                except Exception:
+                    pass  # fallback
 
-            day_returns = sim_returns[day, :, :]
-            if day == 0:
-                portfolio_paths[day, :] = np.sum(1 + day_returns * weights_array[np.newaxis, :], axis=1)
+            daily_returns = sim_returns[day, :, :]
+            daily_portfolio_return = np.sum(daily_returns * weights_array[np.newaxis, :], axis=1)
+            if day > 0:
+                portfolio_paths[day, :] = portfolio_paths[day - 1, :] * (1 + daily_portfolio_return)
             else:
-                portfolio_paths[day, :] = portfolio_paths[day - 1, :] * np.sum(1 + day_returns * weights_array[np.newaxis, :], axis=1)
+                portfolio_paths[day, :] = 1 + daily_portfolio_return
 
         median = np.median(portfolio_paths, axis=1)
         ci_low = np.percentile(portfolio_paths, percentiles[0], axis=1)
@@ -116,7 +109,6 @@ def run_monte_carlo_with_rebalancing(
             "max": portfolio_paths[-1].max() - 1
         }
 
-    # --- Plot
     fig = go.Figure()
     for name, result in strategy_paths.items():
         fig.add_trace(go.Scatter(
@@ -159,8 +151,6 @@ def run_monte_carlo_with_rebalancing(
         "distribution_used_per_asset": distribution_used_per_asset,
         "correlation_strategy": correlation_strategy
     }
-
-
 
 def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, horizon_days=180, n_sims=100,
                                     corr_matrix=None, correlation_strategy="shrinkage", percentiles=(25, 75)):
