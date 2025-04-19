@@ -53,7 +53,7 @@ except:
 # --- Why This Exists ---
 st.markdown("## 🤔 Why Portfolio Tuner?")
 st.markdown("""
-**PortfolioVisualizer is built for traditional investors.**  
+**Existing portfolio management tools are built for traditional investments.**  
 But crypto portfolios move faster, trade 24/7, and behave differently.  
 **That’s where we come in.**
 
