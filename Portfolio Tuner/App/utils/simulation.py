@@ -5,14 +5,13 @@ from fitter import Fitter
 from scipy.stats import norm, t, johnsonsu
 from sklearn.covariance import LedoitWolf
 
-import numpy as np
-import pandas as pd
 from fitter import Fitter
 from scipy.stats import norm, t, johnsonsu
 from sklearn.covariance import LedoitWolf
 import plotly.graph_objects as go
 
 from optimizer import run_optimizers  # Make sure this points to your real optimizer logic
+
 
 def run_monte_carlo_with_rebalancing(
     strategies: dict,
@@ -74,15 +73,15 @@ def run_monte_carlo_with_rebalancing(
 
         for day in range(horizon_days):
             if day % rebalance_interval == 0 and name != "User Portfolio":
-                sim_slice = sim_returns[:day + 1, :, :].mean(axis=1)
-                sim_prices = pd.DataFrame(np.cumprod(1 + sim_slice, axis=0), columns=assets)
-                try:
-                    rebalanced_allocs = run_optimizers(sim_prices, nonnegative_mvo=True)
-                    new_weights = rebalanced_allocs.get(name, weights)
-                    weights_array = np.array([new_weights.get(asset, 0) for asset in assets])
-                    weights_array = weights_array / weights_array.sum()
-                except Exception:
-                    pass  # fallback
+                lookback_prices = price_data.tail(90)[assets].dropna()
+                if lookback_prices.shape[0] >= 30:
+                    try:
+                        rebalanced_allocs = run_optimizers(lookback_prices, nonnegative_mvo=True)
+                        new_weights = rebalanced_allocs.get(name, weights)
+                        weights_array = np.array([new_weights.get(asset, 0) for asset in assets])
+                        weights_array = weights_array / weights_array.sum()
+                    except Exception:
+                        pass
 
             daily_returns = sim_returns[day, :, :]
             daily_portfolio_return = np.sum(daily_returns * weights_array[np.newaxis, :], axis=1)
