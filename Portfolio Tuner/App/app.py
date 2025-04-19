@@ -24,7 +24,7 @@ name, authentication_status, username = authenticator.login("Login", "sidebar")
 
 # --- Welcome Header ---
 st.title("📈 Portfolio Tuner")
-st.markdown("<h3 style='color:#A9A9B3; font-style:italic;'>Your simple toolkit for smarter crypto investing.</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color:#A9A9B3; font-style:italic;'>The crypto-native alternative to legacy financial tools like PortfolioVisualizer.</h3>", unsafe_allow_html=True)
 
 # --- Login Feedback ---
 if authentication_status:
@@ -50,18 +50,33 @@ try:
 except:
     st.warning("⚠️ Unable to load the intro video. Make sure the file exists.")
 
+# --- Why This Exists ---
+st.markdown("## 🤔 Why Portfolio Tuner?")
+st.markdown("""
+**PortfolioVisualizer is built for traditional investors.**  
+But crypto portfolios move faster, trade 24/7, and behave differently.  
+**That’s where we come in.**
+
+Portfolio Tuner gives you:
+
+- 🔗 **Native crypto asset support** — no manual uploads or workarounds
+- 📡 **Real-time simulation** with on-chain or API-based data
+- 🧠 **Risk and return metrics tailored to crypto volatility**
+- 🎓 **Education-first UX** to guide your investing decisions
+""")
+
 # --- Overview ---
-st.markdown("## 👋 Welcome to Portfolio Tuner")
+st.markdown("## 👋 What You Can Do")
 
 st.markdown("""
-Whether you're new to crypto or a seasoned pro, **Portfolio Tuner** helps you:
-- ✅ Create and manage a custom portfolio
-- 📊 Analytically track your investments
-- 🎯 Diversify your portfolio using quantitative insights
-- ⏳ Simulate your returns over time
-- 🔮 Manage your future risk
+Whether you're a curious beginner or a seasoned investor, Portfolio Tuner helps you:
+- ✅ Build and adjust a custom crypto portfolio
+- 📊 Analyze historical and real-time performance
+- 🎯 Compare with automated allocation strategies (HRB, MVO, Equal Weight)
+- ⏳ Run Monte Carlo simulations to model future outcomes
+- 🔍 Backtest your strategy against market history
 
-No spreadsheets. No stress.
+No spreadsheets. No subscriptions. Just smarter investing.
 """)
 
 # --- Navigation Cards ---
@@ -69,11 +84,11 @@ st.markdown("## 🔧 What would you like to do today?")
 
 pages = [
     ("📝 My Portfolio", "Start here! Create and visualize your crypto portfolio.",  "pages/1_My_Portfolio.py"),
-    ("📊 Dashboard", "Checkout how your portfolio performed historically with quantitative insights.", "pages/2_Portfolio_Dashboard.py"),
-    ("🎯 Optimizer", "See how your portfolio allocations compare with industry grade risk balancing strategies.", "pages/3_Portfolio_Optimizer.py"),
-    ("⏳ Backtest Lab", "Look into the past to see how strategies would’ve performed.", "pages/4_Backtest_Lab.py"),
-    ("🎮 Playground", "Explore new crypto portfolios and see how they would have performed.", "pages/5_Playground.py"),
-    ("📖 Glossary", "New to quantitative portfolio analysis? Checkout our educational materials.", "pages/6_Glossary.py")
+    ("📊 Dashboard", "Track your portfolio's performance and risk using real metrics.", "pages/2_Portfolio_Dashboard.py"),
+    ("🎯 Optimizer", "Run optimization strategies like HRB and MVO on your holdings.", "pages/3_Portfolio_Optimizer.py"),
+    ("⏳ Backtest Lab", "Simulate how different portfolios would have performed in the past.", "pages/4_Backtest_Lab.py"),
+    ("🎮 Playground", "Test new ideas and compare allocation strategies side-by-side.", "pages/5_Playground.py"),
+    ("📖 Glossary", "Learn the core concepts behind crypto investing and portfolio theory.", "pages/6_Glossary.py")
 ]
 
 cols = st.columns(3)
@@ -101,3 +116,4 @@ if authentication_status is not True:
                     st.sidebar.success("🎉 Registration successful! You can now log in.")
                 else:
                     st.sidebar.error("Username already exists.")
+
