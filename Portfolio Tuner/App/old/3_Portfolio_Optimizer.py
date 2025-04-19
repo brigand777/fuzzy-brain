@@ -2,122 +2,116 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 import os
-from datetime import timedelta
 
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
-from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user, dynamic_backtest_portfolio_user_fixed_shares
-from user_input import get_backtest_settings, get_optimization_methods
-from optimizer import run_optimizers 
-from utils.plots import (
-    plot_asset_cumulative_returns,
-    plot_cumulative_returns,
-    plot_rolling_sharpe,
-    plot_drawdowns,
-    plot_allocations_per_method,
-    plot_asset_returns,
-    plot_asset_prices,
-    pie_chart_allocation,
-    add_interactivity,
-    plot_historical_assets
-)
-from utils.utils import downsample_results_dict
+from optimizer import run_optimizers
+from utils.plots import plotly_pie_allocation, plotly_bar_allocation
 from components.portfolio_input import edit_portfolio
+from user_input import get_optimization_methods
 
+# --- Page Setup ---
 st.set_page_config(page_title="Portfolio Optimizer", layout="wide")
+authenticator, authentication_status, username = login_and_get_status()
+st.title("🎯 Portfolio Optimizer")
 
-# Helper function to display narrative text with a light, primary-colored background.
+st.markdown(
+    """
+    <style>
+    .streamlit-expanderHeader {
+        font-size: 20px !important;
+        color: #333;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# --- Style Helper ---
 def narrative(text):
     st.markdown(
-        f"""<div style="background-color: rgba(31, 119, 180, 0.2); padding: 10px; border-left: 4px solid #1F77B4; font-size: 18px; margin-bottom: 10px;">
+        f"""<div style="background-color: rgba(31, 119, 180, 0.1); padding: 10px; border-left: 4px solid #1F77B4; font-size: 18px; margin-bottom: 10px;">
         {text}
         </div>""",
         unsafe_allow_html=True
     )
 
-def run_optimizer_locally(price_df, asset_weights, lookback_days, nonnegative):
-    lookback = price_df.tail(lookback_days)
-    allocations = run_optimizers(lookback, nonnegative_mvo=nonnegative)
-    return {method: alloc.to_dict() for method, alloc in allocations.items()}
-
-# --- Auth ---
-authenticator, authentication_status, username = login_and_get_status()
-st.title("Portfolio Optimizer")
-narrative("Welcome to the Portfolio Optimizer! Log in to access your saved portfolio or choose to build one temporarily. This tool helps you compare your portfolio against optimized strategies.")
-
-# --- Load data ---
+# --- Load Data ---
 @st.cache_data
 def load_data():
     return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
 
 data = load_data()
-available_dates = data.index.sort_values()
 available_assets = data.columns.tolist()
-narrative("Historical price data for various assets has been loaded. This data will drive the performance simulation over time.")
+st.success("✅ Historical price data loaded.")
 
-# --- Portfolio Selection ---
-input_mode = st.radio("Choose Portfolio Input Method", ["Use My Portfolio", "Build Portfolio Here"])
+# --- Step 1: Portfolio Setup ---
+st.markdown("## Step 1: 📁 Select Your Portfolio")
+
+input_mode = st.radio("Where is your portfolio?", ["Use My Saved Portfolio", "Build Portfolio Here"])
 portfolio_df = None
 persistent = False
 
-if input_mode == "Use My Portfolio":
+if input_mode == "Use My Saved Portfolio":
     if authentication_status:
         portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
         if os.path.exists(portfolio_path):
             portfolio_df = pd.read_csv(portfolio_path)
-            st.success("Loaded your saved portfolio.")
+            st.success("📂 Loaded your saved portfolio.")
             persistent = True
         else:
-            st.warning("No saved portfolio found. Please add assets in 'My Portfolio'.")
+            st.warning("⚠️ No saved portfolio found. Please switch to 'Build Portfolio Here'.")
             st.stop()
     else:
-        st.warning("Login required to use saved portfolio.")
+        st.warning("🔒 Please log in to use your saved portfolio.")
         st.stop()
 else:
-    narrative("Build a temporary portfolio by selecting from the available assets.")
     portfolio_df = edit_portfolio(available_assets, data, persistent=False)
 
 if portfolio_df.empty or "Asset" not in portfolio_df.columns:
-    st.warning("Your portfolio is empty. Please add assets.")
+    st.warning("🚫 Your portfolio is empty. Please add assets.")
     st.stop()
-narrative("Your portfolio is now set up and will determine the assets included in the simulation.")
 
-# --- Backtest settings ---
-start_date, end_date, lookback_days, rebalance_days, nonnegative_toggle = get_backtest_settings(available_dates)
-narrative("Set your backtest parameters below, including the start and end dates, lookback period for analysis, and how often you want the portfolio rebalanced.")
+st.dataframe(portfolio_df, use_container_width=True)
 
-# --- Filter simulation data ---
-selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
-data = data[[col for col in selected_assets if col in data.columns]]
-simulation_data = data.loc[start_date:end_date]
+# --- Step 2: Strategy Selection ---
+st.markdown("## Step 2: 🧠 Choose Optimization Strategies")
+narrative("These strategies help you decide how to split your money across different assets for better balance and lower risk.")
 
-if simulation_data.empty:
-    st.error("No data available for the selected backtest period.")
-    st.stop()
-narrative("The dataset has been filtered to match your portfolio and selected time period.")
+with st.expander("📖 What do these mean?"):
+    st.markdown("""
+    - **Equal Weight**: Every asset gets the same amount of money.
+    - **Smart Spread (Mean Variance / MVO)**: Uses past price data to find what *would have worked best* historically.
+    - **Group & Balance (HRB)**: Groups similar investments together and spreads risk across those groups.
+    """)
 
-# --- Plot Underlying Asset Data ---
-st.markdown("## Underlying Asset Data")
-narrative("Review the historical price charts of your selected assets to get a sense of their past performance.")
-if "show_asset_plots" not in st.session_state:
-    st.session_state.show_asset_plots = False
-if st.button("📊 Plot Assets"):
-    st.session_state.show_asset_plots = not st.session_state.show_asset_plots
-if st.session_state.show_asset_plots:
-    plot_historical_assets(simulation_data, selected_assets, portfolio_df=portfolio_df)
+default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
+selected_methods = st.multiselect(
+    "Which strategies do you want to compare?",
+    options=default_methods,
+    default=default_methods,
+    help="Select one or more optimization methods to visualize"
+)
 
-# --- Optimizer ---
-st.markdown("## Dynamic Backtest Results")
-narrative("Click the **Optimize Portfolio** button below to run simulations. This step compares your portfolio with other optimization methods to help you understand performance differences.")
-optimize_button = st.button("Optimize Portfolio")
+# --- Step 3: Settings (Optional) ---
+st.markdown("## Step 3: ⚙️ Advanced Settings (Optional)")
+
+lookback = 90  # sensible default
+with st.expander("Adjust analysis period?"):
+    lookback = st.selectbox(
+        "📅 How many days of data should we use?",
+        options=[30, 60, 90, 180, 365],
+        index=2
+    )
+
+
+# --- Step 4: Optimization Trigger ---
+st.markdown("## Step 3: 🚀 Run the Optimization")
+optimize_button = st.button("Optimize My Portfolio")
 
 if optimize_button:
     try:
-        # --- Begin Backtest Simulation ---
-        # Prepare the lookback window used for calculating initial allocations.
-        lookback_window = data.loc[pd.to_datetime(start_date) - pd.Timedelta(days=lookback_days):start_date]
-
-        # Normalize user input weights using prices to reflect portfolio value
+        # Normalize portfolio weights
         latest_prices = data.iloc[-1]
         values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
         total_value = values.sum()
@@ -127,78 +121,57 @@ if optimize_button:
             if latest_prices.get(row["Asset"], 0) > 0
         }
 
-        narrative("Processing simulation:\n\n"
-                  "1. Normalizing your portfolio weights into value-based percentages.\n"
-                  "2. Calculating initial allocations using external optimization methods.\n"
-                  "3. Including your own portfolio for direct comparison.")
+        # Optimizer input
+        lookback_df = data[user_weights.keys()].tail(lookback)
+        all_allocations = run_optimizers(lookback_df, nonnegative_mvo=True)
 
-        # Call external optimizer for other methods.
-        initial_allocations = run_optimizer_locally(
-            price_df=lookback_window[selected_assets],
-            asset_weights=user_weights,
-            lookback_days=lookback_days,
-            nonnegative=nonnegative_toggle
-        )
-        # Add the user's portfolio.
-        initial_allocations["User Portfolio"] = user_weights
-        selected_methods = get_optimization_methods(initial_allocations)
+        # Add user’s original weights
+        all_allocations["User Portfolio"] = pd.Series(user_weights)
 
-        # --- Initial Allocations Display ---
-        narrative("### Initial Allocations (Pie Charts)\nBelow are pie charts showing the initial asset allocations for each method, including your own portfolio.")
-        pie_charts = [
-            pie_chart_allocation(pd.Series(initial_allocations[method]).round(4), method)
-            for method in selected_methods
-        ]
-        st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+        # Filter selected
+        filtered_allocs = {m: all_allocations[m] for m in selected_methods if m in all_allocations}
 
-        # --- Run Backtest ---
-        narrative("Running simulation: calculating key performance metrics (cumulative returns, rolling Sharpe ratios, and drawdowns) for each strategy.")
-        results_dict = {}
+        # --- Step 5: Results ---
+        st.markdown("## Step 4: 📊 Review Allocation Results")
+        narrative("Here’s how each strategy suggests splitting your money across the assets in your portfolio.")
+
+        pie_dfs = []
+        bar_dfs = []
+
         for method in selected_methods:
-            if method == "User Portfolio":
-                #res = dynamic_backtest_portfolio_user(simulation_data, user_weights, lookback_days, rebalance_days, nonnegative_toggle)
-                user_shares = {row["Asset"]: row["Amount"] for _, row in portfolio_df.iterrows()}
+            weights = pd.Series(all_allocations[method]).round(4)
+            df = pd.DataFrame({'Asset': weights.index, 'Weight': weights.values})
+            df["Method"] = method
+            pie_dfs.append(df)
+            bar_dfs.append(df)
 
-                res = dynamic_backtest_portfolio_user_fixed_shares(simulation_data,asset_amounts=user_shares )
+        # 🥧 Pie Charts — Side by Side
+        st.markdown("### 🥧 Pie Charts (Investment Mix)")
+        cols = st.columns(len(selected_methods))
+        show_legend = False
+        for i, method in enumerate(selected_methods):
+            weights = pd.Series(all_allocations[method])
+            fig = plotly_pie_allocation(weights, title=f"{method} Allocation", show_legend=show_legend)
+            with cols[i]:
+                st.plotly_chart(fig, use_container_width=True)
 
-            else:
-                res = dynamic_backtest_portfolio(simulation_data, method, lookback_days, rebalance_days, nonnegative_toggle)
-            results_dict[method] = res
+        # 📊 Bar Charts — 2 Columns Max
+        st.markdown("### 📈 Bar Charts (Compare Strategies)")
+        bar_cols = st.columns(2)
+        for i, method in enumerate(selected_methods):
+            weights = pd.Series(all_allocations[method])
+            fig = plotly_bar_allocation(weights, title=f"{method} Allocation Breakdown")
+            with bar_cols[i % 2]:
+                st.plotly_chart(fig, use_container_width=True)
 
-        narrative("Simulation complete. Downsampling results for clearer visualization.")
-        downsampled_results = downsample_results_dict(results_dict, start_date, end_date)
 
-        # --- Cumulative Returns Chart ---
-        narrative("### Cumulative Returns\nThis chart shows how each method's portfolio grows over time.")
-        cumulative_chart = plot_cumulative_returns(downsampled_results)
-        st.altair_chart(add_interactivity(cumulative_chart, x_field="date", y_field="cumulative"), use_container_width=True)
 
-        # --- Rolling Sharpe Ratio Chart ---
-        narrative("### Rolling Annualized Sharpe Ratio\nThe rolling Sharpe ratio chart illustrates the risk-adjusted performance of each method over time.")
-        st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled_results), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
+        # 📘 Summary
+        st.markdown("### 📘 Summary")
+        st.markdown(f"✅ You compared **{len(selected_methods)}** strategies over the last **{lookback} days**.\n\nScroll up to review which mix feels best for your goals.")
 
-        # --- Rolling Drawdown Chart ---
-        narrative("### Rolling Maximum Drawdown\nThis chart shows the worst decline from a peak to a trough, helping you assess potential risk.")
-        st.altair_chart(add_interactivity(plot_drawdowns(downsampled_results), x_field="date", y_field="drawdown"), use_container_width=True)
-
-        # --- Dynamic Allocations Chart ---
-        narrative("### Dynamic Asset Allocations Per Method\nThis chart displays how each strategy allocates assets over time. Note that your portfolio's allocations remain flat between rebalances.")
-        for method in selected_methods:
-            st.altair_chart(add_interactivity(plot_allocations_per_method(downsampled_results[method]["allocations"], method), x_field="date", y_field="allocation"), use_container_width=True)
-
-        # --- Summary Metrics ---
-        narrative("### Summary Metrics by Method\nBelow is a summary of the key performance metrics for each optimization method over the backtest period.")
-        st.write(f"**Backtest period:** {pd.to_datetime(start_date).date()} to {pd.to_datetime(end_date).date()}")
-        st.write(f"**Rebalance Frequency:** Every {rebalance_days} days")
-        st.write(f"**Data Lookback Period:** {lookback_days} days")
-        for method, res in downsampled_results.items():
-            st.subheader(method)
-            st.write(f"**Final Annualized Sharpe Ratio:** {res['sharpe']:.2f}")
-            st.write(f"**Maximum Drawdown:** {res['drawdown']:.2%}")
-
-        narrative("### Final Thoughts\nThis summary allows you to compare your portfolio with other optimization methods. Use this information to evaluate performance and potential risk. Thank you for using the Portfolio Optimizer!")
     except Exception as e:
-        st.error("An error occurred during dynamic backtesting.")
+        st.error("❌ An error occurred during optimization.")
         st.error(f"Details: {e}")
 else:
-    st.info("Click the 'Optimize Portfolio' button to run the backtest and view results.")
+    st.info("👆 Click the 'Optimize My Portfolio' button to generate strategy comparisons.")
