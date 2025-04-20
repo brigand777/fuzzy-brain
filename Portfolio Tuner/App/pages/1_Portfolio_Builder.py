@@ -39,5 +39,5 @@ portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_
 
 # --- Navigation Link to Dashboard ---
 st.markdown("---")
-if st.button("🔙 Go to Portfolio Dasboard"):
-        st.switch_page("pages/2_Portfolio_Dashboard.py")
+if st.button("🔙 Go to Tunerboard"):
+        st.switch_page("pages/2_Tunerboard.py")

@@ -70,7 +70,7 @@ portfolio_df["Value ($)"] = values
 portfolio_df["Allocation (%)"] = (values / total_value * 100).round(2)
 
 st.markdown("### Example Portfolio")
-col1, col2 = st.columns([3, 2])  # Split layout for table and pie chart
+col1, col2 = st.columns([2, 3])  # Split layout for table and pie chart
 with col1:
     st.dataframe(portfolio_df, use_container_width=True)
 with col2:
