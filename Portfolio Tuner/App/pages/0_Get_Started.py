@@ -45,7 +45,7 @@ available_dates = data.index.sort_values()
 def create_example_portfolio():
     return pd.DataFrame({
         "Asset": ["BTC", "ETH", "SOL", "BNB"],
-        "Amount": [0.5, 2.0, 50.0, 1.0]  # Example holdings: 0.5 BTC, 2 ETH, 50 SOL, 1 BNB
+        "Amount": [0.05, 2.0, 10.0, 2.0]  # Example holdings: 0.5 BTC, 2 ETH, 50 SOL, 1 BNB
     })
 
 # --- Getting Started Guide ---
@@ -63,10 +63,10 @@ st.markdown("### Example Portfolio")
 st.dataframe(portfolio_df, use_container_width=True)
 st.markdown("""
 This portfolio includes:
-- 0.5 BTC
+- 0.05 BTC
 - 2 ETH
-- 50 SOL
-- 1 BNB
+- 10 SOL
+- 2 BNB
 
 You can edit your own portfolio in the Portfolio Editor later, but for now, let's analyze this one.
 """)
