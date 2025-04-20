@@ -21,7 +21,7 @@ from user_input import get_optimization_methods, get_backtest_settings
 # --- Page Setup ---
 st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
-st.title("💼 Portfolio Lab")
+st.title("💼 Portfolio Tuner")
 
 # --- Style Helper ---
 def narrative(text, color="#1F77B4"):

@@ -11,7 +11,7 @@ from utils.simulation import run_smart_monte_carlo_simulation
 
 # --- Page Setup ---
 st.set_page_config(page_title="Playground", layout="wide")
-st.title("🎮 Portfolio Playground")
+st.title("🎮 Strategy Sandbox")
 
 st.markdown(
     """

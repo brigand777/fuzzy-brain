@@ -24,7 +24,7 @@ name, authentication_status, username = authenticator.login("Login", "sidebar")
 
 # --- Welcome Header ---
 st.title("📈 Portfolio Tuner")
-st.markdown("<h3 style='color:#A9A9B3; font-style:italic;'>The crypto-native alternative to legacy financial tools like PortfolioVisualizer.</h3>", unsafe_allow_html=True)
+st.markdown("<h3 style='color:#A9A9B3; font-style:italic;'>Optimize your crypto, maximize your gains.</h3>", unsafe_allow_html=True)
 
 # --- Login Feedback ---
 if authentication_status:
@@ -83,13 +83,14 @@ No spreadsheets. No subscriptions. Just smarter investing.
 st.markdown("## 🔧 What would you like to do today?")
 
 pages = [
-    ("📝 My Portfolio", "Start here! Create and visualize your crypto portfolio.",  "pages/1_My_Portfolio.py"),
-    ("📊 Dashboard", "Track your portfolio's performance and risk using real metrics.", "pages/2_Portfolio_Dashboard.py"),
-    ("🎯 Optimizer", "Run optimization strategies like HRB and MVO on your holdings.", "pages/3_Portfolio_Optimizer.py"),
-    ("⏳ Backtest Lab", "Simulate how different portfolios would have performed in the past.", "pages/4_Backtest_Lab.py"),
-    ("🎮 Playground", "Test new ideas and compare allocation strategies side-by-side.", "pages/5_Playground.py"),
-    ("📖 Glossary", "Learn the core concepts behind crypto investing and portfolio theory.", "pages/6_Glossary.py")
+    ("🚀 Tuner Tour", "Start here! Get a quick guided overview of how to use the app.", "pages/0_Tuner_Tour.py"),
+    ("🛠️ Portfolio Builder", "Build and customize your crypto portfolio with asset weights or quantities.", "pages/1_Portfolio_Builder.py"),
+    ("📊 Tunerboard", "Visualize performance, risk, and correlations of your portfolio.", "pages/2_Tunerboard.py"),
+    ("🎯 Portfolio Tuner", "Run optimizations like HRP, MVO, and Equal Weight to find better allocations.", "pages/3_Portfolio_Tuner.py"),
+    ("🧪 Strategy Sandbox", "Experiment with strategy simulations and compare allocation outcomes.", "pages/5_Strategy_Sandbox.py"),
+    ("📚 Tuner Glossary", "Look up key crypto investing terms and portfolio theory concepts.", "pages/6_Tuner_Glossary.py")
 ]
+
 
 cols = st.columns(3)
 for idx, (title, desc, link) in enumerate(pages):

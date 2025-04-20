@@ -3,9 +3,10 @@ import pandas as pd
 import numpy as np
 import altair as alt
 import plotly.graph_objects as go
+import plotly.express as px
 from datetime import datetime, timedelta
 
-# Simulated imports for Portfolio Tuner components (assumed functionality based on provided code)
+# Simulated imports for Portfolio Tuner components
 from auth import login_and_get_status
 from components.portfolio_input import edit_portfolio
 from utils.utils import ensure_utc, downsample_results_dict
@@ -45,7 +46,7 @@ available_dates = data.index.sort_values()
 def create_example_portfolio():
     return pd.DataFrame({
         "Asset": ["BTC", "ETH", "SOL", "BNB"],
-        "Amount": [0.05, 2.0, 10.0, 2.0]  # Example holdings: 0.5 BTC, 2 ETH, 50 SOL, 1 BNB
+        "Amount": [0.05, 2.0, 10.0, 2.0]  # Example holdings: 0.05 BTC, 2 ETH, 10 SOL, 2 BNB
     })
 
 # --- Getting Started Guide ---
@@ -59,8 +60,25 @@ st.header("📥 Step 1: Set Up Your Portfolio")
 narrative("Portfolio Tuner lets you input your crypto holdings to analyze their performance. For this guide, we'll use a predefined portfolio with Bitcoin (BTC), Ethereum (ETH), Solana (SOL), and Binance Coin (BNB).", color="#1F77B4")
 
 portfolio_df = create_example_portfolio()
+
+# Calculate portfolio values and allocations based on latest prices
+max_date = data.index.max()
+latest_prices = data.loc[max_date]
+values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
+total_value = values.sum()
+portfolio_df["Value ($)"] = values
+portfolio_df["Allocation (%)"] = (values / total_value * 100).round(2)
+
 st.markdown("### Example Portfolio")
-st.dataframe(portfolio_df, use_container_width=True)
+col1, col2 = st.columns([3, 2])  # Split layout for table and pie chart
+with col1:
+    st.dataframe(portfolio_df, use_container_width=True)
+with col2:
+    # Visualize allocations using plotly_pie_allocation
+    weights = pd.Series(portfolio_df["Allocation (%)"].values, index=portfolio_df["Asset"])
+    fig = plotly_pie_allocation(weights, title="📊 Portfolio Allocation", show_legend=True)
+    st.plotly_chart(fig, use_container_width=True)
+
 st.markdown("""
 This portfolio includes:
 - 0.05 BTC
@@ -68,18 +86,34 @@ This portfolio includes:
 - 10 SOL
 - 2 BNB
 
-You can edit your own portfolio in the Portfolio Editor later, but for now, let's analyze this one.
+The table now shows the value of each holding in USD and its allocation as a percentage of the total portfolio. The pie chart visualizes these allocations for a clearer understanding. You can edit your own portfolio in the Portfolio Editor later, but for now, let's analyze this one.
 """)
 
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 
 # --- Step 2: Date Range ---
 st.header("📆 Step 2: Select Your Date Range")
-narrative("Choose a time period to analyze your portfolio’s past performance. We’ll use the last 90 days to see how this portfolio performed.", color="#1F77B4")
+narrative("Choose a time period to analyze your portfolio’s past performance. We’ll default to the last 90 days, but you can adjust the dates as needed.", color="#1F77B4")
 
-max_date = data.index.max()
-start_date = max_date - pd.Timedelta(days=90)
-end_date = max_date
+# Ensure UTC-awareness for dates
+max_date = ensure_utc(data.index.max())
+default_start_date = max_date - pd.Timedelta(days=90)
+default_end_date = max_date
+
+col1, col2 = st.columns(2)
+with col1:
+    start_date_input = st.date_input("Start Date", value=default_start_date.date(), min_value=available_dates[0].date(), max_value=max_date.date())
+with col2:
+    end_date_input = st.date_input("End Date", value=default_end_date.date(), min_value=available_dates[0].date(), max_value=max_date.date())
+
+# Convert to UTC-aware timestamps
+start_date = ensure_utc(pd.Timestamp(datetime.combine(start_date_input, datetime.min.time())))
+end_date = ensure_utc(pd.Timestamp(datetime.combine(end_date_input, datetime.min.time())))
+
+if start_date >= end_date:
+    st.error("Start date must be before end date.")
+    st.stop()
+
 simulation_data = data[selected_assets].loc[start_date:end_date].copy()
 simulation_data = simulation_data.replace(0, np.nan).ffill().dropna(how="any")
 
@@ -87,8 +121,8 @@ returns = simulation_data.pct_change().dropna()
 st.markdown(f"**Selected Period**: {start_date.date()} to {end_date.date()}")
 
 # --- Step 3: Portfolio Metrics ---
-st.header("📊 Step 3: Portfolio Overview (Past 90 Days)")
-narrative("Let’s see how your portfolio performed over the past 90 days. We’ll look at key metrics like cumulative return, volatility, and Sharpe Ratio to understand its risk and reward.", color="#1F77B4")
+st.header("📊 Step 3: Portfolio Overview (Selected Period)")
+narrative(f"Let’s see how your portfolio performed from {start_date.date()} to {end_date.date()}. We’ll look at key metrics like cumulative return, volatility, and Sharpe Ratio to understand its risk and reward.", color="#1F77B4")
 
 latest_prices = simulation_data.iloc[-1]
 portfolio_df = portfolio_df.dropna(subset=["Asset", "Amount"])
@@ -154,7 +188,7 @@ downsampled = downsample_results_dict(results, start_date, end_date)
 st.markdown("### Cumulative Returns Over Time")
 st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), "date", "cumulative"), use_container_width=True)
 st.markdown("""
-This chart shows how each strategy performed over the past 90 days:
+This chart shows how each strategy performed over the selected period:
 - **Equal Weight**: Allocates equally to each asset.
 - **Mean-Variance Optimization (MVO)**: Optimizes for the best risk-return balance.
 - **Hierarchical Risk Parity (HRP)**: Balances risk across assets based on their correlations.
@@ -215,10 +249,10 @@ You’ve just analyzed, backtested, optimized, and forecasted a crypto portfolio
 """)
 
 links = {
-    "📊 Dashboard": "pages/2_Portfolio_Dashboard.py",
-    "🎯 Optimizer": "pages/3_Portfolio_Optimizer.py",
-    "⏳ Backtest Lab": "pages/4_Backtest_Lab.py",
-    "🎮 Playground": "pages/5_Playground.py"
+    "📝 Builder": "pages/1_Portfolio_Builder.py",
+    "📊 Dashboard": "pages/2_Tunerboard.py",
+    "🎯 Tuner": "pages/3_Portfolio_Tuner.py",
+    "🎮 Strategy Sandbox": "pages/5_Strategy_Sandbox.py"
 }
 cols = st.columns(len(links))
 for i, (label, page_path) in enumerate(links.items()):
