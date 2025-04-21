@@ -2,17 +2,66 @@ import streamlit as st
 import pandas as pd
 import os
 import plotly.express as px
+import plotly.graph_objects as go
 from plotly.colors import qualitative
 
 from auth import login_and_get_status
 from utils.plots import (
     plot_portfolio_dashboard,
-    plot_historical_assets,
-    plot_asset_cumulative_returns,
-    plot_gauge_charts,
-    plot_portfolio_absolute_value
+    plot_gauge_charts
 )
 from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
+
+# --- Plot Functions ---
+def plot_asset_cumulative_returns(price_data: pd.DataFrame,
+                                  selected_assets: list,
+                                  portfolio_df: pd.DataFrame,
+                                  benchmark: str = None,
+                                  start=None,
+                                  end=None):
+    if start and end:
+        price_data = price_data.loc[start:end]
+
+    latest_prices = price_data.iloc[-1]
+    values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
+    total_value = values.sum()
+    weights = {
+        row["Asset"]: (row["Amount"] * latest_prices.get(row["Asset"], 0)) / total_value
+        for _, row in portfolio_df.iterrows()
+        if row["Asset"] in price_data.columns
+    }
+
+    returns = price_data.pct_change().fillna(0)
+    portfolio_returns = returns[list(weights.keys())].dot(pd.Series(weights))
+    cumulative_df = pd.DataFrame({
+        "date": price_data.index,
+        "Portfolio": (1 + portfolio_returns).cumprod()
+    })
+
+    if benchmark and benchmark in price_data.columns:
+        benchmark_returns = returns[benchmark]
+        cumulative_df[benchmark] = (1 + benchmark_returns).cumprod()
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=cumulative_df["date"], y=cumulative_df["Portfolio"], mode="lines", name="Portfolio"))
+    if benchmark and benchmark in cumulative_df.columns:
+        fig.add_trace(go.Scatter(x=cumulative_df["date"], y=cumulative_df[benchmark], mode="lines", name=benchmark))
+    fig.update_layout(title="Cumulative Return", xaxis_title="Date", yaxis_title="Cumulative Return", hovermode="x unified")
+    return fig
+
+
+def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_df):
+    filtered_data = data[selected_assets].loc[start:end]
+    amounts = portfolio_df.set_index("Asset").loc[selected_assets]["Amount"]
+    dollar_values = filtered_data.multiply(amounts, axis=1)
+    portfolio_value = dollar_values.sum(axis=1)
+    df = portfolio_value.reset_index()
+    df.columns = ["Date", "Portfolio Value"]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=df["Date"], y=df["Portfolio Value"], mode="lines", name="Portfolio Value", fill="tozeroy"))
+    fig.update_layout(title="Portfolio Value Over Time", xaxis_title="Date", yaxis_title="Value ($)", hovermode="x unified")
+    return fig
 
 # --- Page Setup ---
 st.set_page_config(page_title="Crypto Portfolio Dashboard", layout="wide")
@@ -27,7 +76,6 @@ st.markdown("""
 authenticator, authentication_status, username = login_and_get_status()
 st.title("📈 Crypto Portfolio Dashboard")
 
-# --- Load Asset Data ---
 @st.cache_resource
 def load_data():
     return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
@@ -39,7 +87,6 @@ def ensure_utc(dt):
 data = load_data()
 available_assets = data.columns.tolist()
 
-# --- Welcome Banner ---
 if "dashboard_welcome_seen" not in st.session_state:
     st.session_state.dashboard_welcome_seen = False
 if not st.session_state.dashboard_welcome_seen:
@@ -56,7 +103,6 @@ if not st.session_state.dashboard_welcome_seen:
                 st.session_state.dashboard_welcome_seen = True
                 st.rerun()
 
-# --- Load Saved Portfolio ---
 if authentication_status:
     portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
     if os.path.exists(portfolio_path):
@@ -70,13 +116,12 @@ if authentication_status:
         st.warning("No valid cryptos found in your portfolio.")
         st.stop()
 
-    # --- Portfolio Health Snapshot ---
     latest_prices = data.loc[data.index.max()]
     values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
     total_value = values.sum()
     portfolio_df["Value ($)"] = values
     portfolio_df["Allocation (%)"] = (values / total_value * 100).round(2)
-    
+
     st.markdown("### 💰 Portfolio Health")
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -94,39 +139,24 @@ if authentication_status:
     if len(portfolio_df) < 3:
         st.warning("⚠️ Add more coins for better diversification.")
 
-    # --- Date Range & Benchmark ---
     st.markdown("### 📅 Date Range & Benchmark")
     col1, col2 = st.columns([1, 1])
     with col1:
-        preset_range = st.selectbox(
-            "Quick Date Range",
-            ["Last 30 days", "Last 90 days", "Last 1 year", "Custom"],
-            index=1,
-            key="preset_range"
-        )
+        preset_range = st.selectbox("Quick Date Range", ["Last 30 days", "Last 90 days", "Last 1 year", "Custom"], index=1, key="preset_range")
     with col2:
         if "selected_benchmark" not in st.session_state:
             st.session_state.selected_benchmark = "BTC" if "BTC" in available_assets else "None"
-        st.selectbox(
-            "Benchmark",
-            options=["None"] + available_assets,
-            index=(available_assets.index(st.session_state.selected_benchmark) + 1)
-            if st.session_state.selected_benchmark in available_assets else 0,
-            key="selected_benchmark"
-        )
+        st.selectbox("Benchmark", options=["None"] + available_assets,
+                     index=(available_assets.index(st.session_state.selected_benchmark) + 1)
+                     if st.session_state.selected_benchmark in available_assets else 0,
+                     key="selected_benchmark")
 
     max_date = data.index.max()
     min_date = data.index.min()
     try:
         if preset_range == "Custom":
             default_start = max_date - pd.Timedelta(days=90)
-            date_range = st.date_input(
-                "Custom Range",
-                value=(default_start, max_date),
-                min_value=min_date,
-                max_value=max_date,
-                key="custom_range"
-            )
+            date_range = st.date_input("Custom Range", value=(default_start, max_date), min_value=min_date, max_value=max_date, key="custom_range")
             if len(date_range) == 2:
                 start_date, end_date = map(ensure_utc, date_range)
             else:
@@ -140,7 +170,6 @@ if authentication_status:
         st.error(f"⚠️ Error processing dates: {e}")
         st.stop()
 
-    # Validate dates as UTC timestamps
     try:
         start_date = start_date.tz_convert("UTC") if isinstance(start_date, pd.Timestamp) and start_date.tzinfo else pd.Timestamp(start_date, tz="UTC")
         end_date = end_date.tz_convert("UTC") if isinstance(end_date, pd.Timestamp) and end_date.tzinfo else pd.Timestamp(end_date, tz="UTC")
@@ -157,57 +186,23 @@ if authentication_status:
 
     benchmark = st.session_state.selected_benchmark if st.session_state.selected_benchmark != "None" else None
 
-    # --- Interactive Dashboard ---
     try:
-        metrics_fig, heatmap_fig = plot_portfolio_dashboard(
-            data, selected_assets,
-            portfolio_df=portfolio_df,
-            date_range=(start_date, end_date),
-            benchmark=benchmark
-        )
+        metrics_fig, heatmap_fig = plot_portfolio_dashboard(data, selected_assets, portfolio_df=portfolio_df, date_range=(start_date, end_date), benchmark=benchmark)
     except Exception as e:
         st.error(f"⚠️ Error in dashboard: {e}")
         st.stop()
 
     st.markdown("### 📊 Portfolio Performance")
-    # Combine value and returns into one interactive chart
     try:
         value_fig = plot_portfolio_absolute_value(data, selected_assets, start_date, end_date, portfolio_df)
-        returns_fig = plot_asset_cumulative_returns(data, selected_assets, benchmark, start_date, end_date, portfolio_df)
-        fig = px.line(title="Portfolio Value & Returns")
-        for trace in value_fig.data:
-            fig.add_trace(trace)
-        for trace in returns_fig.data:
-            fig.add_trace(trace)
-        fig.update_layout(
-            updatemenus=[{
-                "buttons": [
-                    {"label": "Value", "method": "update", "args": [{"visible": [True] + [False] * len(returns_fig.data)}]},
-                    {"label": "Returns", "method": "update", "args": [{"visible": [False] * len(value_fig.data) + [True] * len(returns_fig.data)}]}
-                ],
-                "direction": "down",
-                "showactive": True
-            }],
-            showlegend=True
-        )
-        chart_with_tooltip(
-            title="Portfolio Value & Returns",
-            short_desc="Track your portfolio's total value and compare returns against a benchmark like BTC.",
-            glossary_url="6_Glossary.py#cumulative-return",
-            chart_func=lambda: fig
-        )
+        returns_fig = plot_asset_cumulative_returns(data, selected_assets, portfolio_df, benchmark, start_date, end_date)
+        st.plotly_chart(value_fig, use_container_width=True)
+        st.plotly_chart(returns_fig, use_container_width=True)
     except Exception as e:
         st.error(f"⚠️ Error in performance charts: {e}")
         st.info("Try selecting a shorter date range or verifying your assets.")
 
-    # --- Metrics Section ---
-    section_heading(
-        "🧭 Key Metrics",
-        term="Understand Your Portfolio",
-        short_description="Volatility shows risk, returns show gains, and Sharpe measures reward per risk.",
-        glossary_url="/Glossary#sharpe-ratio",
-        level=3
-    )
+    section_heading("🧫 Key Metrics", term="Understand Your Portfolio", short_description="Volatility shows risk, returns show gains, and Sharpe measures reward per risk.", glossary_url="/Glossary#sharpe-ratio", level=3)
     st.info("ℹ️ Sharpe Ratio: Higher means better returns for the risk taken.")
 
     if metrics_fig and len(metrics_fig) >= 3:
@@ -215,7 +210,7 @@ if authentication_status:
         for col, fig in zip(row, metrics_fig[:3]):
             with col:
                 st.plotly_chart(fig, use_container_width=True)
-        with st.expander("📐 Advanced Metrics"):
+        with st.expander("📊 Advanced Metrics"):
             row2 = st.columns(3)
             for col, fig in zip(row2, metrics_fig[3:]):
                 with col:
@@ -223,7 +218,6 @@ if authentication_status:
     else:
         st.warning("Incomplete metrics data.")
 
-    # --- Comparison Charts ---
     st.markdown("### 🔍 Portfolio Insights")
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -236,12 +230,7 @@ if authentication_status:
         )
     with col2:
         pie_data = portfolio_df.set_index("Asset")["Value ($)"].reindex(selected_assets).fillna(0)
-        fig = px.pie(
-            values=pie_data.values,
-            names=pie_data.index,
-            title="Portfolio Allocation",
-            color_discrete_sequence=qualitative.Safe
-        )
+        fig = px.pie(values=pie_data.values, names=pie_data.index, title="Portfolio Allocation", color_discrete_sequence=qualitative.Safe)
         chart_with_tooltip(
             title="Portfolio Allocation",
             term="Your Crypto Mix",
@@ -250,24 +239,9 @@ if authentication_status:
             chart_func=lambda: fig
         )
 
-    # --- Historical Performance ---
-    with st.expander("📊 Historical Crypto Performance"):
-        try:
-            plot_historical_assets(
-                data,
-                selected_assets,
-                portfolio_df=portfolio_df,
-                date_range_default=(start_date, end_date)
-            )
-        except Exception as e:
-            st.error(f"⚠️ Error in historical charts: {e}")
-            st.info("Try selecting a shorter date range or different assets.")
-
-    # --- Share Feature ---
     if st.button("Share Insights", key="share"):
         st.write(f"My crypto portfolio is worth ${total_value:,.2f} with {len(portfolio_df)} coins! #CryptoInvesting")
 
-    # --- Navigation ---
     st.markdown("---")
     if st.button("🔙 Portfolio Editor"):
         st.switch_page("pages/1_Portfolio_Editor.py")
