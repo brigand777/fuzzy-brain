@@ -23,10 +23,36 @@ from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfoli
 st.set_page_config(page_title="Portfolio Tuner: Getting Started Guide", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
 
+# --- Custom CSS to Increase Font Size for Normal Text ---
+st.markdown("""
+<style>
+/* Target normal text within paragraphs and markdown elements */
+.stMarkdown p, .stMarkdown div, p {
+    font-size: 18px !important;  /* Increase font size for normal text */
+    line-height: 1.5;  /* Improve readability with better line spacing */
+}
+
+/* Ensure headers, titles, and other components are not affected */
+h1, h2, h3, h4, h5, h6 {
+    font-size: inherit !important;  /* Preserve default header sizes */
+}
+
+/* Ensure table text (dataframes) and other components are not affected */
+.stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
+    font-size: inherit !important;  /* Preserve default sizes for tables and charts */
+}
+
+/* Optional: Style the narrative boxes to match the larger text */
+.narrative-box {
+    font-size: 20px !important;  /* Slightly larger for narrative boxes */
+}
+</style>
+""", unsafe_allow_html=True)
+
 # --- Style Helper ---
 def narrative(text, color="#1F77B4"):
     st.markdown(
-        f"""<div style=\"background-color: rgba(31, 119, 180, 0.1); padding: 10px; border-left: 4px solid {color}; font-size: 18px; margin-bottom: 10px;\">
+        f"""<div class="narrative-box" style="background-color: rgba(31, 119, 180, 0.1); padding: 10px; border-left: 4px solid {color}; margin-bottom: 10px;">
         {text}
         </div>""",
         unsafe_allow_html=True
@@ -70,7 +96,7 @@ portfolio_df["Value ($)"] = values
 portfolio_df["Allocation (%)"] = (values / total_value * 100).round(2)
 
 st.markdown("### Example Portfolio")
-col1, col2 = st.columns([2, 3])  # Split layout for table and pie chart
+col1, col2 = st.columns([3, 2])  # Split layout for table and pie chart
 with col1:
     st.dataframe(portfolio_df, use_container_width=True)
 with col2:
@@ -240,26 +266,44 @@ st.markdown(f"""
 st.markdown("""
 This forecast shows the range of possible outcomes for your portfolio over the next 6 months. The median return is the expected midpoint, while the best and worst cases show the potential highs and lows. Portfolio Tuner’s simulations help you prepare for the future!
 """)
-
 # --- Footer: Next Steps ---
 st.markdown("---")
-st.success("🎉 You’ve Completed the Guide! Now Explore More with Portfolio Tuner")
+st.success("🎉 Congratulations! You’ve Mastered the Basics of Portfolio Tuner!")
+
 st.markdown("""
-You’ve just analyzed, backtested, optimized, and forecasted a crypto portfolio! Portfolio Tuner empowers you with advanced tools to make smarter investment decisions. Ready to dive deeper? Check out these features:
+You’ve just explored the foundations of building, analyzing, and optimizing a crypto portfolio—now it's time to take full control of your strategy. Portfolio Tuner offers powerful tools to deepen your understanding and refine your investments. Here’s where to go next:
 """)
 
 links = {
-    "📝 Builder": "pages/1_Portfolio_Builder.py",
-    "📊 Dashboard": "pages/2_Tunerboard.py",
-    "🎯 Tuner": "pages/3_Portfolio_Tuner.py",
-    "🎮 Strategy Sandbox": "pages/5_Strategy_Sandbox.py"
+    "🛠️ Portfolio Builder": {
+        "path": "pages/1_Portfolio_Builder.py",
+        "benefit": "Construct your portfolio by selecting assets and adjusting weights or amounts."
+    },
+    "📊 Tunerboard": {
+        "path": "pages/2_Tunerboard.py",
+        "benefit": "Monitor your portfolio’s performance in real-time with visuals and key metrics."
+    },
+    "🎯 Portfolio Tuner": {
+        "path": "pages/3_Portfolio_Tuner.py",
+        "benefit": "Apply optimization strategies like HRP and MVO to fine-tune your asset allocations."
+    },
+    "🧪 Strategy Sandbox": {
+        "path": "pages/5_Strategy_Sandbox.py",
+        "benefit": "Test allocation strategies side-by-side in a flexible experimentation space."
+    },
+    "📚 Tuner Glossary": {
+        "path": "pages/6_Tuner_Glossary.py",
+        "benefit": "Look up key crypto investing terms and portfolio theory concepts, right when you need them."
+    }
 }
+
 cols = st.columns(len(links))
-for i, (label, page_path) in enumerate(links.items()):
+for i, (label, info) in enumerate(links.items()):
     with cols[i]:
-        if st.button(f"Go to {label}"):
-            st.switch_page(page_path)
+        st.markdown(f"**{label}**: {info['benefit']}")
+        if st.button(f"Go to {label} Now"):
+            st.switch_page(info['path'])
 
 st.markdown("""
-Portfolio Tuner is here to help you navigate the volatile world of crypto investing with confidence. Start exploring your own portfolio today!
+Don't stop here—Portfolio Tuner is your companion for smarter, data-driven crypto investing. Jump into any tool above and start tuning your strategy today!
 """)

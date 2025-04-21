@@ -1,291 +1,202 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
-import altair as alt
-import plotly.graph_objects as go
-import plotly.express as px
-from datetime import datetime, timedelta
+import os
 
-# Simulated imports for Portfolio Tuner components
 from auth import login_and_get_status
-from components.portfolio_input import edit_portfolio
-from utils.utils import ensure_utc, downsample_results_dict
 from utils.plots import (
-    plot_cumulative_returns, plot_single_gauge, pie_chart_allocation,
-    generate_styled_summary_table, add_interactivity, plotly_pie_allocation,
-    plotly_bar_allocation, plot_rolling_sharpe, plot_drawdowns, plot_allocations_per_method
+    plot_portfolio_dashboard,
+    plot_historical_assets,
+    plot_asset_cumulative_returns,
+    plot_gauge_charts,
+    plot_portfolio_absolute_value
 )
-from utils.simulation import run_smart_monte_carlo_simulation
-from optimizer import run_optimizers
-from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
 
-# --- Config ---
-st.set_page_config(page_title="Portfolio Tuner: Getting Started Guide", layout="wide")
-authenticator, authentication_status, username = login_and_get_status()
-
-# --- Custom CSS to Increase Font Size for Normal Text ---
+# --- Page Setup ---
+st.set_page_config(page_title="Portfolio Dashboard", layout="wide")
+inject_tooltip_css()
 st.markdown("""
-<style>
-/* Target normal text within paragraphs and markdown elements */
-.stMarkdown p, .stMarkdown div, p {
-    font-size: 18px !important;  /* Increase font size for normal text */
-    line-height: 1.5;  /* Improve readability with better line spacing */
-}
-
-/* Ensure headers, titles, and other components are not affected */
-h1, h2, h3, h4, h5, h6 {
-    font-size: inherit !important;  /* Preserve default header sizes */
-}
-
-/* Ensure table text (dataframes) and other components are not affected */
-.stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
-    font-size: inherit !important;  /* Preserve default sizes for tables and charts */
-}
-
-/* Optional: Style the narrative boxes to match the larger text */
-.narrative-box {
-    font-size: 20px !important;  /* Slightly larger for narrative boxes */
-}
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# --- Style Helper ---
-def narrative(text, color="#1F77B4"):
-    st.markdown(
-        f"""<div class="narrative-box" style="background-color: rgba(31, 119, 180, 0.1); padding: 10px; border-left: 4px solid {color}; margin-bottom: 10px;">
-        {text}
-        </div>""",
-        unsafe_allow_html=True
-    )
+authenticator, authentication_status, username = login_and_get_status()
 
-# --- Load Data ---
+st.title("📊 Portfolio Dashboard")
+
+# --- Load asset data ---
 @st.cache_data
 def load_data():
-    # Simulated data loading (assumed prices.parquet contains historical crypto prices)
     return pd.read_parquet("Portfolio Tuner/App/data/prices.parquet")
+
+def ensure_utc(dt):
+    dt = pd.to_datetime(dt)
+    return dt if dt.tzinfo else dt.tz_localize("UTC")
 
 data = load_data()
 available_assets = data.columns.tolist()
-available_dates = data.index.sort_values()
 
-# --- Predefined Example Portfolio ---
-def create_example_portfolio():
-    return pd.DataFrame({
-        "Asset": ["BTC", "ETH", "SOL", "BNB"],
-        "Amount": [0.05, 2.0, 10.0, 2.0]  # Example holdings: 0.05 BTC, 2 ETH, 10 SOL, 2 BNB
-    })
-
-# --- Getting Started Guide ---
-st.title("🚀 Getting Started with Portfolio Tuner: A Step-by-Step Guide")
-st.markdown("""
-Welcome to **Portfolio Tuner**, the ultimate tool for crypto investors! Whether you're a beginner or a seasoned trader, this guide will walk you through analyzing, backtesting, optimizing, and forecasting your cryptocurrency portfolio using a predefined example portfolio. Let's dive in!
-""")
-
-# --- Step 1: Portfolio Setup ---
-st.header("📥 Step 1: Set Up Your Portfolio")
-narrative("Portfolio Tuner lets you input your crypto holdings to analyze their performance. For this guide, we'll use a predefined portfolio with Bitcoin (BTC), Ethereum (ETH), Solana (SOL), and Binance Coin (BNB).", color="#1F77B4")
-
-portfolio_df = create_example_portfolio()
-
-# Calculate portfolio values and allocations based on latest prices
-max_date = data.index.max()
-latest_prices = data.loc[max_date]
-values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
-total_value = values.sum()
-portfolio_df["Value ($)"] = values
-portfolio_df["Allocation (%)"] = (values / total_value * 100).round(2)
-
-st.markdown("### Example Portfolio")
-col1, col2 = st.columns([3, 2])  # Split layout for table and pie chart
-with col1:
-    st.dataframe(portfolio_df, use_container_width=True)
-with col2:
-    # Visualize allocations using plotly_pie_allocation
-    weights = pd.Series(portfolio_df["Allocation (%)"].values, index=portfolio_df["Asset"])
-    fig = plotly_pie_allocation(weights, title="📊 Portfolio Allocation", show_legend=True)
-    st.plotly_chart(fig, use_container_width=True)
-
-st.markdown("""
-This portfolio includes:
-- 0.05 BTC
-- 2 ETH
-- 10 SOL
-- 2 BNB
-
-The table now shows the value of each holding in USD and its allocation as a percentage of the total portfolio. The pie chart visualizes these allocations for a clearer understanding. You can edit your own portfolio in the Portfolio Editor later, but for now, let's analyze this one.
-""")
-
-selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
-
-# --- Step 2: Date Range ---
-st.header("📆 Step 2: Select Your Date Range")
-narrative("Choose a time period to analyze your portfolio’s past performance. We’ll default to the last 90 days, but you can adjust the dates as needed.", color="#1F77B4")
-
-# Ensure UTC-awareness for dates
-max_date = ensure_utc(data.index.max())
-default_start_date = max_date - pd.Timedelta(days=90)
-default_end_date = max_date
-
-col1, col2 = st.columns(2)
-with col1:
-    start_date_input = st.date_input("Start Date", value=default_start_date.date(), min_value=available_dates[0].date(), max_value=max_date.date())
-with col2:
-    end_date_input = st.date_input("End Date", value=default_end_date.date(), min_value=available_dates[0].date(), max_value=max_date.date())
-
-# Convert to UTC-aware timestamps
-start_date = ensure_utc(pd.Timestamp(datetime.combine(start_date_input, datetime.min.time())))
-end_date = ensure_utc(pd.Timestamp(datetime.combine(end_date_input, datetime.min.time())))
-
-if start_date >= end_date:
-    st.error("Start date must be before end date.")
-    st.stop()
-
-simulation_data = data[selected_assets].loc[start_date:end_date].copy()
-simulation_data = simulation_data.replace(0, np.nan).ffill().dropna(how="any")
-
-returns = simulation_data.pct_change().dropna()
-st.markdown(f"**Selected Period**: {start_date.date()} to {end_date.date()}")
-
-# --- Step 3: Portfolio Metrics ---
-st.header("📊 Step 3: Portfolio Overview (Selected Period)")
-narrative(f"Let’s see how your portfolio performed from {start_date.date()} to {end_date.date()}. We’ll look at key metrics like cumulative return, volatility, and Sharpe Ratio to understand its risk and reward.", color="#1F77B4")
-
-latest_prices = simulation_data.iloc[-1]
-portfolio_df = portfolio_df.dropna(subset=["Asset", "Amount"])
-values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
-total_value = values.sum()
-
-user_weights = {
-    row["Asset"]: (row["Amount"] * latest_prices.get(row["Asset"], 0)) / total_value
-    for _, row in portfolio_df.iterrows()
-    if latest_prices.get(row["Asset"], 0) > 0
-}
-
-portfolio_returns = returns.dot(pd.Series(user_weights))
-cumulative_returns = (1 + portfolio_returns).cumprod()
-cumulative_return = cumulative_returns.iloc[-1] - 1
-volatility = portfolio_returns.std() * np.sqrt(365)
-sharpe_ratio = (portfolio_returns.mean() / portfolio_returns.std()) * np.sqrt(365)
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    fig = plot_single_gauge("Cumulative Return", cumulative_return * 100, metric_name="cumulative")
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown("*Cumulative Return*: The total percentage gain or loss over the period.")
-
-with col2:
-    fig = plot_single_gauge("Annualized Volatility", volatility * 100, metric_name="volatility")
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown("*Volatility*: Measures the price swings of your portfolio (higher means more risk).")
-
-with col3:
-    fig = plot_single_gauge("Sharpe Ratio", sharpe_ratio, metric_name="sharpe")
-    st.plotly_chart(fig, use_container_width=True)
-    st.markdown("*Sharpe Ratio*: A measure of risk-adjusted return (higher is better).")
-
-st.markdown("""
-These metrics give you a quick snapshot of your portfolio’s performance. A positive cumulative return means growth, while volatility and Sharpe Ratio help you assess risk. Portfolio Tuner’s intuitive gauges make it easy to understand these complex concepts!
-""")
-
-# --- Step 4: Strategy Backtest ---
-st.header("📈 Step 4: Backtest Strategies")
-narrative("Backtesting lets you see how your portfolio would have performed using different strategies. We’ll compare your portfolio against optimized strategies like Equal Weight, Mean-Variance Optimization (MVO), and Hierarchical Risk Parity (HRP).", color="#1F77B4")
-
-lookback_days = 90
-rebalance_days = 30
-nonnegative = True
-
-lookback_df = data[selected_assets].loc[start_date - timedelta(days=lookback_days):start_date]
-initial_allocs = run_optimizers(lookback_df, nonnegative_mvo=nonnegative)
-initial_allocs["Your Portfolio"] = user_weights
-strategies = list(initial_allocs.keys())
-
-results = {}
-for method in strategies:
-    if method == "Your Portfolio":
-        user_shares = {row["Asset"]: row["Amount"] for _, row in portfolio_df.iterrows()}
-        res = dynamic_backtest_portfolio_user_fixed_shares(simulation_data, asset_amounts=user_shares)
+# --- Load saved portfolio ---
+if authentication_status:
+    portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
+    if os.path.exists(portfolio_path):
+        portfolio_df = pd.read_csv(portfolio_path)
     else:
-        res = dynamic_backtest_portfolio(simulation_data, method, lookback_days, rebalance_days, nonnegative)
-    results[method] = res
+        st.warning("No saved portfolio found. Please create one in the Portfolio Editor.")
+        st.stop()
 
-downsampled = downsample_results_dict(results, start_date, end_date)
+    selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 
-st.markdown("### Cumulative Returns Over Time")
-st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), "date", "cumulative"), use_container_width=True)
-st.markdown("""
-This chart shows how each strategy performed over the selected period:
-- **Equal Weight**: Allocates equally to each asset.
-- **Mean-Variance Optimization (MVO)**: Optimizes for the best risk-return balance.
-- **Hierarchical Risk Parity (HRP)**: Balances risk across assets based on their correlations.
-- **Your Portfolio**: Your current holdings.
+    if not selected_assets:
+        st.warning("No valid assets found in your portfolio.")
+        st.stop()
 
-Backtesting helps you see which strategies might improve your portfolio’s performance. Portfolio Tuner makes this complex analysis simple!
-""")
+    if "selected_benchmark" not in st.session_state:
+        st.session_state.selected_benchmark = "BTC" if "BTC" in available_assets else "None"
 
-# --- Step 5: Optimization Snapshot ---
-st.header("🎯 Step 5: Optimize Your Portfolio (Today’s Recommendations)")
-narrative("Now let’s optimize your portfolio based on recent price trends. Portfolio Tuner suggests allocations to maximize returns while managing risk.", color="#4CAF50")
+    # --- Quick Date Range Presets ---
+    st.markdown("## 📅 Date Range & Benchmark")
 
-lookback = 90
-lookback_df = data[user_weights.keys()].tail(lookback)
-all_allocations = run_optimizers(lookback_df, nonnegative_mvo=True)
-all_allocations["Your Portfolio"] = pd.Series(user_weights)
+    preset_range = st.selectbox(
+        "Quick Date Range:",
+        ["Last 30 days", "Last 90 days", "Last 1 year", "Custom"],
+        index=1  # ✅ Sets "Last 90 days" as the default
+    )
 
-st.markdown("### Portfolio Allocations by Strategy")
-pie_charts = [pie_chart_allocation(pd.Series(all_allocations[method]), method) for method in strategies]
-st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+    max_date = data.index.max()
+    min_date = data.index.min()
 
-st.markdown("""
-These pie charts show how each strategy would allocate your portfolio today:
-- **Your Portfolio**: Your current mix.
-- **Equal Weight**, **MVO**, and **HRP**: Optimized suggestions.
+    if preset_range == "Custom":
+        default_start = max_date - pd.Timedelta(days=100)
+        date_range = st.date_input(
+            "Select custom date range:",
+            value=(default_start, max_date),
+            min_value=min_date,
+            max_value=max_date
+        )
+        start_date, end_date = map(ensure_utc, date_range)
+    else:
+        days = {"Last 30 days": 30, "Last 90 days": 90, "Last 1 year": 365}[preset_range]
+        end_date = max_date
+        start_date = max_date - pd.Timedelta(days=days)
 
-Optimizing your portfolio can help you achieve better returns with lower risk. Portfolio Tuner’s advanced algorithms do the heavy lifting for you!
-""")
 
-# --- Step 6: Monte Carlo Simulation ---
-st.header("🔮 Step 6: Forecast the Future (Monte Carlo Simulation)")
-narrative("What might your portfolio look like in the future? Monte Carlo simulations run thousands of scenarios to predict potential outcomes, helping you plan with confidence.", color="#9C27B0")
+    # --- Benchmark selector (moved up here) ---
+    st.selectbox(
+        "📌 Benchmark for comparison:",
+        options=["None"] + available_assets,
+        index=(available_assets.index(st.session_state.selected_benchmark) + 1)
+        if st.session_state.selected_benchmark in available_assets else 0,
+        key="selected_benchmark"
+    )
 
-horizon_days = 180
-n_sims = 500
-mc_result = run_smart_monte_carlo_simulation(
-    user_weights, simulation_data,
-    horizon_days=horizon_days, n_sims=n_sims,
-    correlation_strategy="shrinkage"
-)
+    benchmark = st.session_state.selected_benchmark
+    benchmark = benchmark if benchmark != "None" else None
 
-st.plotly_chart(mc_result["chart"], use_container_width=True)
-st.markdown(f"""
-### Forecast Summary (Next 6 Months)
-- **Median 6-Month Return**: `{((mc_result['ci_high'] + mc_result['ci_low']) / 2):.1%}`
-- **Best Case**: `{mc_result['max']:.1%}`
-- **Worst Case**: `{mc_result['min']:.1%}`
-""")
-st.markdown("""
-This forecast shows the range of possible outcomes for your portfolio over the next 6 months. The median return is the expected midpoint, while the best and worst cases show the potential highs and lows. Portfolio Tuner’s simulations help you prepare for the future!
-""")
+    # --- Dashboard Charts ---
+    try:
+        metrics_fig, heatmap_fig = plot_portfolio_dashboard(
+            data, selected_assets,
+            portfolio_df=portfolio_df,
+            date_range=(start_date, end_date),
+            benchmark=benchmark
+        )
+    except Exception as e:
+        st.error(f"⚠️ Error in plot_portfolio_dashboard: {type(e).__name__} — {e}")
+        st.stop()
 
-# --- Footer: Next Steps ---
-st.markdown("---")
-st.success("🎉 You’ve Completed the Guide! Now Explore More with Portfolio Tuner")
-st.markdown("""
-You’ve just analyzed, backtested, optimized, and forecasted a crypto portfolio! Portfolio Tuner empowers you with advanced tools to make smarter investment decisions. Ready to dive deeper? Check out these features:
-""")
+    # --- Portfolio Value Chart ---
+    col1, col2, col3 = st.columns([0.2, 8, 1])
+    with col2:
+        chart_with_tooltip(
+            title="Portfolio Value Over Time",
+            short_desc="This is it folks!\n How much is your investment worth?\n No fancy stuff — just the money $".replace("\n", "<br>"),
+            glossary_url="6_Glossary.py#cumulative-return",
+            chart_func=plot_portfolio_absolute_value,
+            data=data,
+            selected_assets=selected_assets,
+            start=start_date,
+            end=end_date,
+            portfolio_df=portfolio_df
+        )
 
-links = {
-    "📊 Dashboard": "pages/2_Portfolio_Dashboard.py",
-    "🎯 Optimizer": "pages/3_Portfolio_Optimizer.py",
-    "⏳ Backtest Lab": "pages/4_Backtest_Lab.py",
-    "🎮 Playground": "pages/5_Playground.py"
-}
-cols = st.columns(len(links))
-for i, (label, page_path) in enumerate(links.items()):
-    with cols[i]:
-        if st.button(f"Go to {label}"):
-            st.switch_page(page_path)
+    # --- Portfolio Metrics Section ---
+    section_heading(
+        "🧭 Portfolio Metrics",
+        term="Here's where we get technical!",
+        short_description="We want to know how much risk we are taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).",
+        glossary_url="/Glossary#sharpe-ratio",
+        level=3
+    )
 
-st.markdown("""
-Portfolio Tuner is here to help you navigate the volatile world of crypto investing with confidence. Start exploring your own portfolio today!
-""")
+    if metrics_fig and len(metrics_fig) == 6:
+        row = st.columns(3)
+        for col, fig in zip(row, metrics_fig[:3]):
+            with col:
+                st.plotly_chart(fig, use_container_width=True)
+
+        with st.expander("📐 Show Advanced Metrics"):
+            row2 = st.columns(3)
+            for col, fig in zip(row2, metrics_fig[3:]):
+                with col:
+                    st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning("Expected 6 metrics for layout, but received a different number.")
+
+    # --- Comparison Charts ---
+    st.markdown("### 🔍 Portfolio Comparison")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        chart_with_tooltip(
+            title="Correlation Heatmap",
+            term="'Don't put all your eggs in one basket'",
+            short_desc="""— well, this is the basket! Higher correlations
+            mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct!""",
+            glossary_url="/Glossary#correlation-heatmap",
+            chart_func=lambda: heatmap_fig
+        )
+
+    with col2:
+        chart_with_tooltip(
+            title="Cumulative Return vs. Benchmark",
+            term="Benchmark Comparison",
+            short_desc="Mom always said comparison is the thief of joy, but in finance it's how we contextualize our investments. Check it out!",
+            glossary_url="/Glossary#benchmark",
+            chart_func=plot_asset_cumulative_returns,
+            price_data=data,
+            selected_assets=selected_assets,
+            benchmark=benchmark,
+            start=start_date,
+            end=end_date,
+            portfolio_df=portfolio_df
+        )
+
+    # --- Optional historical charts toggle ---
+    if "show_plot" not in st.session_state:
+        st.session_state.show_plot = False
+
+    if st.button("📊 Show Historical Asset Performance"):
+        st.session_state.show_plot = not st.session_state.show_plot
+
+    if st.session_state.show_plot:
+        try:
+            plot_historical_assets(
+                data,
+                selected_assets,
+                portfolio_df=portfolio_df,
+                date_range_default=(start_date, end_date)
+            )
+        except Exception as e:
+            import traceback
+            st.error("⚠️ An error occurred in `plot_historical_assets()`")
+            st.code(traceback.format_exc())
+            st.stop()
+
+    # --- Navigation ---
+    st.markdown("---")
+    if st.button("🔙 Go to Portfolio Editor"):
+        st.switch_page("pages/1_Portfolio_Editor.py")
+        
+
+else:
+    st.warning("Please log in to view saved portfolio data.")
