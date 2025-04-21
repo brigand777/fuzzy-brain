@@ -222,11 +222,30 @@ if "optimizer_allocations" in st.session_state:
 
     st.markdown("### 📈 Bar Charts (Compare Strategies)")
     bar_cols = st.columns(2)
+
+    # --- Step 1: Get global y-axis max ---
+    all_weights = st.session_state.optimizer_allocations.values()
+    global_max = max(w.max() for w in all_weights) * 1.1  # Add 10% padding
+
+    # --- Step 2: Get unified asset order ---
+    # Use union of all assets across methods, ordered by frequency or alphabetical
+    all_assets = set()
+    for w in all_weights:
+        all_assets.update(w.index)
+    x_order = sorted(all_assets)  # Or list(all_assets) for unordered
+
+    # --- Step 3: Plot with shared y and x order ---
     for i, method in enumerate(st.session_state.optimizer_methods):
         weights = st.session_state.optimizer_allocations[method]
-        fig = plotly_bar_allocation(weights, title=f"{method} Allocation Breakdown")
+        fig = plotly_bar_allocation(
+            weights,
+            title=f"{method} Allocation Breakdown",
+            yaxis_max=global_max,
+            x_order=x_order
+        )
         with bar_cols[i % 2]:
             st.plotly_chart(fig, use_container_width=True)
+
 
 # ------------------- MONTE CARLO SIMULATION SECTION -------------------
 

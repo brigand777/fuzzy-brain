@@ -242,17 +242,53 @@ lookback_df = data[user_weights.keys()].tail(lookback)
 all_allocations = run_optimizers(lookback_df, nonnegative_mvo=True)
 all_allocations["Your Portfolio"] = pd.Series(user_weights)
 
-st.markdown("### Portfolio Allocations by Strategy")
-pie_charts = [pie_chart_allocation(pd.Series(all_allocations[method]), method) for method in strategies]
-st.altair_chart(alt.hconcat(*pie_charts), use_container_width=True)
+# Store strategies for consistent iteration
+strategies = list(all_allocations.keys())
+
+# --- Pie Charts ---
+st.markdown("### 🥧 Pie Charts (Investment Mix)")
+
+pie_cols = st.columns(len(strategies))
+show_legend = False
+for i, method in enumerate(strategies):
+    weights = pd.Series(all_allocations[method])
+    fig = plotly_pie_allocation(weights, title=f"{method} Allocation", show_legend=show_legend)
+    with pie_cols[i]:
+        st.plotly_chart(fig, use_container_width=True)
+
+# --- Bar Charts with Synced Y-Axis + Asset Order ---
+st.markdown("### 📈 Bar Charts (Compare Strategies)")
+
+bar_cols = st.columns(2)
+
+# Global max for Y-axis
+global_max = max(w.max() for w in all_allocations.values()) * 1.1  # Add padding
+
+# Unified asset order
+all_assets = set()
+for w in all_allocations.values():
+    all_assets.update(w.index)
+x_order = sorted(all_assets)
+
+for i, method in enumerate(strategies):
+    weights = all_allocations[method]
+    fig = plotly_bar_allocation(
+        weights,
+        title=f"{method} Allocation Breakdown",
+        yaxis_max=global_max,
+        x_order=x_order
+    )
+    with bar_cols[i % 2]:
+        st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("""
-These pie charts show how each strategy would allocate your portfolio today:
+These charts show how each strategy would allocate your portfolio today:
 - **Your Portfolio**: Your current mix.
 - **Equal Weight**, **MVO**, and **HRP**: Optimized suggestions.
 
-Optimizing your portfolio can help you achieve better returns with lower risk. Portfolio Tuner’s advanced algorithms do the heavy lifting for you!
+Visualizing allocations helps you compare strategies clearly. Pie charts give you an intuitive feel, while bar charts let you compare percentages across methods. Portfolio Tuner’s side-by-side view makes strategy evaluation easy!
 """)
+
 
 # --- Step 6: Monte Carlo Simulation ---
 st.header("🔮 Step 6: Forecast the Future (Monte Carlo Simulation)")

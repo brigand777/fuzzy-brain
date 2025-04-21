@@ -18,7 +18,7 @@ def plotly_pie_allocation(weights: pd.Series, title: str = "📊 Allocation", sh
     fig.update_layout(showlegend=show_legend)
     return fig
 
-def plotly_bar_allocation(weights: pd.Series, title: str = "📊 Allocation Breakdown") -> go.Figure:
+def splotly_bar_allocation(weights: pd.Series, title: str = "📊 Allocation Breakdown") -> go.Figure:
     df = pd.DataFrame({"Asset": weights.index, "Percent": weights.values * 100})
     df_sorted = df.sort_values("Percent", ascending=False)
     max_percent = df_sorted["Percent"].max()
@@ -52,6 +52,29 @@ def plotly_bar_allocation(weights: pd.Series, title: str = "📊 Allocation Brea
 
     return fig
 
+def plotly_bar_allocation(weights, title="", yaxis_max=None, x_order=None):
+    import plotly.graph_objects as go
+
+    # Reindex to enforce consistent order (fill missing with 0)
+    if x_order:
+        weights = weights.reindex(x_order).fillna(0)
+
+    fig = go.Figure(
+        data=[go.Bar(
+            x=weights.index,
+            y=weights.values,
+            text=[f"{w:.1%}" for w in weights],
+            textposition='auto'
+        )]
+    )
+    fig.update_layout(
+        title=title,
+        yaxis=dict(title='Allocation %', range=[0, yaxis_max] if yaxis_max else None),
+        xaxis=dict(title='Asset'),
+        margin=dict(t=40, b=40),
+        height=300
+    )
+    return fig
 
 
 def plot_portfolio_absolute_value(
