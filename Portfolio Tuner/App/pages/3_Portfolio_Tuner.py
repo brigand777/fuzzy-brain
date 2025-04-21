@@ -322,9 +322,38 @@ if run_mc:
 
             summary_df = pd.DataFrame(mc_result["summary"]).T[
                 ["sharpe", "volatility", "max_drawdown"]
-            ]
+            ].round(2)
+
+            # Find best and worst values
+            best_values = {
+                "sharpe": summary_df["sharpe"].max(),
+                "volatility": summary_df["volatility"].min(),
+                "max_drawdown": summary_df["max_drawdown"].max()
+            }
+            worst_values = {
+                "sharpe": summary_df["sharpe"].min(),
+                "volatility": summary_df["volatility"].max(),
+                "max_drawdown": summary_df["max_drawdown"].min()
+            }
+
+            # Styling function
+            def highlight_extremes(val, col):
+                if pd.isna(val):
+                    return ""
+                if val == best_values[col]:
+                    return "background-color: #d4edda;"  # green
+                elif val == worst_values[col]:
+                    return "background-color: #f8d7da;"  # red
+                return ""
+
+            styled_df = summary_df.style.apply(
+                lambda row: [highlight_extremes(row[col], col) for col in summary_df.columns],
+                axis=1
+            )
+
             st.markdown("### 📋 Simulation Summary (Median Sharpe, Volatility, Drawdown)")
-            st.dataframe(summary_df.round(2), use_container_width=True)
+            st.dataframe(styled_df, use_container_width=True)
+
 
 
     except Exception as e:
