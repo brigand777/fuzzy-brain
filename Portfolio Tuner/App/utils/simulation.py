@@ -4,11 +4,8 @@ import plotly.graph_objects as go
 from fitter import Fitter
 from scipy.stats import norm, t, johnsonsu
 from sklearn.covariance import LedoitWolf
+from plotly.subplots import make_subplots
 
-from fitter import Fitter
-from scipy.stats import norm, t, johnsonsu
-from sklearn.covariance import LedoitWolf
-import plotly.graph_objects as go
 import plotly.colors as pc
 
 from optimizer import run_optimizers  # Make sure this points to your real optimizer logic
@@ -30,46 +27,39 @@ def calculate_mc_metrics(portfolio_paths: np.ndarray) -> pd.DataFrame:
         "max_drawdown": max_drawdown
     })
     
+
 def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
     metric_names = ["return", "volatility", "sharpe", "max_drawdown"]
-    strategies = list(metrics.keys())
-    fig = go.Figure()
-
-    for i, strategy in enumerate(strategies):
-        df = metrics[strategy]
-        for j, metric in enumerate(metric_names):
-            fig.add_trace(go.Box(
-                y=df[metric],
-                x=[metric] * len(df[metric]),
-                name=strategy,
-                boxpoints='outliers',
-                orientation='v',
-                legendgroup=strategy,
-                showlegend=(j == 0),
-                offsetgroup=strategy,
-                marker=dict(opacity=0.5),
-                line=dict(width=1),
-                xaxis='x',
-                yaxis=f'y{i + 1}'
-            ))
-
-    fig.update_layout(
-        height=300 * len(strategies),
-        title="Monte Carlo Metrics: Box-and-Whisker per Strategy",
-        template="plotly_white",
-        boxmode='group',
-        margin=dict(t=50, b=50),
+    n_metrics = len(metric_names)
+    fig = make_subplots(
+        rows=n_metrics,
+        cols=1,
+        shared_xaxes=False,
+        vertical_spacing=0.1,
+        subplot_titles=[f"Distribution of {m.capitalize()}" for m in metric_names]
     )
 
-    for i, strategy in enumerate(strategies):
-        domain_bottom = 1 - (i + 1) / len(strategies)
-        domain_top = 1 - i / len(strategies)
-        fig['layout'][f'yaxis{i+1}'] = dict(
-            title=strategy,
-            domain=[domain_bottom, domain_top],
-            anchor='x',
-            showgrid=True
-        )
+    strategies = list(metrics.keys())
+    for i, metric in enumerate(metric_names, start=1):
+        for strategy in strategies:
+            df = metrics[strategy]
+            fig.add_trace(go.Box(
+                x=df[metric],
+                y=[strategy] * len(df),
+                name=strategy,
+                boxpoints='outliers',
+                orientation='h',
+                showlegend=(i == 1),
+                marker=dict(opacity=0.5),
+                line=dict(width=1)
+            ), row=i, col=1)
+
+    fig.update_layout(
+        height=300 * n_metrics,
+        title_text="Monte Carlo Metrics — Box-and-Whisker by Metric",
+        template="plotly_white",
+        margin=dict(t=40, b=40)
+    )
 
     return fig
 
@@ -179,8 +169,15 @@ def run_monte_carlo_with_rebalancing(
     # ➕ Forecast Chart
     fig = go.Figure()
     colors = pc.qualitative.Plotly
+
     for idx, (name, result) in enumerate(strategy_paths.items()):
         color = colors[idx % len(colors)]
+
+        # Dynamically reduce opacity per strategy to avoid overlap
+        opacity = max(0.08, 0.2 - 0.03 * idx)
+        rgba_fill = color.replace('rgb', 'rgba').replace(')', f',{opacity})')
+
+        # CI high (invisible line)
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["ci_high"],
@@ -189,6 +186,8 @@ def run_monte_carlo_with_rebalancing(
             mode='lines',
             showlegend=False
         ))
+
+        # CI low with fill down to this line
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["ci_low"],
@@ -196,9 +195,11 @@ def run_monte_carlo_with_rebalancing(
             line=dict(width=0),
             mode='lines',
             fill='tonexty',
-            fillcolor=color.replace('rgb', 'rgba').replace(')', ',0.2)'),
+            fillcolor=rgba_fill,
             showlegend=False
         ))
+
+        # Median path
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["median"],
@@ -208,12 +209,13 @@ def run_monte_carlo_with_rebalancing(
         ))
 
     fig.update_layout(
-        title="Monte Carlo Forecast — Rebalancing Strategies",
+        title="Monte Carlo Forecast",
         xaxis_title="Day",
         yaxis_title="Portfolio Value",
         hovermode="x unified",
         template="plotly_white"
     )
+
 
     return {
         "chart": fig,
@@ -329,8 +331,15 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
     # ➕ Chart
     fig = go.Figure()
     colors = pc.qualitative.Plotly
+
     for idx, (name, result) in enumerate(strategy_paths.items()):
         color = colors[idx % len(colors)]
+
+        # Dynamically reduce opacity per strategy to avoid overlap
+        opacity = max(0.08, 0.2 - 0.03 * idx)
+        rgba_fill = color.replace('rgb', 'rgba').replace(')', f',{opacity})')
+
+        # CI high (invisible line)
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["ci_high"],
@@ -339,6 +348,8 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
             mode='lines',
             showlegend=False
         ))
+
+        # CI low with fill down to this line
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["ci_low"],
@@ -346,9 +357,11 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
             line=dict(width=0),
             mode='lines',
             fill='tonexty',
-            fillcolor=color.replace('rgb', 'rgba').replace(')', ',0.2)'),
+            fillcolor=rgba_fill,
             showlegend=False
         ))
+
+        # Median path
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["median"],
@@ -358,12 +371,13 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
         ))
 
     fig.update_layout(
-        title="Monte Carlo Forecast — Multiple Strategies",
+        title="Monte Carlo Forecast",
         xaxis_title="Day",
         yaxis_title="Portfolio Value",
         hovermode="x unified",
         template="plotly_white"
     )
+
 
     return {
         "chart": fig,
