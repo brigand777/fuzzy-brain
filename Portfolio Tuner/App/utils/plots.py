@@ -11,62 +11,59 @@ from datetime import timedelta
 import plotly.express as px
 import plotly.graph_objects as go
 
-def plotly_pie_allocation(weights: pd.Series, title: str = "📊 Allocation", show_legend: bool = True) -> go.Figure:
+def plotly_pie_allocation(
+    weights: pd.Series,
+    title: str = "📊 Allocation",
+    show_legend: bool = True,
+    color_map: dict = None  # ✅ NEW
+    ) -> go.Figure:
+    import plotly.express as px
+    import pandas as pd
+
     df = pd.DataFrame({"Asset": weights.index, "Weight": weights.values})
-    fig = px.pie(df, names="Asset", values="Weight", title=title)
+
+    # Apply colors from color_map if provided
+    if color_map:
+        df["Color"] = df["Asset"].map(color_map)
+        fig = px.pie(df, names="Asset", values="Weight", title=title, color="Asset", color_discrete_map=color_map)
+    else:
+        fig = px.pie(df, names="Asset", values="Weight", title=title)
+
     fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
     fig.update_layout(showlegend=show_legend)
-    return fig
-
-def splotly_bar_allocation(weights: pd.Series, title: str = "📊 Allocation Breakdown") -> go.Figure:
-    df = pd.DataFrame({"Asset": weights.index, "Percent": weights.values * 100})
-    df_sorted = df.sort_values("Percent", ascending=False)
-    max_percent = df_sorted["Percent"].max()
-    y_axis_max = max_percent * 1.15
-
-    fig = px.bar(
-        df_sorted,
-        x="Asset",
-        y="Percent",
-        title=title,
-        text="Percent",
-        labels={"Percent": "Allocation (%)", "Asset": "Token"},
-        color="Asset",
-        color_discrete_sequence=px.colors.qualitative.Safe
-    )
-
-    fig.update_traces(
-        texttemplate="%{text:.2f}%",
-        textposition="outside"
-    )
-
-    fig.update_layout(
-        xaxis_title="Asset",
-        yaxis_title="Portfolio Allocation (%)",
-        yaxis=dict(range=[0, y_axis_max]),
-        uniformtext_minsize=8,
-        uniformtext_mode="hide",
-        height=350,
-        margin=dict(t=40, b=30, l=10, r=10)
-    )
 
     return fig
 
-def plotly_bar_allocation(weights, title="", yaxis_max=None, x_order=None):
+def plotly_bar_allocation(
+    weights,
+    title="",
+    yaxis_max=None,
+    x_order=None,
+    color_map=None
+    ):
     import plotly.graph_objects as go
+    import pandas as pd
 
-    # Reindex to enforce consistent order (fill missing with 0)
+    # Ensure weights is a pandas Series
+    weights = pd.Series(weights)
+
+    # Reorder weights and fill missing assets with 0
     if x_order:
         weights = weights.reindex(x_order).fillna(0)
+
+    # Assign colors based on asset name
+    bar_colors = [color_map.get(asset, "#1f77b4") for asset in weights.index] if color_map else None
 
     fig = go.Figure(
         data=[go.Bar(
             x=weights.index,
             y=weights.values,
             text=[f"{w:.1%}" for w in weights],
-            textposition='auto'
+            textposition='auto',
+            marker_color=bar_colors  # ✅ Colors applied here
         )]
     )
+
     fig.update_layout(
         title=title,
         yaxis=dict(title='Allocation %', range=[0, yaxis_max] if yaxis_max else None),
@@ -74,8 +71,8 @@ def plotly_bar_allocation(weights, title="", yaxis_max=None, x_order=None):
         margin=dict(t=40, b=40),
         height=300
     )
-    return fig
 
+    return fig
 
 def plot_portfolio_absolute_value(
     data, selected_assets, start, end, portfolio_df,

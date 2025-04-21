@@ -232,7 +232,6 @@ This chart shows how each strategy performed over the selected period:
 
 Backtesting helps you see which strategies might improve your portfolio’s performance. Portfolio Tuner makes this complex analysis simple!
 """)
-
 # --- Step 5: Optimization Snapshot ---
 st.header("🎯 Step 5: Optimize Your Portfolio (Today’s Recommendations)")
 narrative("Now let’s optimize your portfolio based on recent price trends. Portfolio Tuner suggests allocations to maximize returns while managing risk.", color="#4CAF50")
@@ -245,48 +244,64 @@ all_allocations["Your Portfolio"] = pd.Series(user_weights)
 # Store strategies for consistent iteration
 strategies = list(all_allocations.keys())
 
-# --- Pie Charts ---
-st.markdown("### 🥧 Pie Charts (Investment Mix)")
-
-pie_cols = st.columns(len(strategies))
-show_legend = False
-for i, method in enumerate(strategies):
-    weights = pd.Series(all_allocations[method])
-    fig = plotly_pie_allocation(weights, title=f"{method} Allocation", show_legend=show_legend)
-    with pie_cols[i]:
-        st.plotly_chart(fig, use_container_width=True)
-
-# --- Bar Charts with Synced Y-Axis + Asset Order ---
-st.markdown("### 📈 Bar Charts (Compare Strategies)")
-
-bar_cols = st.columns(2)
-
-# Global max for Y-axis
-global_max = max(w.max() for w in all_allocations.values()) * 1.1  # Add padding
-
-# Unified asset order
+# Collect all unique assets across strategies
 all_assets = set()
 for w in all_allocations.values():
     all_assets.update(w.index)
-x_order = sorted(all_assets)
+asset_list = sorted(all_assets)
 
-for i, method in enumerate(strategies):
-    weights = all_allocations[method]
-    fig = plotly_bar_allocation(
-        weights,
-        title=f"{method} Allocation Breakdown",
-        yaxis_max=global_max,
-        x_order=x_order
-    )
-    with bar_cols[i % 2]:
-        st.plotly_chart(fig, use_container_width=True)
+# Colorblind-safe palette
+palette = px.colors.qualitative.Safe  # Alternatives: Plotly, D3, Set1, Dark2
+asset_color_map = {asset: palette[i % len(palette)] for i, asset in enumerate(asset_list)}
+
+# --- Color Legend ---
+st.markdown("### 🎨 Asset Color Legend")
+legend_cols = st.columns(len(asset_color_map))
+for i, (asset, color) in enumerate(asset_color_map.items()):
+    with legend_cols[i]:
+        st.markdown(f"""
+            <div style='background-color:{color}; padding:6px 12px; border-radius:6px; text-align:center; color:#fff; font-weight:600'>
+            {asset}
+            </div>
+        """, unsafe_allow_html=True)
+
+# --- Chart Toggle ---
+chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
+
+if chart_type == "🥧 Pie Charts":
+    st.markdown("### 🥧 Investment Mix by Strategy")
+    pie_cols = st.columns(len(strategies))
+    for i, method in enumerate(strategies):
+        weights = pd.Series(all_allocations[method])
+        fig = plotly_pie_allocation(weights, title=f"{method} Allocation", show_legend=False, color_map=asset_color_map)
+        with pie_cols[i]:
+            st.plotly_chart(fig, use_container_width=True)
+
+elif chart_type == "📈 Bar Charts":
+    st.markdown("### 📈 Allocation Comparison by Strategy")
+    bar_cols = st.columns(2)
+
+    global_max = max(w.max() for w in all_allocations.values()) * 1.1  # Padding
+    x_order = asset_list
+
+    for i, method in enumerate(strategies):
+        weights = all_allocations[method]
+        fig = plotly_bar_allocation(
+            weights,
+            title=f"{method} Allocation Breakdown",
+            yaxis_max=global_max,
+            x_order=x_order,
+            color_map=asset_color_map
+        )
+        with bar_cols[i % 2]:
+            st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("""
-These charts show how each strategy would allocate your portfolio today:
+These charts show how each strategy would allocate your portfolio today.
 - **Your Portfolio**: Your current mix.
 - **Equal Weight**, **MVO**, and **HRP**: Optimized suggestions.
 
-Visualizing allocations helps you compare strategies clearly. Pie charts give you an intuitive feel, while bar charts let you compare percentages across methods. Portfolio Tuner’s side-by-side view makes strategy evaluation easy!
+You can switch between pie charts and bar charts using the toggle above. Each asset is color-coded consistently to help you track its position across strategies.
 """)
 
 
