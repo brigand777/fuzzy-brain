@@ -253,7 +253,7 @@ asset_list = sorted(all_assets)
 # Colorblind-safe palette
 palette = px.colors.qualitative.Safe  # Alternatives: Plotly, D3, Set1, Dark2
 asset_color_map = {asset: palette[i % len(palette)] for i, asset in enumerate(asset_list)}
-
+'''
 # --- Color Legend ---
 st.markdown("### 🎨 Asset Color Legend")
 legend_cols = st.columns(len(asset_color_map))
@@ -264,7 +264,7 @@ for i, (asset, color) in enumerate(asset_color_map.items()):
             {asset}
             </div>
         """, unsafe_allow_html=True)
-
+'''
 # --- Chart Toggle ---
 chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
 

@@ -15,21 +15,30 @@ def plotly_pie_allocation(
     weights: pd.Series,
     title: str = "📊 Allocation",
     show_legend: bool = True,
-    color_map: dict = None  # ✅ NEW
+    color_map: dict = None  # ✅ NEW ARG
     ) -> go.Figure:
     import plotly.express as px
     import pandas as pd
 
     df = pd.DataFrame({"Asset": weights.index, "Weight": weights.values})
 
-    # Apply colors from color_map if provided
+    # Use color mapping if provided
     if color_map:
-        df["Color"] = df["Asset"].map(color_map)
-        fig = px.pie(df, names="Asset", values="Weight", title=title, color="Asset", color_discrete_map=color_map)
+        fig = px.pie(
+            df,
+            names="Asset",
+            values="Weight",
+            title=title,
+            color="Asset",
+            color_discrete_map=color_map  # ✅ Uses your palette
+        )
     else:
         fig = px.pie(df, names="Asset", values="Weight", title=title)
 
-    fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
+    fig.update_traces(
+        textinfo="label+percent",
+        hovertemplate="%{label}: %{percent}"
+    )
     fig.update_layout(showlegend=show_legend)
 
     return fig
