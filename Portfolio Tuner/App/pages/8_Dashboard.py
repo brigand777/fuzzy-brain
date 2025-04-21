@@ -239,8 +239,17 @@ if authentication_status:
             chart_func=lambda: fig
         )
 
-    if st.button("Share Insights", key="share"):
-        st.write(f"My crypto portfolio is worth ${total_value:,.2f} with {len(portfolio_df)} coins! #CryptoInvesting")
+    with st.expander("📊 Historical Crypto Performance"):
+        try:
+            rows = st.columns(2)
+            for i, asset in enumerate(selected_assets):
+                col = rows[i % 2]
+                with col:
+                    fig = px.line(data.loc[start_date:end_date], y=asset, title=f"{asset} Price History")
+                    st.plotly_chart(fig, use_container_width=True)
+        except Exception as e:
+            st.error(f"⚠️ Error in historical charts: {e}")
+            st.info("Try selecting a shorter date range or different assets.")
 
     st.markdown("---")
     if st.button("🔙 Portfolio Editor"):
