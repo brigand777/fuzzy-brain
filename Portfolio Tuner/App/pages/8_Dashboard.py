@@ -107,28 +107,43 @@ if authentication_status:
 
     max_date = data.index.max()
     min_date = data.index.min()
-    if preset_range == "Custom":
-        default_start = max_date - pd.Timedelta(days=90)
-        date_range = st.date_input(
-            "Custom Range",
-            value=(default_start, max_date),
-            min_value=min_date,
-            max_value=max_date,
-            key="custom_range"
-        )
-        if len(date_range) == 2:
-            start_date, end_date = map(ensure_utc, date_range)
+    try:
+        if preset_range == "Custom":
+            default_start = max_date - pd.Timedelta(days=90)
+            date_range = st.date_input(
+                "Custom Range",
+                value=(default_start, max_date),
+                min_value=min_date,
+                max_value=max_date,
+                key="custom_range"
+            )
+            if len(date_range) == 2:
+                start_date, end_date = map(ensure_utc, date_range)
+            else:
+                st.warning("Please select a valid date range.")
+                st.stop()
         else:
-            st.warning("Please select a valid date range.")
-            st.stop()
-    else:
-        days = {"Last 30 days": 30, "Last 90 days": 90, "Last 1 year": 365}[preset_range]
-        end_date = max_date
-        start_date = max_date - pd.Timedelta(days=days)
+            days = {"Last 30 days": 30, "Last 90 days": 90, "Last 1 year": 365}[preset_range]
+            end_date = max_date
+            start_date = max_date - pd.Timedelta(days=days)
+    except Exception as e:
+        st.error(f"⚠️ Error processing dates: {e}")
+        st.stop()
 
     # Validate dates as UTC timestamps
-    start_date = pd.Timestamp(start_date, tz="UTC")
-    end_date = pd.Timestamp(end_date, tz="UTC")
+    try:
+        if isinstance(start_date, pd.Timestamp) and start_date.tzinfo:
+            start_date = start_date.tz_convert("UTC")
+        else:
+            start_date = pd.Timestamp(start_date).tz_localize("UTC")
+        if isinstance(end_date, pd.Timestamp) and end_date.tzinfo:
+            end_date = end_date.tz_convert("UTC")
+        else:
+            end_date = pd.Timestamp(end_date).tz_localize("UTC")
+    except Exception as e:
+        st.error(f"⚠️ Invalid date format: {e}")
+        st.stop()
+
     if start_date >= end_date:
         st.error("🚫 Start date must be before end date.")
         st.stop()
