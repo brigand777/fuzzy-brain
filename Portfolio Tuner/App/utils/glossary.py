@@ -275,7 +275,7 @@ It’s a key risk metric to understand the worst-case scenario over a given time
         "long": """MVO is based on Modern Portfolio Theory and seeks to construct a portfolio with the highest expected return for a given level of risk (or the lowest risk for a given return). 
 It relies heavily on historical means and covariances, and can be sensitive to estimation errors.
 
-🔗 [Portfolio Optimizer – MVO Explained](https://portfoliooptimizer.io/docs/optimization/mvo/)"""
+🔗 [Medium – MVO Explained](https://medium.com/@everettminshall/mean-variance-optimization-a-beginners-guide-dd1a9ddda758)"""
     },
     {
         "term": "Hierarchical Risk Parity (HRP)",
@@ -291,7 +291,7 @@ It offers better out-of-sample stability and is less sensitive to noisy data.
         "long": """Monte Carlo simulation generates thousands of potential future portfolio outcomes based on statistical properties (e.g., volatility, distribution shape). 
 It helps estimate the range of potential returns and assess risk under uncertainty.
 
-🔗 [QuantInsti – Monte Carlo Simulation in Finance](https://blog.quantinsti.com/monte-carlo-simulation-python/)"""
+🔗 [Investopedia – Monte Carlo Simulation in Finance](https://www.investopedia.com/terms/m/montecarlosimulation.asp)"""
     },
     {
         "term": "Rolling Sharpe Ratio",
@@ -299,7 +299,7 @@ It helps estimate the range of potential returns and assess risk under uncertain
         "long": """Rolling Sharpe Ratio tracks how a portfolio’s risk-adjusted return evolves over time. 
 It’s calculated using a fixed window (e.g., 30 days) to capture temporal variation in performance and risk.
 
-🔗 [Medium – Rolling Sharpe Ratio Explained](https://medium.com/@mddanishyusuf/rolling-sharpe-ratio-in-python-f2bfc39a3eb2)"""
+🔗 [QuantStart – Rolling Sharpe Ratio Explained](https://www.quantstart.com/articles/annualised-rolling-sharpe-ratio-in-qstrader/)"""
     },
     {
         "term": "Backtest",
@@ -315,7 +315,7 @@ It helps determine robustness, drawdowns, and risk metrics before applying the s
         "long": """Rebalancing is the process of periodically adjusting the portfolio to match the target asset weights. 
 It ensures risk exposure stays consistent but may incur transaction costs.
 
-🔗 [Morningstar – What Is Rebalancing?](https://www.morningstar.com/retirement/what-is-portfolio-rebalancing)"""
+🔗 [Vanguard – What Is Rebalancing?](https://investor.vanguard.com/investor-resources-education/portfolio-management/rebalancing-your-portfolio)"""
     },
     {
         "term": "Correlation Heatmap",
@@ -323,6 +323,6 @@ It ensures risk exposure stays consistent but may incur transaction costs.
         "long": """A correlation heatmap shows how assets move relative to each other. 
 High positive correlation means assets move together; low or negative values suggest diversification potential.
 
-🔗 [Towards Data Science – Correlation Heatmaps](https://towardsdatascience.com/correlation-heatmaps-in-python-558b96c2a4b8)"""
+🔗 [Seaborn – Correlation Heatmaps](https://investor.vanguard.com/investor-resources-education/portfolio-management/rebalancing-your-portfolio)"""
     }
 ]

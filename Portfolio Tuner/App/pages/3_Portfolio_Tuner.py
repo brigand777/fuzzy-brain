@@ -72,7 +72,22 @@ if portfolio_df.empty or "Asset" not in portfolio_df.columns:
     st.warning("🚫 Your portfolio is empty. Please add assets.")
     st.stop()
 
-st.dataframe(portfolio_df, use_container_width=True)
+# Calculate portfolio values and allocations based on latest prices
+max_date = data.index.max()
+latest_prices = data.loc[max_date]
+values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
+total_value = values.sum()
+portfolio_df["Value ($)"] = values
+portfolio_df["Allocation (%)"] = (values / total_value * 100).round(2)
+
+col1, col2 = st.columns([2, 3])  # Split layout for table and pie chart
+with col1:
+    st.dataframe(portfolio_df, use_container_width=True)
+with col2:
+    # Visualize allocations using plotly_pie_allocation
+    weights = pd.Series(portfolio_df["Allocation (%)"].values, index=portfolio_df["Asset"])
+    fig = plotly_pie_allocation(weights, title="📊 Portfolio Allocation", show_legend=True)
+    st.plotly_chart(fig, use_container_width=True)
 
 # ------------------- BACKTESTING SECTION -------------------
 
