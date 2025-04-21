@@ -218,6 +218,7 @@ if authentication_status:
     else:
         st.warning("Incomplete metrics data.")
 
+
     st.markdown("### 🔍 Portfolio Insights")
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -239,7 +240,47 @@ if authentication_status:
             chart_func=lambda: fig
         )
 
-    with st.expander("📊 Historical Crypto Performance"):
+    # --- Full Historical Data Plots in 2-column format ---
+    st.markdown("### 📊 Historical Trends")
+    try:
+        combined_data = data[selected_assets].loc[start_date:end_date]
+        portfolio_data = None
+        if "Amount" in portfolio_df.columns:
+            valid_assets = [a for a in portfolio_df["Asset"] if a in combined_data.columns]
+            amounts = portfolio_df.set_index("Asset").loc[valid_assets, "Amount"].fillna(0)
+            weights = amounts / amounts.sum()
+            portfolio_series = (combined_data[valid_assets] * weights).sum(axis=1)
+            portfolio_series.name = "Portfolio"
+            combined_data = combined_data.join(portfolio_series)
+
+        returns = combined_data.pct_change().fillna(0)
+        cumulative = (1 + returns).cumprod()
+        downsample_interval = max(1, len(cumulative) // 365)
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            fig_cum = go.Figure()
+            for col in cumulative.columns:
+                fig_cum.add_trace(go.Scatter(x=cumulative.index[::downsample_interval], y=cumulative[col].iloc[::downsample_interval], mode='lines', name=col, line=dict(dash='dash') if col == "Portfolio" else dict()))
+            fig_cum.update_layout(title="Cumulative Returns", xaxis_title="Date", yaxis_title="Return", hovermode="x unified")
+            st.plotly_chart(fig_cum, use_container_width=True)
+
+        with col2:
+            fig_ret = go.Figure()
+            for col in returns.columns:
+                fig_ret.add_trace(go.Scatter(x=returns.index[::downsample_interval], y=returns[col].iloc[::downsample_interval]*100, mode='lines', name=col))
+            fig_ret.update_layout(title="Daily Returns", xaxis_title="Date", yaxis_title="Return (%)", hovermode="x unified")
+            st.plotly_chart(fig_ret, use_container_width=True)
+
+        col3, col4 = st.columns(2)
+        with col3:
+            fig_price = go.Figure()
+            for col in combined_data.columns:
+                fig_price.add_trace(go.Scatter(x=combined_data.index[::downsample_interval], y=combined_data[col].iloc[::downsample_interval], mode='lines', name=col))
+            fig_price.update_layout(title="Raw Prices", xaxis_title="Date", yaxis_title="Price", hovermode="x unified")
+            st.plotly_chart(fig_price, use_container_width=True)
+    with st.expander("📊 Individual Crypto Performance"):
         try:
             rows = st.columns(2)
             for i, asset in enumerate(selected_assets):
@@ -250,6 +291,8 @@ if authentication_status:
         except Exception as e:
             st.error(f"⚠️ Error in historical charts: {e}")
             st.info("Try selecting a shorter date range or different assets.")
+    except Exception as e:
+        st.error(f"⚠️ Error in historical plots: {e}")
 
     st.markdown("---")
     if st.button("🔙 Portfolio Editor"):
