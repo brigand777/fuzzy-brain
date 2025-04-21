@@ -38,5 +38,6 @@ h3 {
 }
 </style>
 """, unsafe_allow_html=True)
+
 for item in GLOSSARY_TERMS:
     add_glossary_term(item["term"], item["short"], item["long"])
