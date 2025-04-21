@@ -26,28 +26,38 @@ authenticator, authentication_status, username = login_and_get_status()
 # --- Custom CSS to Increase Font Size for Normal Text ---
 st.markdown("""
 <style>
-/* Target normal text within paragraphs and markdown elements */
+/* Bump up normal text font size */
 .stMarkdown p, .stMarkdown div, p {
-    font-size: 18px !important;  /* Increase font size for normal text */
-    line-height: 1.5;  /* Improve readability with better line spacing */
+    font-size: 18px !important;
+    line-height: 1.5;
 }
 
-/* Ensure headers, titles, and other components are not affected */
-h1, h2, h3, h4, h5, h6 {
-    font-size: inherit !important;  /* Preserve default header sizes */
+/* Restore proper sizes for headers */
+h1 {
+    font-size: 36px !important;
+    font-weight: 700;
+}
+h2 {
+    font-size: 28px !important;
+    font-weight: 600;
+}
+h3 {
+    font-size: 22px !important;
+    font-weight: 600;
 }
 
-/* Ensure table text (dataframes) and other components are not affected */
+/* Preserve table/chart styling */
 .stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
-    font-size: inherit !important;  /* Preserve default sizes for tables and charts */
+    font-size: inherit !important;
 }
 
-/* Optional: Style the narrative boxes to match the larger text */
+/* Optional: Larger narrative box text */
 .narrative-box {
-    font-size: 20px !important;  /* Slightly larger for narrative boxes */
+    font-size: 20px !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 # --- Style Helper ---
 def narrative(text, color="#1F77B4"):
