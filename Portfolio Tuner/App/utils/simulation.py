@@ -9,9 +9,69 @@ from fitter import Fitter
 from scipy.stats import norm, t, johnsonsu
 from sklearn.covariance import LedoitWolf
 import plotly.graph_objects as go
+import plotly.colors as pc
 
 from optimizer import run_optimizers  # Make sure this points to your real optimizer logic
 
+def calculate_mc_metrics(portfolio_paths: np.ndarray) -> pd.DataFrame:
+    daily_returns = np.diff(portfolio_paths, axis=0) / portfolio_paths[:-1]
+    total_returns = portfolio_paths[-1] - 1
+    volatility = np.std(daily_returns, axis=0) * np.sqrt(252)
+    sharpe = np.mean(daily_returns, axis=0) / np.std(daily_returns, axis=0) * np.sqrt(252)
+
+    running_max = np.maximum.accumulate(portfolio_paths, axis=0)
+    drawdowns = (portfolio_paths - running_max) / running_max
+    max_drawdown = drawdowns.min(axis=0)
+
+    return pd.DataFrame({
+        "return": total_returns,
+        "volatility": volatility,
+        "sharpe": sharpe,
+        "max_drawdown": max_drawdown
+    })
+    
+def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
+    metric_names = ["return", "volatility", "sharpe", "max_drawdown"]
+    strategies = list(metrics.keys())
+    fig = go.Figure()
+
+    for i, strategy in enumerate(strategies):
+        df = metrics[strategy]
+        for j, metric in enumerate(metric_names):
+            fig.add_trace(go.Box(
+                y=df[metric],
+                x=[metric] * len(df[metric]),
+                name=strategy,
+                boxpoints='outliers',
+                orientation='v',
+                legendgroup=strategy,
+                showlegend=(j == 0),
+                offsetgroup=strategy,
+                marker=dict(opacity=0.5),
+                line=dict(width=1),
+                xaxis='x',
+                yaxis=f'y{i + 1}'
+            ))
+
+    fig.update_layout(
+        height=300 * len(strategies),
+        title="Monte Carlo Metrics: Box-and-Whisker per Strategy",
+        template="plotly_white",
+        boxmode='group',
+        margin=dict(t=50, b=50),
+    )
+
+    for i, strategy in enumerate(strategies):
+        domain_bottom = 1 - (i + 1) / len(strategies)
+        domain_top = 1 - i / len(strategies)
+        fig['layout'][f'yaxis{i+1}'] = dict(
+            title=strategy,
+            domain=[domain_bottom, domain_top],
+            anchor='x',
+            showgrid=True
+        )
+
+    return fig
 
 def run_monte_carlo_with_rebalancing(
     strategies: dict,
@@ -108,8 +168,19 @@ def run_monte_carlo_with_rebalancing(
             "max": portfolio_paths[-1].max() - 1
         }
 
+    # ➕ Metrics and Box Plot
+    metrics = {name: calculate_mc_metrics(result["paths"]) for name, result in strategy_paths.items()}
+    metric_plot = plot_metrics_box(metrics)
+
+    # Merge metric medians into summary
+    for name in strategies:
+        summary_stats[name].update(metrics[name].median().to_dict())
+
+    # ➕ Forecast Chart
     fig = go.Figure()
-    for name, result in strategy_paths.items():
+    colors = pc.qualitative.Plotly
+    for idx, (name, result) in enumerate(strategy_paths.items()):
+        color = colors[idx % len(colors)]
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["ci_high"],
@@ -125,14 +196,15 @@ def run_monte_carlo_with_rebalancing(
             line=dict(width=0),
             mode='lines',
             fill='tonexty',
-            fillcolor='rgba(173,216,230,0.15)',
+            fillcolor=color.replace('rgb', 'rgba').replace(')', ',0.2)'),
             showlegend=False
         ))
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["median"],
             name=f"{name} Median",
-            mode='lines'
+            mode='lines',
+            line=dict(color=color)
         ))
 
     fig.update_layout(
@@ -147,6 +219,8 @@ def run_monte_carlo_with_rebalancing(
         "chart": fig,
         "paths": {name: result["paths"] for name, result in strategy_paths.items()},
         "summary": summary_stats,
+        "metrics": metrics,
+        "metric_plot": metric_plot,
         "distribution_used_per_asset": distribution_used_per_asset,
         "correlation_strategy": correlation_strategy
     }
@@ -169,8 +243,11 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
         dict with:
             "chart": Plotly figure,
             "paths": {strategy: portfolio paths array},
-            "summary": {strategy: {ci_low, ci_high, min, max}},
-            "distribution_used_per_asset": {asset: dist_name}
+            "summary": {strategy: median values of all metrics},
+            "metrics": full DataFrames of per-simulation metrics,
+            "metric_plot": box and whisker plot,
+            "distribution_used_per_asset": {asset: dist_name},
+            "correlation_strategy": string
     """
     log_returns = np.log(price_data / price_data.shift(1)).dropna()
     assets = price_data.columns.tolist()
@@ -241,8 +318,19 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
             "max": portfolio_paths[-1].max() - 1
         }
 
+    # ➕ Metrics and Visualization
+    metrics = {name: calculate_mc_metrics(result["paths"]) for name, result in strategy_paths.items()}
+    metric_plot = plot_metrics_box(metrics)
+
+    # Merge metric medians into summary
+    for name in strategies:
+        summary_stats[name].update(metrics[name].median().to_dict())
+
+    # ➕ Chart
     fig = go.Figure()
-    for name, result in strategy_paths.items():
+    colors = pc.qualitative.Plotly
+    for idx, (name, result) in enumerate(strategy_paths.items()):
+        color = colors[idx % len(colors)]
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["ci_high"],
@@ -258,14 +346,15 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
             line=dict(width=0),
             mode='lines',
             fill='tonexty',
-            fillcolor='rgba(173,216,230,0.15)',
+            fillcolor=color.replace('rgb', 'rgba').replace(')', ',0.2)'),
             showlegend=False
         ))
         fig.add_trace(go.Scatter(
             x=np.arange(horizon_days),
             y=result["median"],
             name=f"{name} Median",
-            mode='lines'
+            mode='lines',
+            line=dict(color=color)
         ))
 
     fig.update_layout(
@@ -280,6 +369,8 @@ def run_monte_carlo_multi_strategy(strategies: dict, price_data: pd.DataFrame, h
         "chart": fig,
         "paths": {name: result["paths"] for name, result in strategy_paths.items()},
         "summary": summary_stats,
+        "metrics": metrics,
+        "metric_plot": metric_plot,
         "distribution_used_per_asset": distribution_used_per_asset,
         "correlation_strategy": correlation_strategy
     }

@@ -225,17 +225,6 @@ if "optimizer_allocations" in st.session_state:
     palette = qualitative.Safe
     asset_color_map = {asset: palette[i % len(palette)] for i, asset in enumerate(asset_list)}
 
-    # --- Color Legend ---
-    st.markdown("### 🎨 Asset Color Legend")
-    legend_cols = st.columns(len(asset_color_map))
-    for i, (asset, color) in enumerate(asset_color_map.items()):
-        with legend_cols[i]:
-            st.markdown(f"""
-                <div style='background-color:{color}; padding:6px 12px; border-radius:6px; text-align:center; color:#fff; font-weight:600'>
-                {asset}
-                </div>
-            """, unsafe_allow_html=True)
-
     # --- Toggle ---
     chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
 
@@ -328,8 +317,12 @@ if run_mc:
                 )
 
             st.plotly_chart(mc_result["chart"], use_container_width=True)
-            st.markdown("### 📋 Simulation Summary")
+            st.markdown("### 📊 Strategy Risk Metrics")
+            st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
+
+            st.markdown("### 📋 Simulation Summary (Medians)")
             st.dataframe(pd.DataFrame(mc_result["summary"]).T, use_container_width=True)
+
     except Exception as e:
         st.error("❌ Monte Carlo simulation failed.")
         st.error(f"Details: {e}")
