@@ -211,40 +211,67 @@ if optimize_now:
         st.error(f"Details: {e}")
 
 if "optimizer_allocations" in st.session_state:
-    st.markdown("### 🥧 Pie Charts (Investment Mix)")
-    pie_cols = st.columns(len(st.session_state.optimizer_methods))
-    show_legend = False
-    for i, method in enumerate(st.session_state.optimizer_methods):
-        weights = st.session_state.optimizer_allocations[method]
-        fig = plotly_pie_allocation(weights, title=f"{method} Allocation", show_legend=show_legend)
-        with pie_cols[i]:
-            st.plotly_chart(fig, use_container_width=True)
+    strategies = st.session_state.optimizer_methods
+    all_allocations = st.session_state.optimizer_allocations
 
-    st.markdown("### 📈 Bar Charts (Compare Strategies)")
-    bar_cols = st.columns(2)
-
-    # --- Step 1: Get global y-axis max ---
-    all_weights = st.session_state.optimizer_allocations.values()
-    global_max = max(w.max() for w in all_weights) * 1.1  # Add 10% padding
-
-    # --- Step 2: Get unified asset order ---
-    # Use union of all assets across methods, ordered by frequency or alphabetical
+    # Collect all unique assets
     all_assets = set()
-    for w in all_weights:
+    for w in all_allocations.values():
         all_assets.update(w.index)
-    x_order = sorted(all_assets)  # Or list(all_assets) for unordered
+    asset_list = sorted(all_assets)
 
-    # --- Step 3: Plot with shared y and x order ---
-    for i, method in enumerate(st.session_state.optimizer_methods):
-        weights = st.session_state.optimizer_allocations[method]
-        fig = plotly_bar_allocation(
-            weights,
-            title=f"{method} Allocation Breakdown",
-            yaxis_max=global_max,
-            x_order=x_order
-        )
-        with bar_cols[i % 2]:
-            st.plotly_chart(fig, use_container_width=True)
+    # Define color map (professional, colorblind-safe)
+    from plotly.colors import qualitative
+    palette = qualitative.Safe
+    asset_color_map = {asset: palette[i % len(palette)] for i, asset in enumerate(asset_list)}
+
+    # --- Color Legend ---
+    st.markdown("### 🎨 Asset Color Legend")
+    legend_cols = st.columns(len(asset_color_map))
+    for i, (asset, color) in enumerate(asset_color_map.items()):
+        with legend_cols[i]:
+            st.markdown(f"""
+                <div style='background-color:{color}; padding:6px 12px; border-radius:6px; text-align:center; color:#fff; font-weight:600'>
+                {asset}
+                </div>
+            """, unsafe_allow_html=True)
+
+    # --- Toggle ---
+    chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
+
+    if chart_type == "🥧 Pie Charts":
+        st.markdown("### 🥧 Investment Mix by Strategy")
+        pie_cols = st.columns(len(strategies))
+        for i, method in enumerate(strategies):
+            weights = all_allocations[method]
+            fig = plotly_pie_allocation(
+                weights,
+                title=f"{method} Allocation",
+                show_legend=False,
+                color_map=asset_color_map
+            )
+            with pie_cols[i]:
+                st.plotly_chart(fig, use_container_width=True)
+
+    elif chart_type == "📈 Bar Charts":
+        st.markdown("### 📈 Allocation Comparison by Strategy")
+        bar_cols = st.columns(2)
+
+        # Shared Y-axis and asset order
+        global_max = max(w.max() for w in all_allocations.values()) * 1.1
+        x_order = asset_list
+
+        for i, method in enumerate(strategies):
+            weights = all_allocations[method]
+            fig = plotly_bar_allocation(
+                weights,
+                title=f"{method} Allocation Breakdown",
+                yaxis_max=global_max,
+                x_order=x_order,
+                color_map=asset_color_map
+            )
+            with bar_cols[i % 2]:
+                st.plotly_chart(fig, use_container_width=True)
 
 
 # ------------------- MONTE CARLO SIMULATION SECTION -------------------
