@@ -125,15 +125,15 @@ if authentication_status:
     st.markdown("### 💰 Portfolio Health")
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        #st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric("Total Value", f"${total_value:,.2f}")
         st.markdown('</div>', unsafe_allow_html=True)
     with col2:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        #st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric("Top Crypto", portfolio_df["Asset"].iloc[0])
         st.markdown('</div>', unsafe_allow_html=True)
     with col3:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        #st.markdown('<div class="metric-card">', unsafe_allow_html=True)
         st.metric("Diversification", f"{len(portfolio_df)} Coins")
         st.markdown('</div>', unsafe_allow_html=True)
     if len(portfolio_df) < 3:
