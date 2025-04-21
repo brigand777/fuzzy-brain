@@ -12,7 +12,7 @@ from utils.plots import (
     plot_gauge_charts,
     plot_portfolio_absolute_value
 )
-from utils.gloscience import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
 
 # --- Page Setup ---
 st.set_page_config(page_title="Crypto Portfolio Dashboard", layout="wide")
@@ -50,7 +50,7 @@ if "welcome_seen" not in st.session_state:
 if authentication_status:
     portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
     if os.path.exists(portfolio_path):
-inject_tooltip_css()        portfolio_df = pd.read_csv(portfolio_path)
+        portfolio_df = pd.read_csv(portfolio_path)
     else:
         st.warning("No saved portfolio found. Create one in the Portfolio Editor.")
         st.stop()
@@ -179,6 +179,7 @@ inject_tooltip_css()        portfolio_df = pd.read_csv(portfolio_path)
         )
     except Exception as e:
         st.error(f"⚠️ Error in performance charts: {e}")
+        st.info("Try adjusting the date range or checking your assets.")
 
     # --- Metrics Section ---
     section_heading(
@@ -240,7 +241,7 @@ inject_tooltip_css()        portfolio_df = pd.read_csv(portfolio_path)
                 date_range_default=(start_date, end_date)
             )
         except Exception as e:
-            st.error(f"⚠️ Error in historical charts: {e}. Please check your date range or assets.")
+            st.error(f"⚠️ Error in historical charts: {e}")
             st.info("Try selecting a shorter date range or different assets.")
 
     # --- Share Feature ---
