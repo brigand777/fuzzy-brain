@@ -322,9 +322,9 @@ if run_mc:
 
             summary_df = pd.DataFrame(mc_result["summary"]).T[
                 ["sharpe", "volatility", "max_drawdown"]
-            ].round(2)
+            ]
 
-            # Best and worst values
+            # Identify best and worst values (before rounding)
             best_values = {
                 "sharpe": summary_df["sharpe"].max(),
                 "volatility": summary_df["volatility"].min(),
@@ -336,7 +336,7 @@ if run_mc:
                 "max_drawdown": summary_df["max_drawdown"].min()
             }
 
-            # Only change text color (no background)
+            # Style function (color text only)
             def color_text(val, col):
                 if pd.isna(val):
                     return ""
@@ -346,13 +346,14 @@ if run_mc:
                     return "color: red;"
                 return ""
 
-            styled_df = summary_df.style.apply(
-                lambda row: [color_text(row[col], col) for col in summary_df.columns],
-                axis=1
-            )
+            # Apply styling and format display
+            styled_df = summary_df.style\
+                .apply(lambda row: [color_text(row[col], col) for col in summary_df.columns], axis=1)\
+                .format("{:.2f}")  # ✅ Round display values
 
             st.markdown("### 📋 Simulation Summary (Median Sharpe, Volatility, Drawdown)")
             st.dataframe(styled_df, use_container_width=True)
+
 
 
 
