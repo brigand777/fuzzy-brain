@@ -9,7 +9,7 @@ from components.portfolio_input import edit_portfolio
 st.set_page_config(page_title="My Portfolio", layout="wide")
 authenticator, authentication_status, username = login_and_get_status()
 
-st.title("📝 Portfolio Editor")
+st.title("📝 Portfolio Builder")
 
 # --- Load asset data ---
 @st.cache_data
