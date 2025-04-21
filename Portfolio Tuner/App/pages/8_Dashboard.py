@@ -280,17 +280,17 @@ if authentication_status:
                 fig_price.add_trace(go.Scatter(x=combined_data.index[::downsample_interval], y=combined_data[col].iloc[::downsample_interval], mode='lines', name=col))
             fig_price.update_layout(title="Raw Prices", xaxis_title="Date", yaxis_title="Price", hovermode="x unified")
             st.plotly_chart(fig_price, use_container_width=True)
-    with st.expander("📊 Individual Crypto Performance"):
-        try:
-            rows = st.columns(2)
-            for i, asset in enumerate(selected_assets):
-                col = rows[i % 2]
-                with col:
-                    fig = px.line(data.loc[start_date:end_date], y=asset, title=f"{asset} Price History")
-                    st.plotly_chart(fig, use_container_width=True)
-        except Exception as e:
-            st.error(f"⚠️ Error in historical charts: {e}")
-            st.info("Try selecting a shorter date range or different assets.")
+        with st.expander("📊 Individual Crypto Performance"):
+            try:
+                rows = st.columns(2)
+                for i, asset in enumerate(selected_assets):
+                    col = rows[i % 2]
+                    with col:
+                        fig = px.line(data.loc[start_date:end_date], y=asset, title=f"{asset} Price History")
+                        st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.error(f"⚠️ Error in historical charts: {e}")
+                st.info("Try selecting a shorter date range or different assets.")
     except Exception as e:
         st.error(f"⚠️ Error in historical plots: {e}")
 
