@@ -40,11 +40,21 @@ data = load_data()
 available_assets = data.columns.tolist()
 
 # --- Welcome Banner ---
-if "welcome_seen" not in st.session_state:
+if "dashboard_welcome_seen" not in st.session_state:
+    st.session_state.dashboard_welcome_seen = False
+if not st.session_state.dashboard_welcome_seen:
     with st.expander("Welcome to Your Crypto Dashboard! 🚀", expanded=True):
         st.markdown("View your portfolio's performance, compare with benchmarks, and explore key metrics.")
-        if st.button("Get Started", key="welcome"):
-            st.session_state.welcome_seen = True
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            if st.button("Dismiss", key="welcome_dismiss"):
+                st.session_state.dashboard_welcome_seen = True
+                st.rerun()
+        with col2:
+            if st.button("Learn More", key="welcome_learn"):
+                st.markdown("[Explore the Glossary](/Glossary) or [Portfolio Editor](/pages/1_Portfolio_Editor.py)")
+                st.session_state.dashboard_welcome_seen = True
+                st.rerun()
 
 # --- Load Saved Portfolio ---
 if authentication_status:
@@ -132,14 +142,8 @@ if authentication_status:
 
     # Validate dates as UTC timestamps
     try:
-        if isinstance(start_date, pd.Timestamp) and start_date.tzinfo:
-            start_date = start_date.tz_convert("UTC")
-        else:
-            start_date = pd.Timestamp(start_date).tz_localize("UTC")
-        if isinstance(end_date, pd.Timestamp) and end_date.tzinfo:
-            end_date = end_date.tz_convert("UTC")
-        else:
-            end_date = pd.Timestamp(end_date).tz_localize("UTC")
+        start_date = start_date.tz_convert("UTC") if isinstance(start_date, pd.Timestamp) and start_date.tzinfo else pd.Timestamp(start_date).tz_localize("UTC")
+        end_date = end_date.tz_convert("UTC") if isinstance(end_date, pd.Timestamp) and end_date.tzinfo else pd.Timestamp(end_date).tz_localize("UTC")
     except Exception as e:
         st.error(f"⚠️ Invalid date format: {e}")
         st.stop()
