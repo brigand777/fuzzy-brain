@@ -12,7 +12,7 @@ from utils.plots import (
     plot_gauge_charts,
     plot_portfolio_absolute_value
 )
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
+from utils.gloscience import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
 
 # --- Page Setup ---
 st.set_page_config(page_title="Crypto Portfolio Dashboard", layout="wide")
@@ -50,7 +50,7 @@ if "welcome_seen" not in st.session_state:
 if authentication_status:
     portfolio_path = f"Portfolio Tuner/App/portfolios/{username}_portfolio.csv"
     if os.path.exists(portfolio_path):
-        portfolio_df = pd.read_csv(portfolio_path)
+inject_tooltip_css()        portfolio_df = pd.read_csv(portfolio_path)
     else:
         st.warning("No saved portfolio found. Create one in the Portfolio Editor.")
         st.stop()
@@ -64,6 +64,9 @@ if authentication_status:
     latest_prices = data.loc[data.index.max()]
     values = portfolio_df.apply(lambda row: row["Amount"] * latest_prices.get(row["Asset"], 0), axis=1)
     total_value = values.sum()
+    portfolio_df["Value ($)"] = values
+    portfolio_df["Allocation (%)"] = (values / total_value * 100).round(2)
+    
     st.markdown("### 💰 Portfolio Health")
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -123,6 +126,16 @@ if authentication_status:
         end_date = max_date
         start_date = max_date - pd.Timedelta(days=days)
 
+    # Validate dates as UTC timestamps
+    start_date = pd.Timestamp(start_date, tz="UTC")
+    end_date = pd.Timestamp(end_date, tz="UTC")
+    if start_date >= end_date:
+        st.error("🚫 Start date must be before end date.")
+        st.stop()
+    if start_date < min_date or end_date > max_date:
+        st.error("🚫 Selected dates are outside available data range.")
+        st.stop()
+
     benchmark = st.session_state.selected_benchmark if st.session_state.selected_benchmark != "None" else None
 
     # --- Interactive Dashboard ---
@@ -139,30 +152,33 @@ if authentication_status:
 
     st.markdown("### 📊 Portfolio Performance")
     # Combine value and returns into one interactive chart
-    value_fig = plot_portfolio_absolute_value(data, selected_assets, start_date, end_date, portfolio_df)
-    returns_fig = plot_asset_cumulative_returns(data, selected_assets, benchmark, start_date, end_date, portfolio_df)
-    fig = px.line(title="Portfolio Value & Returns")
-    for trace in value_fig.data:
-        fig.add_trace(trace)
-    for trace in returns_fig.data:
-        fig.add_trace(trace)
-    fig.update_layout(
-        updatemenus=[{
-            "buttons": [
-                {"label": "Value", "method": "update", "args": [{"visible": [True] + [False] * len(returns_fig.data)}]},
-                {"label": "Returns", "method": "update", "args": [{"visible": [False] * len(value_fig.data) + [True] * len(returns_fig.data)}]}
-            ],
-            "direction": "down",
-            "showactive": True
-        }],
-        showlegend=True
-    )
-    chart_with_tooltip(
-        title="Portfolio Value & Returns",
-        short_desc="Track your portfolio's total value and compare returns against a benchmark like BTC.",
-        glossary_url="6_Glossary.py#cumulative-return",
-        chart_func=lambda: fig
-    )
+    try:
+        value_fig = plot_portfolio_absolute_value(data, selected_assets, start_date, end_date, portfolio_df)
+        returns_fig = plot_asset_cumulative_returns(data, selected_assets, benchmark, start_date, end_date, portfolio_df)
+        fig = px.line(title="Portfolio Value & Returns")
+        for trace in value_fig.data:
+            fig.add_trace(trace)
+        for trace in returns_fig.data:
+            fig.add_trace(trace)
+        fig.update_layout(
+            updatemenus=[{
+                "buttons": [
+                    {"label": "Value", "method": "update", "args": [{"visible": [True] + [False] * len(returns_fig.data)}]},
+                    {"label": "Returns", "method": "update", "args": [{"visible": [False] * len(value_fig.data) + [True] * len(returns_fig.data)}]}
+                ],
+                "direction": "down",
+                "showactive": True
+            }],
+            showlegend=True
+        )
+        chart_with_tooltip(
+            title="Portfolio Value & Returns",
+            short_desc="Track your portfolio's total value and compare returns against a benchmark like BTC.",
+            glossary_url="6_Glossary.py#cumulative-return",
+            chart_func=lambda: fig
+        )
+    except Exception as e:
+        st.error(f"⚠️ Error in performance charts: {e}")
 
     # --- Metrics Section ---
     section_heading(
@@ -173,7 +189,7 @@ if authentication_status:
         level=3
     )
     st.info("ℹ️ Sharpe Ratio: Higher means better returns for the risk taken.")
-    
+
     if metrics_fig and len(metrics_fig) >= 3:
         row = st.columns(3)
         for col, fig in zip(row, metrics_fig[:3]):
@@ -224,8 +240,8 @@ if authentication_status:
                 date_range_default=(start_date, end_date)
             )
         except Exception as e:
-            st.error(f"⚠️ Error in historical charts: {e}")
-            st.stop()
+            st.error(f"⚠️ Error in historical charts: {e}. Please check your date range or assets.")
+            st.info("Try selecting a shorter date range or different assets.")
 
     # --- Share Feature ---
     if st.button("Share Insights", key="share"):
