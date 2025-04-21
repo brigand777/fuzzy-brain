@@ -51,41 +51,22 @@ def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
 
     return fig
 
+def calculate_mc_metrics(portfolio_paths: np.ndarray) -> pd.DataFrame:
+    daily_returns = np.diff(portfolio_paths, axis=0) / portfolio_paths[:-1]
+    total_returns = portfolio_paths[-1] - 1
+    volatility = np.std(daily_returns, axis=0) * np.sqrt(252)
+    sharpe = np.mean(daily_returns, axis=0) / np.std(daily_returns, axis=0) * np.sqrt(252)
 
-def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
-    metric_names = ["return", "volatility", "sharpe", "max_drawdown"]
-    n_metrics = len(metric_names)
-    fig = make_subplots(
-        rows=n_metrics,
-        cols=1,
-        shared_xaxes=False,
-        vertical_spacing=0.1,
-        subplot_titles=[f"Distribution of {m.capitalize()}" for m in metric_names]
-    )
+    running_max = np.maximum.accumulate(portfolio_paths, axis=0)
+    drawdowns = (portfolio_paths - running_max) / running_max
+    max_drawdown = drawdowns.min(axis=0)
 
-    strategies = list(metrics.keys())
-    for i, metric in enumerate(metric_names, start=1):
-        for strategy in strategies:
-            df = metrics[strategy]
-            fig.add_trace(go.Box(
-                x=df[metric],
-                y=[strategy] * len(df),
-                name=strategy,
-                boxpoints='outliers',
-                orientation='h',
-                showlegend=(i == 1),
-                marker=dict(opacity=0.5),
-                line=dict(width=1)
-            ), row=i, col=1)
-
-    fig.update_layout(
-        height=300 * n_metrics,
-        title_text="Monte Carlo Metrics — Box-and-Whisker by Metric",
-        template="plotly_white",
-        margin=dict(t=40, b=40)
-    )
-
-    return fig
+    return pd.DataFrame({
+        "return": total_returns,
+        "volatility": volatility,
+        "sharpe": sharpe,
+        "max_drawdown": max_drawdown
+    })
 
 def run_monte_carlo_with_rebalancing(
     strategies: dict,
