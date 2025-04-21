@@ -90,37 +90,49 @@ with col2:
     st.plotly_chart(fig, use_container_width=True)
 
 # ------------------- BACKTESTING SECTION -------------------
-
+# Step 2: Define Backtest Period
 st.markdown("## Step 2: 🧪 Backtest Your Portfolio")
+
+st.markdown("### 📅 Step 2.1: Select Backtest Date Range")
 col1, col2 = st.columns(2)
 
 with col1:
-    start_naive = st.date_input("📅 Start Date", value=available_dates[-252].date())
+    start_naive = st.date_input("Start Date", value=available_dates[-252].date())
+
 with col2:
-    end_naive = st.date_input("📅 End Date", value=available_dates[-1].date())
+    end_naive = st.date_input("End Date", value=available_dates[-1].date())
 
 start_date = pd.Timestamp(datetime.combine(start_naive, datetime.min.time()), tz="UTC")
 end_date = pd.Timestamp(datetime.combine(end_naive, datetime.min.time()), tz="UTC")
 
 if start_date >= end_date:
-    st.error("Start date must be before end date.")
+    st.error("🚫 Start date must be before end date.")
     st.stop()
 
-with st.expander("ℹ️ Strategy Explanations"):
+# Step 2.2: Choose Strategy Types
+st.markdown("### 🧠 Step 2.2: Choose Strategies to Backtest")
+with st.expander("ℹ️ Strategy Descriptions", expanded=False):
     st.markdown("""
     - **Equal Weight**: Equal investment in each asset.
-    - **Smart Spread (Mean Variance)**: Historical optimization.
-    - **HRB**: Risk-balanced by group.
-    - **User Portfolio**: Your custom mix.
+    - **Mean Variance (Smart Spread)**: Risk-efficient via MVO.
+    - **HRB**: Hierarchical risk-based grouping.
+    - **User Portfolio**: Your custom allocation.
     """)
 
 default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
-selected_methods = st.multiselect("🧠 Backtest Strategies:", options=default_methods, default=default_methods)
+selected_methods = st.multiselect(
+    "Select strategies to include:",
+    options=default_methods,
+    default=default_methods
+)
 
-with st.expander("🛠️ Advanced Settings"):
+# Step 2.3: Configure Advanced Settings
+st.markdown("### ⚙️ Step 2.3: Advanced Settings (Optional)")
+with st.expander("🔧 Show Advanced Settings", expanded=False):
     rebalance_days = st.slider("🔁 Rebalance Frequency (days)", 7, 90, 30, step=7)
     lookback_days = st.slider("📊 Lookback Period (days)", 30, 365, 90, step=30)
     nonnegative_toggle = st.toggle("📉 Disallow short-selling?", value=True)
+
 
 simulation_data = data.loc[start_date:end_date, [col for col in portfolio_df['Asset'] if col in data.columns]]
 
