@@ -142,8 +142,8 @@ if authentication_status:
 
     # Validate dates as UTC timestamps
     try:
-        start_date = start_date.tz_convert("UTC") if isinstance(start_date, pd.Timestamp) and start_date.tzinfo else pd.Timestamp(start_date).tz_localize("UTC")
-        end_date = end_date.tz_convert("UTC") if isinstance(end_date, pd.Timestamp) and end_date.tzinfo else pd.Timestamp(end_date).tz_localize("UTC")
+        start_date = start_date.tz_convert("UTC") if isinstance(start_date, pd.Timestamp) and start_date.tzinfo else pd.Timestamp(start_date, tz="UTC")
+        end_date = end_date.tz_convert("UTC") if isinstance(end_date, pd.Timestamp) and end_date.tzinfo else pd.Timestamp(end_date, tz="UTC")
     except Exception as e:
         st.error(f"⚠️ Invalid date format: {e}")
         st.stop()
@@ -198,7 +198,7 @@ if authentication_status:
         )
     except Exception as e:
         st.error(f"⚠️ Error in performance charts: {e}")
-        st.info("Try adjusting the date range or checking your assets.")
+        st.info("Try selecting a shorter date range or verifying your assets.")
 
     # --- Metrics Section ---
     section_heading(
