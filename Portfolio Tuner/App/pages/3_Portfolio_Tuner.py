@@ -320,8 +320,12 @@ if run_mc:
             st.markdown("### 📊 Strategy Risk Metrics")
             st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
 
-            st.markdown("### 📋 Simulation Summary (Medians)")
-            st.dataframe(pd.DataFrame(mc_result["summary"]).T, use_container_width=True)
+            summary_df = pd.DataFrame(mc_result["summary"]).T[
+                ["sharpe", "volatility", "max_drawdown"]
+            ]
+            st.markdown("### 📋 Simulation Summary (Median Sharpe, Volatility, Drawdown)")
+            st.dataframe(summary_df.round(2), use_container_width=True)
+
 
     except Exception as e:
         st.error("❌ Monte Carlo simulation failed.")

@@ -14,7 +14,7 @@ from plotly.subplots import make_subplots
 from plotly.colors import hex_to_rgb
 
 def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
-    metric_names = ["return", "volatility", "sharpe", "max_drawdown"]
+    metric_names = ["sharpe", "volatility", "max_drawdown"]
     n_metrics = len(metric_names)
     strategies = sorted(metrics.keys())
     colors = pc.qualitative.Plotly
@@ -36,10 +36,12 @@ def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
                 y=[strategy] * len(df),
                 name=strategy,
                 legendgroup=strategy,
-                showlegend=(i == 1),  # show once in top subplot
+                showlegend=(i == 1),
                 orientation='h',
                 marker=dict(color=strategy_colors[strategy], opacity=0.5),
-                line=dict(color=strategy_colors[strategy])
+                line=dict(color=strategy_colors[strategy]),
+                boxpoints=False,
+                hovertemplate="Metric: %{x:.2f}<br>Strategy: %{y}<extra></extra>"
             ), row=i, col=1)
 
     fig.update_layout(
@@ -54,8 +56,8 @@ def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
 def calculate_mc_metrics(portfolio_paths: np.ndarray) -> pd.DataFrame:
     daily_returns = np.diff(portfolio_paths, axis=0) / portfolio_paths[:-1]
     total_returns = portfolio_paths[-1] - 1
-    volatility = np.std(daily_returns, axis=0) * np.sqrt(252)
-    sharpe = np.mean(daily_returns, axis=0) / np.std(daily_returns, axis=0) * np.sqrt(252)
+    volatility = np.std(daily_returns, axis=0) * np.sqrt(365.0)
+    sharpe = np.mean(daily_returns, axis=0) / np.std(daily_returns, axis=0) * np.sqrt(365.0)
 
     running_max = np.maximum.accumulate(portfolio_paths, axis=0)
     drawdowns = (portfolio_paths - running_max) / running_max
@@ -63,9 +65,9 @@ def calculate_mc_metrics(portfolio_paths: np.ndarray) -> pd.DataFrame:
 
     return pd.DataFrame({
         "return": total_returns,
-        "volatility": volatility,
+        "volatility": 100.0*volatility,
         "sharpe": sharpe,
-        "max_drawdown": max_drawdown
+        "max_drawdown": 100.0*max_drawdown
     })
 
 def run_monte_carlo_with_rebalancing(
