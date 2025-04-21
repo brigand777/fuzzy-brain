@@ -13,6 +13,7 @@ from optimizer import run_optimizers  # Make sure this points to your real optim
 from plotly.subplots import make_subplots
 from plotly.colors import hex_to_rgb
 
+
 def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
     metric_names = ["sharpe", "volatility", "max_drawdown"]
     n_metrics = len(metric_names)
@@ -31,6 +32,7 @@ def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
     for i, metric in enumerate(metric_names, start=1):
         for strategy in strategies:
             df = metrics[strategy]
+            color = strategy_colors[strategy]
             fig.add_trace(go.Box(
                 x=df[metric],
                 y=[strategy] * len(df),
@@ -38,10 +40,15 @@ def plot_metrics_box(metrics: dict[str, pd.DataFrame]) -> go.Figure:
                 legendgroup=strategy,
                 showlegend=(i == 1),
                 orientation='h',
-                marker=dict(color=strategy_colors[strategy], opacity=0.5),
-                line=dict(color=strategy_colors[strategy]),
-                boxpoints=False,
-                hovertemplate="Metric: %{x:.2f}<br>Strategy: %{y}<extra></extra>"
+                boxpoints='outliers',
+                marker=dict(color=color, opacity=0.5),
+                line=dict(color=color),
+                hovertemplate="<b>%{x:.2f}</b> — %{y}<extra></extra>",
+                hoverlabel=dict(
+                    bgcolor=color,
+                    font_size=13,
+                    font_family="Arial"
+                )
             ), row=i, col=1)
 
     fig.update_layout(
