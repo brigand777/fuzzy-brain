@@ -108,8 +108,10 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     with col1:
         asset = st.selectbox("Select Asset to Add/Update", options=sorted(available_assets), placeholder="Search or select asset...")
 
+
     with col2:
-        input_mode = st.radio("Input Mode", ["Absolute", "Percentage"], key="input_mode", horizontal=True)
+        input_mode = st.radio("Input Mode", ["Absolute", "Percentage"], key="portfolio_input_mode", horizontal=True)
+
 
     label = "Amount" if input_mode == "Absolute" else "% of Portfolio"
     user_input = st.number_input(label, min_value=0.0, step=0.01, format="%.4f")
