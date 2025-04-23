@@ -120,24 +120,23 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     if glossary_url:
         tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    # Replace with your real image path or a base64-encoded image if needed
     mascot_url = "Portfolio Tuner/App/assets/headshot.png"
 
+    # Add mascot into the main box content, inline at bottom-right
     tooltip_content += f"""
-        <div style="position:absolute; bottom:4px; right:6px; opacity:0.5;">
-            <img src="{mascot_url}" width="16" height="16" style="border-radius: 50%;" />
+        <div style="text-align: right; margin-top: 4px;">
+            <img src="{mascot_url}" width="18" height="18" style="opacity: 0.6;" />
         </div>
     """
 
     return f"""
-    <span class="info-tooltip">
-      <span class="info-tooltip-icon">ℹ️</span>
-      <div class="info-tooltip-box">
-        {tooltip_content}
-      </div>
+    <span class="info-tooltip" style="position: relative;">
+        <span class="info-tooltip-icon">ℹ️</span>
+        <div class="info-tooltip-box">
+            {tooltip_content}
+        </div>
     </span>
     """
-
 
 
 def section_heading(
@@ -148,8 +147,13 @@ def section_heading(
     level: int = 2
 ):
     tag = f"h{level}"
-    st.markdown(f"<{tag} style='display: inline;'>{title}</{tag}>", unsafe_allow_html=True)
-    st.markdown(f"{add_info_icon(term, short_description, glossary_url)}", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <{tag} style="margin: 0;">{title}</{tag}>
+            {add_info_icon(term, short_description, glossary_url)}
+        </div>
+    """, unsafe_allow_html=True)
+
 
 def vintage_dropdown(title: str, content: str):
     """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
