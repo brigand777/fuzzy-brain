@@ -425,6 +425,12 @@ def chart_with_tooltip(
         st.altair_chart(chart, use_container_width=True)
 
 
+def plot_chart(chart):
+    if "plotly" in str(type(chart)).lower():
+        st.plotly_chart(chart, use_container_width=True)
+    else:
+        st.altair_chart(chart, use_container_width=True)
+
 def add_glossary_term(term, short, long, show_more=True):
     """Displays a glossary term with an anchor link for navigation."""
     anchor = term.lower().replace(" ", "-")  # e.g. "Sharpe Ratio" → "sharpe-ratio"

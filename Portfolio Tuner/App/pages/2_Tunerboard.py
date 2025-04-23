@@ -10,7 +10,7 @@ from utils.plots import (
     plot_portfolio_dashboard,
     plot_gauge_charts
 )
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,set_global_font_style
+from utils.glossary import add_info_icon, section_heading, inject_tooltip_css,set_global_font_style,plot_chart
 
 # --- Plot Functions ---
 def plot_asset_cumulative_returns(price_data: pd.DataFrame,
@@ -246,25 +246,24 @@ if authentication_status:
     st.markdown("### 🔍 Portfolio Insights")
     col1, col2 = st.columns([1, 1])
     with col1:
-        chart_with_tooltip(
+        st.markdown(section_heading(
             title="Correlation Heatmap",
             term="'Don't put all your eggs in one basket'",
-            short_desc="""— well, this is the basket! Higher correlations
+            short_description="""— well, this is the basket! Higher correlations
             mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct!""",
-            glossary_url="/Glossary#correlation-heatmap",
-            chart_func=lambda: heatmap_fig
-        )
+            level=3), unsafe_allow_html=True)
+         
+ 
+        st.altair_chart(heatmap_fig, use_container_width=True)
     with col2:
         pie_data = portfolio_df.set_index("Asset")["Value ($)"].reindex(selected_assets).fillna(0)
         fig = px.pie(values=pie_data.values, names=pie_data.index, title="Portfolio Allocation", color_discrete_sequence=qualitative.Safe)
-        chart_with_tooltip(
+        st.markdown(section_heading(
             title="Portfolio Allocation",
             term="Your Crypto Mix",
-            short_desc="This is where the eggs go into the baskets!",
-            glossary_url="/Glossary#allocation",
-            chart_func=lambda: fig
-        )
-
+            short_description="This is where the eggs go into the baskets!",
+            level=3), unsafe_allow_html=True)
+        st.plotly_chart(fig, use_container_width=True)
     # --- Full Historical Data Plots in 2-column format ---
     st.markdown("### 📊 Historical Trends")
     try:
@@ -290,11 +289,11 @@ if authentication_status:
                 fig_cum.add_trace(go.Scatter(x=cumulative.index[::downsample_interval], y=cumulative[col].iloc[::downsample_interval], mode='lines', name=col, line=dict(dash='dash') if col == "Portfolio" else dict()))
             fig_cum.update_layout(title="Cumulative Returns", xaxis_title="Date", yaxis_title="Return", hovermode="x unified")
             #st.plotly_chart(fig_cum, use_container_width=True)
-            chart_with_tooltip(
+            st.markdown(section_heading(
                 title="Cumulative Returns",
-                short_desc="What if you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
-                chart_func=lambda: fig_cum
-            )
+                short_description="What if you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
+                level=3), unsafe_allow_html=True)
+            plot_chart(fig_cum)
 
         with col2:
             fig_ret = go.Figure()
@@ -302,12 +301,11 @@ if authentication_status:
                 fig_ret.add_trace(go.Scatter(x=returns.index[::downsample_interval], y=returns[col].iloc[::downsample_interval]*100, mode='lines', name=col))
             fig_ret.update_layout(title="Daily Returns", xaxis_title="Date", yaxis_title="Return (%)", hovermode="x unified")
             #st.plotly_chart(fig_ret, use_container_width=True)
-            chart_with_tooltip(
+            st.markdown(section_heading(
                 title="Daily Returns",
-                short_desc="Here we see the daily action of each coin!",
-                chart_func=lambda: fig_ret
-            )
-
+                short_description="Here we see the daily action of each coin!",
+                level=3), unsafe_allow_html=True)
+            plot_chart(fig_ret)
         col3, col4 = st.columns(2)
         with col3:
             fig_price = go.Figure()
@@ -315,11 +313,11 @@ if authentication_status:
                 fig_price.add_trace(go.Scatter(x=combined_data.index[::downsample_interval], y=combined_data[col].iloc[::downsample_interval], mode='lines', name=col))
             fig_price.update_layout(title="Raw Prices", xaxis_title="Date", yaxis_title="Price", hovermode="x unified")
             #st.plotly_chart(fig_price, use_container_width=True)
-            chart_with_tooltip(
+            st.markdown(section_heading(
                 title="Raw Prices",
-                short_desc="This is the price of each coin -- in full glory!",
-                chart_func=lambda: fig_price
-            )
+                short_description="This is the price of each coin -- in full glory!",
+                level=3), unsafe_allow_html=True)
+            plot_chart(fig_price)
         with st.expander("📊 Individual Crypto Performance"):
             try:
                 rows = st.columns(2)
