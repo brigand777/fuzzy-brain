@@ -179,16 +179,30 @@ import streamlit.components.v1 as components
 def image_to_base64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+import base64
+import streamlit.components.v1 as components
 
-def render_final_tooltip_heading():
-    chart_icon_b64 = image_to_base64("Portfolio Tuner/App/assets/chart-icon.png")
-    info_icon_b64 = image_to_base64("Portfolio Tuner/App/assets/info-icon.png")
+def image_to_base64(path: str) -> str:
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
-    tooltip_content = """
-    <strong>Portfolio Tuner</strong><br>
-    Start here to configure your investment preferences and strategy.
-    <br><a href="https://example.com/glossary/tuner" target="_blank" style="color:#1F77B4;">Read more</a>
-    """
+def render_final_tooltip_heading(title: str, short_description: str, term: str = "", glossary_url: str = None, left_icon_path: str = None, info_icon_path: str = None):
+    # Fallback icons if not provided
+    if left_icon_path:
+        left_icon_b64 = image_to_base64(left_icon_path)
+        left_icon_html = f'<img src="data:image/png;base64,{left_icon_b64}" style="width: 26px; height: 26px; margin-right: 6px;" />'
+    else:
+        left_icon_html = ""
+
+    if info_icon_path:
+        info_icon_b64 = image_to_base64(info_icon_path)
+    else:
+        # fallback to ℹ️ emoji base64 if no image path is provided (optional)
+        info_icon_b64 = ""  # leave blank if you want to skip it
+
+    tooltip_html = f"<strong>{term}</strong><br>{short_description}" if term else short_description
+    if glossary_url:
+        tooltip_html += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
     html = f"""
     <style>
@@ -245,12 +259,12 @@ def render_final_tooltip_heading():
     </style>
 
     <div class="tooltip-header">
-        <img src="data:image/png;base64,{chart_icon_b64}" style="width: 26px; height: 26px;" />
-        Portfolio Tuner
+        {left_icon_html}
+        <span>{title}</span>
         <span class="info-tooltip">
             <img src="data:image/png;base64,{info_icon_b64}" class="info-tooltip-icon" />
             <div class="info-tooltip-box">
-                {tooltip_content}
+                {tooltip_html}
                 <img src="data:image/png;base64,{info_icon_b64}" alt="icon"/>
             </div>
         </span>
@@ -258,6 +272,7 @@ def render_final_tooltip_heading():
     """
 
     components.html(html, height=100)
+
 
 
 import streamlit as st
