@@ -84,15 +84,19 @@ with right:
         line-height: 1.6;
         font-family: 'Merriweather', serif;
         color: #1A1A1A;
+        display: inline-block;
+        width: 100%;
+        box-sizing: border-box;
     ">
         <h4 style="margin-top: 0;">Hey I'm Tuner Boy!</h4>
         I'm here to be your support buddy as you naviagte <strong>Portfolio Tuner</strong> – your personalized crypto strategy assistant.<br><br>
         
-        I've been arond the block a few times so I'll try my best to guida ya through the nerd talk. Ready to tune things up?! Meet me in the Tuner Tour section, I'll see ya there!<br><br>
+        I've been around the block a few times, so I'll try my best to guida ya through the nerd talk. Ready to tune things up?! Meet me in the Tuner Tour section, I'll see ya there!<br><br>
         
-        P.S. I've dropped some notes throughout the app that give you my perspective on what's goin' on, but don't tell the guys in charge I'm the one helpin' ya through this.
+        <em>P.S. I've dropped some notes throughout the app that give you my perspective on what's goin' on, but don't tell the guys in charge I'm the one helpin' ya through this.</em>
     </div>
     """, unsafe_allow_html=True)
+
 
 
 
