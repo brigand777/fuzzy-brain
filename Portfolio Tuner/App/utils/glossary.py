@@ -84,6 +84,7 @@ def image_to_base64(path: str) -> str:
 
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
     mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
+
     tooltip_content = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
         tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
@@ -92,23 +93,24 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
 <style>
 .info-tooltip {{
     position: relative;
-    display: inline-block;
-    line-height: 1;
+    display: inline-flex;
+    align-items: center;
 }}
 
 .info-tooltip-icon {{
     cursor: pointer;
     font-size: 0.9rem;
     opacity: 0.6;
+    padding-left: 4px;
 }}
 
 .info-tooltip-box {{
     visibility: hidden;
-    background-color: #1E1E1E;
-    color: #F0F0F0;
+    background-color: #FAF3D3; /* vintage yellow */
+    color: #2B2B2B;
     text-align: left;
-    border: 1px solid #444;
-    border-radius: 6px;
+    border: 1px solid #D6C899;
+    border-radius: 8px;
     padding: 10px 10px 24px 10px;
     position: absolute;
     z-index: 1000;
@@ -118,7 +120,7 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     font-size: 0.85rem;
     min-width: 220px;
     max-width: 300px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
     opacity: 0;
     transition: opacity 0.3s ease;
 }}
@@ -147,17 +149,15 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
 </span>
 """
 
-
 def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
     html = f"""
-    <div style="display: inline-flex; align-items: center; gap: 6px;">
-        <{tag} style="margin: 0;">{title}</{tag}>
+    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
+        <{tag} style="margin: 0; display: inline;">{title}</{tag}>
         {add_info_icon(term, short_description, glossary_url)}
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
-
 
 def vintage_dropdown(title: str, content: str):
     """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
