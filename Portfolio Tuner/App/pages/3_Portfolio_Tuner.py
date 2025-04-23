@@ -203,7 +203,6 @@ if "downsampled" in st.session_state:
         interactive=True,
         x_field="date",
         y_field="rolling_sharpe",
-        data=downsampled
     )
     chart_with_tooltip(
         title="📉 Drawdowns",
@@ -213,7 +212,6 @@ if "downsampled" in st.session_state:
         interactive=True,
         x_field="date",
         y_field="drawdown",
-        data=downsampled
     )
     
     with st.expander(f"{method} Allocations Over Time"):
