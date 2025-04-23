@@ -290,8 +290,8 @@ def section_heading(title, short_description, term="", glossary_url=None, level=
     position: absolute;
     bottom: 6px;
     right: 6px;
-    width: 35px;
-    height: 35px;
+    width: 28px;
+    height: 28px;
     opacity: 1;
 }}
 </style>
