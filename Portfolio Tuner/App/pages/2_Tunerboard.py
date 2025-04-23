@@ -132,7 +132,7 @@ if not st.session_state.dashboard_welcome_seen:
                 st.rerun()
         with col2:
             if st.button("Learn More", key="welcome_learn"):
-                st.markdown("[Explore the Glossary](/Glossary) or [Portfolio Editor](/pages/1_Portfolio_Editor.py)")
+                st.markdown("[Explore the Glossary](pages/6_Tuner_Glossary.py)")
                 st.session_state.dashboard_welcome_seen = True
                 st.rerun()
 

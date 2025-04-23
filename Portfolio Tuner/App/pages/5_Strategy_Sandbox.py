@@ -9,48 +9,53 @@ from utils.plots import plot_cumulative_returns, add_interactivity, plot_single_
 from optimizer import run_optimizers
 from utils.simulation import run_smart_monte_carlo_simulation
 from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,set_global_font_style
+
 # --- Page Setup ---
 st.set_page_config(page_title="Playground", layout="wide")
+
+# --- Lite Mode Toggle ---
+st.sidebar.markdown("### 🧪 Experimental")
+st.session_state.lite_mode = st.sidebar.toggle("Lite Mode", value=st.session_state.get("lite_mode", False))
+
 inject_tooltip_css()
 set_global_font_style()
+
 st.markdown("""
 <style>
-/* Bump up normal text font size */
 .stMarkdown p, .stMarkdown div, p {
     font-size: 18px !important;
     line-height: 1.5;
 }
-
-/* Preserve table/chart styling */
 .stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
     font-size: inherit !important;
 }
-
-/* Optional: Larger narrative box text */
 .narrative-box {
     font-size: 18px !important;
 }
 </style>
 """, unsafe_allow_html=True)
+
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>
-    .metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
+.metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
 </style>
 """, unsafe_allow_html=True)
+
 st.title("🎮 Strategy Sandbox")
 
-st.markdown(
-    """
-    <style>
-    .streamlit-expanderHeader {
-        font-size: 20px !important;
-        color: #333;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<style>
+.streamlit-expanderHeader {
+    font-size: 20px !important;
+    color: #333;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# You can now wrap advanced/technical content like this:
+# if not st.session_state.lite_mode:
+#     st.markdown("## Step 3: 🔮 Forecast the Future")
 
 # --- Narrative Helper ---
 def narrative(text):
@@ -147,12 +152,12 @@ with slider_col:
         weights = {k: v / 100.0 for k, v in weights.items()}  # convert % → fraction
         if abs(total_weight - 100) > 1:
             st.warning(f"⚠️ Your weights add up to {total_weight:.2f}%. Consider normalizing.")
-
-    # Show pie chart of final weights
-    pie_df = pd.DataFrame({"Asset": list(weights.keys()), "Weight": list(weights.values())})
-    pie_fig = px.pie(pie_df, names="Asset", values="Weight", title="📊 Token Allocation")
-    pie_fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
-    st.plotly_chart(pie_fig, use_container_width=True)
+    if not st.session_state.lite_mode:
+        # Show pie chart of final weights
+        pie_df = pd.DataFrame({"Asset": list(weights.keys()), "Weight": list(weights.values())})
+        pie_fig = px.pie(pie_df, names="Asset", values="Weight", title="📊 Token Allocation")
+        pie_fig.update_traces(textinfo="label+percent", hovertemplate="%{label}: %{percent}")
+        st.plotly_chart(pie_fig, use_container_width=True)
 
 
 # --- Portfolio Metrics Calculation ---
@@ -205,41 +210,41 @@ with chart_col:
 
     # --- Portfolio Gauges ---
     col1, col2, col3 = st.columns(3)
+    if not st.session_state.lite_mode:
+        with col1:
+            try:
+                fig = plot_single_gauge("Cumulative Return", cumulative_return * 100, metric_name="cumulative")
+                st.plotly_chart(fig, use_container_width=True)
+                st.caption("📈 % growth over the past year")
+            except Exception as e:
+                st.warning("Could not render Cumulative Return gauge.")
+                st.exception(e)
 
-    with col1:
-        try:
-            fig = plot_single_gauge("Cumulative Return", cumulative_return * 100, metric_name="cumulative")
-            st.plotly_chart(fig, use_container_width=True)
-            st.caption("📈 % growth over the past year")
-        except Exception as e:
-            st.warning("Could not render Cumulative Return gauge.")
-            st.exception(e)
+        with col2:
+            try:
+                fig = plot_single_gauge("Annualized Volatility", annualized_volatility * 100, metric_name="volatility")
+                st.plotly_chart(fig, use_container_width=True)
+                st.caption("💡 Measures portfolio bumpiness")
+            except Exception as e:
+                st.warning("Could not render Volatility gauge.")
+                st.exception(e)
 
-    with col2:
-        try:
-            fig = plot_single_gauge("Annualized Volatility", annualized_volatility * 100, metric_name="volatility")
-            st.plotly_chart(fig, use_container_width=True)
-            st.caption("💡 Measures portfolio bumpiness")
-        except Exception as e:
-            st.warning("Could not render Volatility gauge.")
-            st.exception(e)
+        with col3:
+            try:
+                fig = plot_single_gauge("Sharpe Ratio", sharpe_ratio, metric_name="sharpe")
+                st.plotly_chart(fig, use_container_width=True)
+                st.caption("📊 Return per unit of risk (above 1 is strong)")
+            except Exception as e:
+                st.warning("Could not render Sharpe Ratio gauge.")
+                st.exception(e)
 
-    with col3:
-        try:
-            fig = plot_single_gauge("Sharpe Ratio", sharpe_ratio, metric_name="sharpe")
-            st.plotly_chart(fig, use_container_width=True)
-            st.caption("📊 Return per unit of risk (above 1 is strong)")
-        except Exception as e:
-            st.warning("Could not render Sharpe Ratio gauge.")
-            st.exception(e)
-
-    # --- Risk Score ---
-    if risk_score > 0.05:
-        st.markdown("**Portfolio Risk Level:** 🔥 High")
-    elif risk_score > 0.03:
-        st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
-    else:
-        st.markdown("**Portfolio Risk Level:** 🧣 Low")
+        # --- Risk Score ---
+        if risk_score > 0.05:
+            st.markdown("**Portfolio Risk Level:** 🔥 High")
+        elif risk_score > 0.03:
+            st.markdown("**Portfolio Risk Level:** ⚠️ Medium")
+        else:
+            st.markdown("**Portfolio Risk Level:** 🧣 Low")
 
 
 # --- Step 3: Monte Carlo Simulator ---
@@ -247,15 +252,18 @@ st.markdown("## Step 3: 🔮 Forecast the Future")
 
 with st.expander("🔮 Monte Carlo Future Simulator", expanded=False):
     narrative("We run 100 randomized future paths using fitted distributions and correlations. Useful for stress testing your allocation.")
-
-    correlation_strategy = st.selectbox(
-        "Choose correlation method:",
-        ["shrinkage (default)", "historical", "independent"],
-        help="Shrinkage = stable estimate; historical = recent correlation; independent = no correlation"
-    )
-
+    if not st.session_state.lite_mode:  
+        correlation_strategy = st.selectbox(
+            "Choose correlation method:",
+            ["shrinkage (default)", "historical", "independent"],
+            help="Shrinkage = stable estimate; historical = recent correlation; independent = no correlation"
+        )
+        n_sims = st.slider("🎲 Number of simulations", 50, 500, 100, step=50)
+    else:
+        correlation_strategy = "historical"
+        n_sims =  500
     horizon_days = st.slider("⏳ Forecast horizon (days)", 30, 365, 180, step=30)
-    n_sims = st.slider("🎲 Number of simulations", 50, 500, 100, step=50)
+    
 
 if st.button("🚀 Run Monte Carlo Simulation"):
     if len(weights) < 2:
@@ -276,18 +284,26 @@ if st.button("🚀 Run Monte Carlo Simulation"):
         
         #st.markdown("### 📊 Forecast Summary")
         st.markdown(section_heading("📊 Forecast Summary", short_description="""This summarizes the extremes that came out of the simulations, treat these as possible what-ifs""", level=4), unsafe_allow_html=True)
+        
+        
+        if not st.session_state.lite_mode: 
+            st.markdown(f"""
+            - **Median 6-Month Return:** {(result['ci_high'] + result['ci_low']) / 2:.1%}  
+            - **Best Case Path:** {result['max']:.1%}  
+            - **Worst Case Path:** {result['min']:.1%}  
+            - **Distributions Used:**
+            """)
 
-        st.markdown(f"""
-        - **Median 6-Month Return:** {(result['ci_high'] + result['ci_low']) / 2:.1%}  
-        - **Best Case Path:** {result['max']:.1%}  
-        - **Worst Case Path:** {result['min']:.1%}  
-        - **Distributions Used:**
-        """)
+            for asset, dist in result["distribution_used_per_asset"].items():
+                st.markdown(f"`{asset}` → **{dist}**")
 
-        for asset, dist in result["distribution_used_per_asset"].items():
-            st.markdown(f"`{asset}` → **{dist}**")
-
-        st.info(f"Simulated using `{result['correlation_strategy']}` correlation strategy.")
+            st.info(f"Simulated using `{result['correlation_strategy']}` correlation strategy.")
+        else:
+            st.markdown(f"""
+            - **Median 6-Month Return:** {(result['ci_high'] + result['ci_low']) / 2:.1%}  
+            - **Best Case Path:** {result['max']:.1%}  
+            - **Worst Case Path:** {result['min']:.1%}  
+            """)
 
 # --- Footer ---
 st.markdown("---")
