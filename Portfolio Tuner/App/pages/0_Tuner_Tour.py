@@ -87,7 +87,7 @@ Welcome to **Portfolio Tuner**, the ultimate tool for crypto investors! Whether 
 left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
 
 with left:
-    st.image("Portfolio Tuner/App/assets/Tuner_boy_wink.png", width=250)
+    st.image("Portfolio Tuner/App/assets/Tuner_boy_wink2.png", width=250)
 
 with right:
     st.markdown(f"""
