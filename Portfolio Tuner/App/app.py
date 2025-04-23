@@ -50,22 +50,6 @@ try:
 except:
     st.warning("⚠️ Unable to load the intro video. Make sure the file exists.")
 
-'''
- --- Why This Exists ---
-st.markdown("## 🤔 Why Portfolio Tuner?")
-st.markdown("""
-**Existing portfolio management tools are built for traditional investments.**  
-But crypto portfolios move faster, trade 24/7, and behave differently.  
-**That’s where we come in.**
-
-Portfolio Tuner gives you:
-
-- 🔗 **Native crypto asset support** — no manual uploads or workarounds
-- 📡 **Real-time simulation** with on-chain or API-based data
-- 🧠 **Risk and return metrics tailored to crypto volatility**
-- 🎓 **Education-first UX** to guide your investing decisions
-""")
-'''
 
 # --- Mascot Introduction Section ---
 left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
