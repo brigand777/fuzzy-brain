@@ -61,42 +61,26 @@ def image_to_base64(path):
     with open(path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
-
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
+    import base64
+    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")  # adjust as needed
+
     tooltip = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
         tooltip += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    # Embed raccoon as base64
-    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
-    img_tag = f'<img src="data:image/png;base64,{mascot_b64}" width="18" height="18" style="opacity: 0.6; margin-top: 6px;" />'
+    img_tag = f'<img src="data:image/png;base64,{mascot_b64}" width="18" height="18" style="opacity:0.6; margin-top:6px;" />'
 
-    return f"""
-    <span class="info-tooltip" style="position: relative;">
-        <span class="info-tooltip-icon">ℹ️</span>
-        <div class="info-tooltip-box">
-            {tooltip}
-            {img_tag}
-        </div>
-    </span>
-    """
+    # SINGLE-LINE return: no leading/trailing newlines or indentation
+    return f'<span class="info-tooltip" style="position: relative;"><span class="info-tooltip-icon">ℹ️</span><div class="info-tooltip-box">{tooltip}{img_tag}</div></span>'
 
-def section_heading(
-    title: str,
-    short_description: str,
-    term: str = "",
-    glossary_url: str = None,
-    level: int = 2
-):
+def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
-    st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <{tag} style="margin: 0;">{title}</{tag}>
-            {add_info_icon(term, short_description, glossary_url)}
-        </div>
-    """, unsafe_allow_html=True)
-
-
+    html = f"""<div style="display: flex; align-items: center; gap: 8px;">
+        <{tag} style="margin: 0;">{title}</{tag}>
+        {add_info_icon(term, short_description, glossary_url)}
+    </div>"""
+    st.markdown(html, unsafe_allow_html=True)
 
 
 def vintage_dropdown(title: str, content: str):
