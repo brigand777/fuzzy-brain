@@ -21,6 +21,7 @@ from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, i
 
 # --- Page Setup ---
 st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
+inject_tooltip_css()
 authenticator, authentication_status, username = login_and_get_status()
 st.title("💼 Portfolio Tuner")
 
