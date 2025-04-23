@@ -148,16 +148,20 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
 
 import streamlit as st
 import streamlit.components.v1 as components
-
-def section_heading(title, short_description, term="", glossary_url=None, level=2):
+def section_heading(title, short_description, term="", glossary_url=None, level=2, left_icon=None):
     tag = f"h{level}"
+
+    icon_html = f'<img src="{left_icon}" width="24" style="margin-right: 6px; vertical-align: middle;" />' if left_icon else ""
+    
     html = f"""
-    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
-        <{tag} style="margin: 0;">{title}</{tag}>
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+        {icon_html}
+        <{tag} style="margin: 0; color: #F0F0F0; font-weight: 600;">{title}</{tag}>
         {add_info_icon(term, short_description, glossary_url)}
     </div>
     """
-    components.html(html, height=60)  # This ensures proper render without escaping
+    st.components.v1.html(html, height=60)
+
 
 def vintage_dropdown(title: str, content: str):
     """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
