@@ -238,7 +238,7 @@ def image_to_base64(path: str) -> str:
 def section_heading(title, short_description, term="", glossary_url=None, level=2, mascot_path="Portfolio Tuner/App/assets/headshot.png"):
     mascot_b64 = image_to_base64(mascot_path)
 
-    tooltip_html = f"<strong>{term}</strong><br>{short_description}" if term else short_description
+    tooltip_html = f"<strong>{term or title}</strong><br>{short_description}"
     if glossary_url:
         tooltip_html += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
@@ -246,18 +246,18 @@ def section_heading(title, short_description, term="", glossary_url=None, level=
 
     html = f"""
 <style>
-/* Inject only once! */
+/* Tooltip styles */
 .info-tooltip {{
     position: relative;
-    display: inline-flex;
-    align-items: center;
-    margin-left: 6px;
+    display: inline-block;
+    line-height: 1;
 }}
 
 .info-tooltip-icon {{
     cursor: pointer;
     font-size: 1rem;
     opacity: 0.6;
+    margin-left: 4px;
     vertical-align: middle;
 }}
 
@@ -279,7 +279,6 @@ def section_heading(title, short_description, term="", glossary_url=None, level=
     box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
     opacity: 0;
     transition: opacity 0.3s ease;
-    white-space: normal;
 }}
 
 .info-tooltip:hover .info-tooltip-box {{
