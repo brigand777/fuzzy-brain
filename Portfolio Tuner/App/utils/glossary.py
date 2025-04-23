@@ -155,7 +155,13 @@ def chart_with_tooltip(
     y_field: str = None,
     *args, **kwargs
     ):
+    import streamlit as st
     from utils.plots import add_interactivity
+
+    # --- Tooltip content handling ---
+    tooltip_content = f"<strong>{term}</strong><br>{short_desc}" if term else short_desc
+    if glossary_url:
+        tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
     tooltip_html = f"""
     <style>
@@ -181,9 +187,9 @@ def chart_with_tooltip(
       visibility: hidden;
       opacity: 0;
       width: 220px;
-      background-color: #FFF8DC; /* 🟡 parchment background */
-      color: #000;               /* black text */
-      font-style: italic;        /* handwritten look */
+      background-color: #FFF8DC;
+      color: #000;
+      font-style: italic;
       font-family: 'Merriweather', serif;
       text-align: left;
       border-radius: 6px;
@@ -211,10 +217,8 @@ def chart_with_tooltip(
       <span class="tooltip-inline">
         <span class="tooltip-icon">ℹ️</span>
         <div class="tooltip-text-wrapper">
-          {f"<strong>{term}</strong><br>" if term else ""}{short_desc}
-          {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
+          {tooltip_content}
         </div>
-
       </span>
     </h3>
     """
