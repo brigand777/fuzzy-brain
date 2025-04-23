@@ -12,6 +12,11 @@ from utils.plots import (
 )
 from utils.glossary import add_info_icon, section_heading, inject_tooltip_css,set_global_font_style, plot_unk_chart
 
+# --- Page Setup ---
+st.set_page_config(page_title="Crypto Portfolio Dashboard", layout="wide")
+inject_tooltip_css()
+set_global_font_style()
+
 # --- Lite Mode Toggle ---
 st.sidebar.markdown("### 🧪 Experimental")
 st.session_state.lite_mode = st.sidebar.toggle("Lite Mode", value=st.session_state.get("lite_mode", False))
@@ -67,10 +72,7 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
     fig.update_layout(title="Portfolio Value Over Time", xaxis_title="Date", yaxis_title="Value ($)", hovermode="x unified")
     return fig
 
-# --- Page Setup ---
-st.set_page_config(page_title="Crypto Portfolio Dashboard", layout="wide")
-inject_tooltip_css()
-set_global_font_style()
+
 
 # Remaining logic stays unchanged — Lite Mode is toggled in st.session_state['lite_mode']
 # You can now wrap advanced or technical elements like this:
