@@ -18,9 +18,17 @@ from utils.plots import (
 from utils.simulation import run_smart_monte_carlo_simulation
 from optimizer import run_optimizers
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
 
 # --- Config ---
 st.set_page_config(page_title="Portfolio Tuner: Getting Started Guide", layout="wide")
+inject_tooltip_css()
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+    .metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
+</style>
+""", unsafe_allow_html=True)
 authenticator, authentication_status, username = login_and_get_status()
 
 # --- Custom CSS to Increase Font Size for Normal Text ---
@@ -92,7 +100,9 @@ Welcome to **Portfolio Tuner**, the ultimate tool for crypto investors! Whether 
 """)
 
 # --- Step 1: Portfolio Setup ---
-st.header("📥 Step 1: Set Up Your Portfolio")
+#st.header("📥 Step 1: Set Up Your Portfolio")
+section_heading("📥 Step 1: Set Up Your Portfolio", short_description="Hey you're starting your journey! We've picked out some of the biggest crypto currencies for ya to start our guide, sit back, relax, and just crypto", level=2)
+
 narrative("Portfolio Tuner lets you input your crypto holdings to analyze their performance. For this guide, we'll use a predefined portfolio with Bitcoin (BTC), Ethereum (ETH), Solana (SOL), and Binance Coin (BNB).", color="#1F77B4")
 
 portfolio_df = create_example_portfolio()
