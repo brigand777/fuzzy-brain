@@ -10,7 +10,7 @@ from utils.plots import (
     plot_portfolio_dashboard,
     plot_gauge_charts
 )
-from utils.glossary import add_info_icon, section_heading, inject_tooltip_css,set_global_font_style,plot_chart
+from utils.glossary import add_info_icon, section_heading, inject_tooltip_css,set_global_font_style, plot_unk_chart
 
 # --- Plot Functions ---
 def plot_asset_cumulative_returns(price_data: pd.DataFrame,
@@ -293,7 +293,7 @@ if authentication_status:
                 title="Cumulative Returns",
                 short_description="What if you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
                 level=3), unsafe_allow_html=True)
-            plot_chart(fig_cum)
+            plot_unk_chart(fig_cum)
 
         with col2:
             fig_ret = go.Figure()
@@ -305,7 +305,7 @@ if authentication_status:
                 title="Daily Returns",
                 short_description="Here we see the daily action of each coin!",
                 level=3), unsafe_allow_html=True)
-            plot_chart(fig_ret)
+            plot_unk_chart(fig_ret)
         col3, col4 = st.columns(2)
         with col3:
             fig_price = go.Figure()
@@ -317,7 +317,7 @@ if authentication_status:
                 title="Raw Prices",
                 short_description="This is the price of each coin -- in full glory!",
                 level=3), unsafe_allow_html=True)
-            plot_chart(fig_price)
+            plot_unk_chart(fig_price)
         with st.expander("📊 Individual Crypto Performance"):
             try:
                 rows = st.columns(2)

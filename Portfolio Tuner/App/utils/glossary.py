@@ -425,7 +425,7 @@ def chart_with_tooltip(
         st.altair_chart(chart, use_container_width=True)
 
 
-def plot_chart(chart):
+def plot_unk_chart(chart):
     if "plotly" in str(type(chart)).lower():
         st.plotly_chart(chart, use_container_width=True)
     else:
