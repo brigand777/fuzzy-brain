@@ -235,10 +235,14 @@ def image_to_base64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-def section_heading(title, short_description, term="", glossary_url=None, level=2, mascot_path="Portfolio Tuner/App/assets/headshot.png"):
+def section_heading(title, short_description, term=None, glossary_url=None, level=2, mascot_path="Portfolio Tuner/App/assets/headshot.png"):
     mascot_b64 = image_to_base64(mascot_path)
 
-    tooltip_html = f"<strong>{term or title}</strong><br>{short_description}"
+    if term:
+        tooltip_html = f"<strong>{term}</strong><br>{short_description}"
+    else:
+        tooltip_html = short_description
+
     if glossary_url:
         tooltip_html += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
