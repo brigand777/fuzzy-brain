@@ -138,7 +138,9 @@ The table now shows the value of each holding in USD and its allocation as a per
 selected_assets = portfolio_df["Asset"].dropna().unique().tolist()
 
 # --- Step 2: Date Range ---
-st.header("📆 Step 2: Select Your Date Range")
+#st.header("📆 Step 2: Select Your Date Range")
+section_heading("📆 Step 2: Select Your Date Range", short_description="Adjusting which time period you want to understand more about is going to be an ongoing thing...hindsight is great!", level=2)
+
 narrative("Choose a time period to analyze your portfolio’s past performance. We’ll default to the last 90 days, but you can adjust the dates as needed.", color="#1F77B4")
 
 # Ensure UTC-awareness for dates
