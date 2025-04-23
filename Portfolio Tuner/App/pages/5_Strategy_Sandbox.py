@@ -8,7 +8,7 @@ from datetime import timedelta
 from utils.plots import plot_cumulative_returns, add_interactivity, plot_single_gauge
 from optimizer import run_optimizers
 from utils.simulation import run_smart_monte_carlo_simulation
-
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
 # --- Page Setup ---
 st.set_page_config(page_title="Playground", layout="wide")
 inject_tooltip_css()
