@@ -220,7 +220,7 @@ if "downsampled" in st.session_state:
         y_field="drawdown",
     )
     
-    with st.expander(f"{method} Allocations Over Time"):
+    with st.expander(f"Strategy Allocations Over Time"):
         for method in selected_methods:
             st.altair_chart(
                 add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
