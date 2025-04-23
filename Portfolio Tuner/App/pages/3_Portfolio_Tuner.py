@@ -55,7 +55,7 @@ with st.spinner("Loading price data..."):
 
 # --- Step 1: Portfolio Setup ---
 #st.markdown("## Step 1: 📁 Select Portfolio")
-section_heading("Step 1: 📁 Select Portfolio", short_description="We can either pick what we built in Portfolio Builder or make something entirely new..yippie!", level=2)
+render_final_tooltip_heading("Step 1: 📁 Select Portfolio", short_description="We can either pick what we built in Portfolio Builder or make something entirely new..yippie!", level=2)
 
 input_mode = st.radio("Where is your portfolio coming from?", ["Use My Saved Portfolio", "Build Portfolio Now"])
 portfolio_df = None

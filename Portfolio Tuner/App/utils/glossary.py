@@ -173,6 +173,93 @@ def add_info_icon(title, short_description, term="", glossary_url=None, left_ico
 
     components.html(html, height=70)
 
+import base64
+import streamlit.components.v1 as components
+
+def image_to_base64(path: str) -> str:
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+def render_final_tooltip_heading():
+    chart_icon_b64 = image_to_base64("Portfolio Tuner/App/assets/chart-icon.png")
+    info_icon_b64 = image_to_base64("Portfolio Tuner/App/assets/info-icon.png")
+
+    tooltip_content = """
+    <strong>Portfolio Tuner</strong><br>
+    Start here to configure your investment preferences and strategy.
+    <br><a href="https://example.com/glossary/tuner" target="_blank" style="color:#1F77B4;">Read more</a>
+    """
+
+    html = f"""
+    <style>
+    .tooltip-header {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #F5F5F5;
+    }}
+    .info-tooltip {{
+        position: relative;
+        display: inline-block;
+    }}
+    .info-tooltip-icon {{
+        width: 20px;
+        height: 20px;
+        opacity: 0.8;
+        cursor: pointer;
+    }}
+    .info-tooltip-box {{
+        visibility: hidden;
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #FAF3D3;
+        color: #1A1A1A;
+        border: 1px solid #D6C899;
+        border-radius: 8px;
+        padding: 10px 10px 24px 10px;
+        box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
+        font-size: 0.85rem;
+        z-index: 9999;
+        min-width: 220px;
+        max-width: 300px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }}
+    .info-tooltip:hover .info-tooltip-box {{
+        visibility: visible;
+        opacity: 1;
+    }}
+    .info-tooltip-box img {{
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        width: 18px;
+        height: 18px;
+        opacity: 0.4;
+    }}
+    </style>
+
+    <div class="tooltip-header">
+        <img src="data:image/png;base64,{chart_icon_b64}" style="width: 26px; height: 26px;" />
+        Portfolio Tuner
+        <span class="info-tooltip">
+            <img src="data:image/png;base64,{info_icon_b64}" class="info-tooltip-icon" />
+            <div class="info-tooltip-box">
+                {tooltip_content}
+                <img src="data:image/png;base64,{info_icon_b64}" alt="icon"/>
+            </div>
+        </span>
+    </div>
+    """
+
+    components.html(html, height=100)
+
+
 import streamlit as st
 import streamlit.components.v1 as components
 def section_heading(title, short_description, term="", glossary_url=None, level=2, left_icon=None):
