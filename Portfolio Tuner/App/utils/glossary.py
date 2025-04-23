@@ -90,74 +90,74 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
         tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
     return f"""
-<style>
-.info-tooltip {{
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-}}
+    <style>
+    .info-tooltip {{
+        position: relative;
+        display: inline-block;
+        line-height: 1;
+    }}
+    .info-tooltip-icon {{
+        cursor: pointer;
+        font-size: 0.9rem;
+        opacity: 0.6;
+        padding-left: 2px;
+    }}
+    .info-tooltip-box {{
+        visibility: hidden;
+        background-color: #FAF3D3;
+        color: #2B2B2B;
+        text-align: left;
+        border: 1px solid #D6C899;
+        border-radius: 8px;
+        padding: 10px 10px 24px 10px;
+        position: absolute;
+        z-index: 1000;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        min-width: 220px;
+        max-width: 300px;
+        box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }}
+    .info-tooltip:hover .info-tooltip-box {{
+        visibility: visible;
+        opacity: 1;
+    }}
+    .info-tooltip-box img {{
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        width: 18px;
+        height: 18px;
+        opacity: 0.4;
+    }}
+    </style>
 
-.info-tooltip-icon {{
-    cursor: pointer;
-    font-size: 0.9rem;
-    opacity: 0.6;
-    padding-left: 4px;
-}}
+    <span class="info-tooltip">
+        <span class="info-tooltip-icon">ℹ️</span>
+        <div class="info-tooltip-box">
+            {tooltip_content}
+            <img src="data:image/png;base64,{mascot_b64}" alt="icon"/>
+        </div>
+    </span>
+    """
 
-.info-tooltip-box {{
-    visibility: hidden;
-    background-color: #FAF3D3; /* vintage yellow */
-    color: #2B2B2B;
-    text-align: left;
-    border: 1px solid #D6C899;
-    border-radius: 8px;
-    padding: 10px 10px 24px 10px;
-    position: absolute;
-    z-index: 1000;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.85rem;
-    min-width: 220px;
-    max-width: 300px;
-    box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}}
 
-.info-tooltip:hover .info-tooltip-box {{
-    visibility: visible;
-    opacity: 1;
-}}
-
-.info-tooltip-box img {{
-    position: absolute;
-    bottom: 6px;
-    right: 6px;
-    width: 18px;
-    height: 18px;
-    opacity: 0.4;
-}}
-</style>
-
-<span class="info-tooltip">
-    <span class="info-tooltip-icon">ℹ️</span>
-    <div class="info-tooltip-box">
-        {tooltip_content}
-        <img src="data:image/png;base64,{mascot_b64}" alt="icon"/>
-    </div>
-</span>
-"""
+import streamlit as st
+import streamlit.components.v1 as components
 
 def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
     html = f"""
     <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
-        <{tag} style="margin: 0; display: inline;">{title}</{tag}>
+        <{tag} style="margin: 0;">{title}</{tag}>
         {add_info_icon(term, short_description, glossary_url)}
     </div>
     """
-    st.markdown(html, unsafe_allow_html=True)
+    components.html(html, height=60)  # This ensures proper render without escaping
 
 def vintage_dropdown(title: str, content: str):
     """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
