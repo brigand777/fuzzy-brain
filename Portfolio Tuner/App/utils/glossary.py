@@ -292,7 +292,7 @@ def section_heading(title, short_description, term="", glossary_url=None, level=
     right: 6px;
     width: 25px;
     height: 25px;
-    opacity: 1;
+    opacity: .1;
 }}
 </style>
 
