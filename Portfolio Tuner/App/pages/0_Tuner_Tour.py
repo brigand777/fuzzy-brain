@@ -104,8 +104,7 @@ with right:
         ">
             <h4 style="margin-top: 0;">You made it to my tour!</h4>
             Check out all the cool stuff that's offered. Remember if you get lost you can always come back here, and along the way there are my notes!<br><br>
-            If you do get stuck or just want to get a better edumacation go to the Glossary, I slipped in some explanations for ya ;)<br><br>
-            P.S. I've dropped some notes (labeled ℹ️) throughout the app that give you my perspective on what's goin' on, but don't tell the guys in charge I'm the one helpin' ya through this.
+            P.S. If you do get stuck or just want to get a better edumacation go to the Glossary, I slipped in some explanations for ya ;)
         </div>
         """, unsafe_allow_html=True)
 # --- Step 1: Portfolio Setup ---
