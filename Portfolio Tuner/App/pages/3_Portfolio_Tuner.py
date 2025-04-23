@@ -155,8 +155,10 @@ with st.expander("ℹ️ Strategy Descriptions", expanded=False):
     - **HRB**: Hierarchical risk-based grouping.
     - **User Portfolio**: Your custom allocation.
     """)
-
-default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
+if not st.session_state.lite_mode:
+    default_methods = ["Equal Weight", "Mean Variance", "HRB", "User Portfolio"]
+else:
+    default_methods = ["Equal Weight", "User Portfolio"]
 selected_methods = st.multiselect(
     "Select strategies to include:",
     options=default_methods,
@@ -259,10 +261,16 @@ if "downsampled" in st.session_state:
 
 # ------------------- OPTIMIZER SECTION -------------------
 
-st.markdown("## 📌 Today's Optimal Allocations")
+#st.markdown("## 📌 Today's Optimal Allocations")
+st.markdown(section_heading(
+        title="📌 Today's Optimal Allocations",
+        short_description="This is how you should allocate today according to each streategy's math! You can pick which display style you want, I prefer the bars..",
+        level=2), unsafe_allow_html=True)
 narrative("These are strategy-based recommendations based on recent price trends.", color="#4CAF50")
-
-lookback = st.selectbox("📆 Lookback period for optimizer", [30, 60, 90, 180, 365], index=2)
+if not st.session_state.lite_mode:
+    lookback = st.selectbox("📆 Lookback period for optimizer", [30, 60, 90, 180, 365], index=2)
+else:
+    lookback = 90
 optimize_now = st.button("Run Optimizer")
 
 if optimize_now:
@@ -311,11 +319,11 @@ if "optimizer_allocations" in st.session_state:
         chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
     
     if chart_type == "🥧 Pie Charts":
-        #st.markdown("### 🥧 Investment Mix by Strategy")
-        st.markdown(section_heading(
-        title="🥧 Investment Mix by Strategy",
-        short_description="This is how you should allocate today according to each streategy's math! You can pick which display style you want, I prefer the bars..",
-        level=3), unsafe_allow_html=True)
+        st.markdown("### 🥧 Investment Mix by Strategy")
+        #st.markdown(section_heading(
+        #title="🥧 Investment Mix by Strategy",
+        #short_description="This is how you should allocate today according to each streategy's math! You can pick which display style you want, I prefer the bars..",
+        #level=3), unsafe_allow_html=True)
         pie_cols = st.columns(len(strategies))
         for i, method in enumerate(strategies):
             weights = all_allocations[method]
@@ -329,11 +337,11 @@ if "optimizer_allocations" in st.session_state:
                 st.plotly_chart(fig, use_container_width=True)
 
     elif chart_type == "📈 Bar Charts":
-        #st.markdown("### 📈 Allocation Comparison by Strategy")
-        st.markdown(section_heading(
-        title="📈 Allocation Comparison by Strategy",
-        short_description="This is how you should allocate today according to each streategy's math! You can pick which display style you want, I prefer the bars..",
-        level=3), unsafe_allow_html=True)
+        st.markdown("### 📈 Allocation Comparison by Strategy")
+        #st.markdown(section_heading(
+        #title="📈 Allocation Comparison by Strategy",
+        #short_description="This is how you should allocate today according to each streategy's math! You can pick which display style you want, I prefer the bars..",
+        #level=3), unsafe_allow_html=True)
         bar_cols = st.columns(2)
 
         # Shared Y-axis and asset order
