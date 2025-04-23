@@ -83,7 +83,31 @@ st.title("🚀 Getting Started with Portfolio Tuner: A Step-by-Step Guide")
 st.markdown("""
 Welcome to **Portfolio Tuner**, the ultimate tool for crypto investors! Whether you're a beginner or a seasoned trader, this guide will walk you through analyzing, backtesting, optimizing, and forecasting your cryptocurrency portfolio using a predefined example portfolio. Let's dive in!
 """)
+# --- Mascot Introduction Section ---
+left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
 
+with left:
+    st.image("Portfolio Tuner/App/assets/Tuner_boy_wink.png", width=250)
+
+with right:
+    st.markdown(f"""
+        <div style="
+            background-color: #FAF3D3;
+            border: 1px solid #D6C899;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            line-height: 1.6;
+            font-family: 'Merriweather', serif;
+            color: #1A1A1A;
+        ">
+            <h4 style="margin-top: 0;">You made it to my tour!</h4>
+            Check out all the cool stuff that's offered. Remember if you get lost you can always come back here, and along the way there are my notes!<br><br>
+            If you do get stuck or just want to get a better edumacation go to the Glossary, I slipped in some explanations for ya ;)<br><br>
+            P.S. I've dropped some notes (labeled ℹ️) throughout the app that give you my perspective on what's goin' on, but don't tell the guys in charge I'm the one helpin' ya through this.
+        </div>
+        """, unsafe_allow_html=True)
 # --- Step 1: Portfolio Setup ---
 #st.header("📥 Step 1: Set Up Your Portfolio")
 #st.markdown(section_heading("📥 Step 1: Set Up Your Portfolio", short_description="Hey you're starting your journey! We've picked out some of the biggest crypto currencies for ya to start our guide, sit back, relax, and just crypto", level=2), unsafe_allow_html=True)
