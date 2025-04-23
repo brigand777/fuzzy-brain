@@ -76,34 +76,38 @@ def set_global_font_style():
     </style>
     """, unsafe_allow_html=True)
 
+import base64
 
 def image_to_base64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
-    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")  # Adjust path as needed
-    tooltip = f"<strong>{term}</strong><br>{short_description}" if term else short_description
+    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
+    tooltip_content = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
-        tooltip += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
+        tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    return f'''
+    return f"""
 <style>
 .info-tooltip {{
     position: relative;
     display: inline-block;
+    line-height: 1;
 }}
 
 .info-tooltip-icon {{
     cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0.6;
 }}
 
 .info-tooltip-box {{
     visibility: hidden;
-    background-color: white;
-    color: black;
+    background-color: #1E1E1E;
+    color: #F0F0F0;
     text-align: left;
-    border: 1px solid #ccc;
+    border: 1px solid #444;
     border-radius: 6px;
     padding: 10px 10px 24px 10px;
     position: absolute;
@@ -111,10 +115,10 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     bottom: 120%;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     min-width: 220px;
     max-width: 300px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
     opacity: 0;
     transition: opacity 0.3s ease;
 }}
@@ -130,25 +134,28 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     right: 6px;
     width: 18px;
     height: 18px;
-    opacity: 0.5;
+    opacity: 0.4;
 }}
 </style>
 
 <span class="info-tooltip">
     <span class="info-tooltip-icon">ℹ️</span>
     <div class="info-tooltip-box">
-        {tooltip}
-        <img src="data:image/png;base64,{mascot_b64}" />
+        {tooltip_content}
+        <img src="data:image/png;base64,{mascot_b64}" alt="icon"/>
     </div>
 </span>
-'''
+"""
+
 
 def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
-    html = f"""<div style="display: flex; align-items: center; gap: 8px;">
+    html = f"""
+    <div style="display: inline-flex; align-items: center; gap: 6px;">
         <{tag} style="margin: 0;">{title}</{tag}>
         {add_info_icon(term, short_description, glossary_url)}
-    </div>"""
+    </div>
+    """
     st.markdown(html, unsafe_allow_html=True)
 
 
