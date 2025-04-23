@@ -209,22 +209,28 @@ if "downsampled" in st.session_state:
     st.markdown("## 📊 Backtest Results")
     downsampled = st.session_state.downsampled
     selected_methods = st.session_state.selected_methods
+    cum_fig = add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative")
+    sha_fig = add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe")
+    dra_fig = add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown")
+    
     st.markdown(section_heading(
         title="📈 Cumulative Returns",
         short_description="Tracks the portfolio value over time relative to its starting point.",
         level=3), unsafe_allow_html=True)
-    cum_fig = add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative")
+    
+    plot_unk_chart(cum_fig)
     st.markdown(section_heading(
         title="📈 Rolling Sharpe Ratio",
         short_description="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
         level=3), unsafe_allow_html=True)
-    sha_fig = add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe")
+    plot_unk_chart(sha_fig)
+    
     st.markdown(section_heading(
         title="📉 Drawdowns",
         short_description="Maximum dips from previous highs — a measure of worst-case losses.",
         level=3), unsafe_allow_html=True)
-    dra_fig = add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown")
-      
+    
+    plot_unk_chart(dra_fig)
     
     with st.expander(f"Strategy Allocations Over Time"):
         st.markdown(section_heading(
