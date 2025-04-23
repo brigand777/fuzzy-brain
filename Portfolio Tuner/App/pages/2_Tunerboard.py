@@ -272,7 +272,7 @@ if authentication_status:
             #st.plotly_chart(fig_cum, use_container_width=True)
             chart_with_tooltip(
                 title="Cumulative Returns",
-                short_desc="If you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
+                short_desc="What if you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
                 chart_func=lambda: fig_cum
             )
 
