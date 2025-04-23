@@ -39,7 +39,7 @@ st.title("📝 Portfolio Builder")
 left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
 
 with left:
-    st.image("Portfolio Tuner/App/assets/Tuner_boy_tech.png", width=250)
+    st.image("Portfolio Tuner/App/assets/Tuner_boy_tech3.png", width=250)
 
 with right:
     st.markdown(f"""
