@@ -76,84 +76,97 @@ def set_global_font_style():
     </style>
     """, unsafe_allow_html=True)
 
+import streamlit as st
+import streamlit.components.v1 as components
 import base64
 
 def image_to_base64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
+def add_info_icon(title, short_description, term="", glossary_url=None, left_icon_path=None):
     mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
+    left_icon_html = ""
 
-    tooltip_content = f"<strong>{term}</strong><br>{short_description}" if term else short_description
+    if left_icon_path:
+        icon_b64 = image_to_base64(left_icon_path)
+        left_icon_html = f'<img src="data:image/png;base64,{icon_b64}" width="24" style="margin-right: 8px; vertical-align: middle;" />'
+
+    tooltip_html = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
-        tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
+        tooltip_html += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    return f"""
-<style>
-/* Tooltip container */
-.info-tooltip {{
-    position: relative;
-    display: inline-block;
-    line-height: 1;
-    z-index: 9999;
-}}
+    full_html = f"""
+    <style>
+    .info-wrap {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Inter', sans-serif;
+    }}
 
-/* Tooltip icon */
-.info-tooltip-icon {{
-    cursor: pointer;
-    font-size: 0.9rem;
-    opacity: 0.6;
-}}
+    .info-tooltip {{
+        position: relative;
+        display: inline-block;
+    }}
 
-/* Tooltip box */
-.info-tooltip-box {{
-    visibility: hidden;
-    background-color: #FAF3D3;
-    color: #1A1A1A;
-    text-align: left;
-    border: 1px solid #D6C899;
-    border-radius: 8px;
-    padding: 10px 10px 24px 10px;
-    position: absolute;
-    z-index: 9999;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-size: 0.85rem;
-    min-width: 220px;
-    max-width: 300px;
-    box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    white-space: normal;
-}}
+    .info-tooltip-icon {{
+        cursor: pointer;
+        font-size: 1rem;
+        opacity: 0.6;
+        padding: 0 4px;
+    }}
 
-/* Hover interaction */
-.info-tooltip:hover .info-tooltip-box {{
-    visibility: visible;
-    opacity: 1;
-}}
+    .info-tooltip-box {{
+        visibility: hidden;
+        background-color: #FAF3D3;
+        color: #1A1A1A;
+        border: 1px solid #D6C899;
+        border-radius: 8px;
+        padding: 10px 10px 24px 10px;
+        position: absolute;
+        z-index: 9999;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        min-width: 220px;
+        max-width: 300px;
+        box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        white-space: normal;
+    }}
 
-/* Mascot image inside tooltip */
-.info-tooltip-box img {{
-    position: absolute;
-    bottom: 6px;
-    right: 6px;
-    width: 18px;
-    height: 18px;
-    opacity: 0.4;
-}}
-</style>
+    .info-tooltip:hover .info-tooltip-box {{
+        visibility: visible;
+        opacity: 1;
+    }}
 
-<span class="info-tooltip">
-    <span class="info-tooltip-icon">ℹ️</span>
-    <div class="info-tooltip-box">
-        {tooltip_content}
-        <img src="data:image/png;base64,{mascot_b64}" alt="icon"/>
+    .info-tooltip-box img {{
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        width: 18px;
+        height: 18px;
+        opacity: 0.4;
+    }}
+    </style>
+
+    <div class="info-wrap">
+        {left_icon_html}
+        <h3 style="margin: 0;">{title}</h3>
+        <span class="info-tooltip">
+            <span class="info-tooltip-icon">ℹ️</span>
+            <div class="info-tooltip-box">
+                {tooltip_html}
+                <img src="data:image/png;base64,{mascot_b64}" alt="icon"/>
+            </div>
+        </span>
     </div>
-</span>
-"""
+    """
+
+    components.html(full_html, height=80)
 
 
 
