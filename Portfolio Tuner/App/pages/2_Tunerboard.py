@@ -12,6 +12,10 @@ from utils.plots import (
 )
 from utils.glossary import add_info_icon, section_heading, inject_tooltip_css,set_global_font_style, plot_unk_chart
 
+# --- Lite Mode Toggle ---
+st.sidebar.markdown("### 🧪 Experimental")
+st.session_state.lite_mode = st.sidebar.toggle("Lite Mode", value=st.session_state.get("lite_mode", False))
+
 # --- Plot Functions ---
 def plot_asset_cumulative_returns(price_data: pd.DataFrame,
                                   selected_assets: list,
@@ -67,6 +71,13 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
 st.set_page_config(page_title="Crypto Portfolio Dashboard", layout="wide")
 inject_tooltip_css()
 set_global_font_style()
+
+# Remaining logic stays unchanged — Lite Mode is toggled in st.session_state['lite_mode']
+# You can now wrap advanced or technical elements like this:
+# if not st.session_state.lite_mode:
+#     st.markdown("### Advanced Metrics")
+#     ...
+
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>
@@ -242,97 +253,97 @@ if authentication_status:
     else:
         st.warning("Incomplete metrics data.")
 
-
-    st.markdown("### 🔍 Portfolio Insights")
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        st.markdown(section_heading(
-            title="Correlation Heatmap",
-            term="'Don't put all your eggs in one basket'",
-            short_description="""— well, this is the basket! Higher correlations
-            mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct!""",
-            level=3), unsafe_allow_html=True)
-        plot_unk_chart(heatmap_fig)
-    with col2:
-        pie_data = portfolio_df.set_index("Asset")["Value ($)"].reindex(selected_assets).fillna(0)
-        fig = px.pie(values=pie_data.values, names=pie_data.index, title="Portfolio Allocation", color_discrete_sequence=qualitative.Safe)
-        st.markdown(section_heading(
-            title="Portfolio Allocation",
-            term="Your Crypto Mix",
-            short_description="This is where the eggs go into the baskets!",
-            level=3), unsafe_allow_html=True)
-        plot_unk_chart(fig)
-    # --- Full Historical Data Plots in 2-column format ---
-    st.markdown("### 📊 Historical Trends")
-    try:
-        combined_data = data[selected_assets].loc[start_date:end_date]
-        portfolio_data = None
-        if "Amount" in portfolio_df.columns:
-            valid_assets = [a for a in portfolio_df["Asset"] if a in combined_data.columns]
-            amounts = portfolio_df.set_index("Asset").loc[valid_assets, "Amount"].fillna(0)
-            weights = amounts / amounts.sum()
-            portfolio_series = (combined_data[valid_assets] * weights).sum(axis=1)
-            portfolio_series.name = "Portfolio"
-            combined_data = combined_data.join(portfolio_series)
-
-        returns = combined_data.pct_change().fillna(0)
-        cumulative = (1 + returns).cumprod()
-        downsample_interval = max(1, len(cumulative) // 365)
-
-        col1, col2 = st.columns(2)
-
+    if not st.session_state.lite_mode:
+        st.markdown("### 🔍 Portfolio Insights")
+        col1, col2 = st.columns([1, 1])
         with col1:
-            fig_cum = go.Figure()
-            for col in cumulative.columns:
-                fig_cum.add_trace(go.Scatter(x=cumulative.index[::downsample_interval], y=cumulative[col].iloc[::downsample_interval], mode='lines', name=col, line=dict(dash='dash') if col == "Portfolio" else dict()))
-            fig_cum.update_layout(title="Cumulative Returns", xaxis_title="Date", yaxis_title="Return", hovermode="x unified")
-            #st.plotly_chart(fig_cum, use_container_width=True)
             st.markdown(section_heading(
-                title="Cumulative Returns",
-                short_description="What if you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
+                title="Correlation Heatmap",
+                term="'Don't put all your eggs in one basket'",
+                short_description="""— well, this is the basket! Higher correlations
+                mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct!""",
                 level=3), unsafe_allow_html=True)
-            plot_unk_chart(fig_cum)
-
+            plot_unk_chart(heatmap_fig)
         with col2:
-            fig_ret = go.Figure()
-            for col in returns.columns:
-                fig_ret.add_trace(go.Scatter(x=returns.index[::downsample_interval], y=returns[col].iloc[::downsample_interval]*100, mode='lines', name=col))
-            fig_ret.update_layout(title="Daily Returns", xaxis_title="Date", yaxis_title="Return (%)", hovermode="x unified")
-            #st.plotly_chart(fig_ret, use_container_width=True)
+            pie_data = portfolio_df.set_index("Asset")["Value ($)"].reindex(selected_assets).fillna(0)
+            fig = px.pie(values=pie_data.values, names=pie_data.index, title="Portfolio Allocation", color_discrete_sequence=qualitative.Safe)
             st.markdown(section_heading(
-                title="Daily Returns",
-                short_description="Here we see the daily action of each coin!",
+                title="Portfolio Allocation",
+                term="Your Crypto Mix",
+                short_description="This is where the eggs go into the baskets!",
                 level=3), unsafe_allow_html=True)
-            plot_unk_chart(fig_ret)
-        col3, col4 = st.columns(2)
-        with col3:
-            fig_price = go.Figure()
-            for col in combined_data.columns:
-                fig_price.add_trace(go.Scatter(x=combined_data.index[::downsample_interval], y=combined_data[col].iloc[::downsample_interval], mode='lines', name=col))
-            fig_price.update_layout(title="Raw Prices", xaxis_title="Date", yaxis_title="Price", hovermode="x unified")
-            #st.plotly_chart(fig_price, use_container_width=True)
-            st.markdown(section_heading(
-                title="Raw Prices",
-                short_description="This is the price of each coin -- in full glory!",
-                level=3), unsafe_allow_html=True)
-            plot_unk_chart(fig_price)
-        with st.expander("📊 Individual Crypto Performance"):
-            try:
-                rows = st.columns(2)
-                for i, asset in enumerate(selected_assets):
-                    col = rows[i % 2]
-                    with col:
-                        fig = px.line(data.loc[start_date:end_date], y=asset, title=f"{asset} Price History")
-                        st.plotly_chart(fig, use_container_width=True)
-            except Exception as e:
-                st.error(f"⚠️ Error in historical charts: {e}")
-                st.info("Try selecting a shorter date range or different assets.")
-    except Exception as e:
-        st.error(f"⚠️ Error in historical plots: {e}")
+            plot_unk_chart(fig)
+        # --- Full Historical Data Plots in 2-column format ---
+        st.markdown("### 📊 Historical Trends")
+        try:
+            combined_data = data[selected_assets].loc[start_date:end_date]
+            portfolio_data = None
+            if "Amount" in portfolio_df.columns:
+                valid_assets = [a for a in portfolio_df["Asset"] if a in combined_data.columns]
+                amounts = portfolio_df.set_index("Asset").loc[valid_assets, "Amount"].fillna(0)
+                weights = amounts / amounts.sum()
+                portfolio_series = (combined_data[valid_assets] * weights).sum(axis=1)
+                portfolio_series.name = "Portfolio"
+                combined_data = combined_data.join(portfolio_series)
 
-    st.markdown("---")
-    if st.button("🔙 Portfolio Editor"):
-        st.switch_page("pages/1_Portfolio_Editor.py")
+            returns = combined_data.pct_change().fillna(0)
+            cumulative = (1 + returns).cumprod()
+            downsample_interval = max(1, len(cumulative) // 365)
+
+            col1, col2 = st.columns(2)
+
+            with col1:
+                fig_cum = go.Figure()
+                for col in cumulative.columns:
+                    fig_cum.add_trace(go.Scatter(x=cumulative.index[::downsample_interval], y=cumulative[col].iloc[::downsample_interval], mode='lines', name=col, line=dict(dash='dash') if col == "Portfolio" else dict()))
+                fig_cum.update_layout(title="Cumulative Returns", xaxis_title="Date", yaxis_title="Return", hovermode="x unified")
+                #st.plotly_chart(fig_cum, use_container_width=True)
+                st.markdown(section_heading(
+                    title="Cumulative Returns",
+                    short_description="What if you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
+                    level=3), unsafe_allow_html=True)
+                plot_unk_chart(fig_cum)
+
+            with col2:
+                fig_ret = go.Figure()
+                for col in returns.columns:
+                    fig_ret.add_trace(go.Scatter(x=returns.index[::downsample_interval], y=returns[col].iloc[::downsample_interval]*100, mode='lines', name=col))
+                fig_ret.update_layout(title="Daily Returns", xaxis_title="Date", yaxis_title="Return (%)", hovermode="x unified")
+                #st.plotly_chart(fig_ret, use_container_width=True)
+                st.markdown(section_heading(
+                    title="Daily Returns",
+                    short_description="Here we see the daily action of each coin!",
+                    level=3), unsafe_allow_html=True)
+                plot_unk_chart(fig_ret)
+            col3, col4 = st.columns(2)
+            with col3:
+                fig_price = go.Figure()
+                for col in combined_data.columns:
+                    fig_price.add_trace(go.Scatter(x=combined_data.index[::downsample_interval], y=combined_data[col].iloc[::downsample_interval], mode='lines', name=col))
+                fig_price.update_layout(title="Raw Prices", xaxis_title="Date", yaxis_title="Price", hovermode="x unified")
+                #st.plotly_chart(fig_price, use_container_width=True)
+                st.markdown(section_heading(
+                    title="Raw Prices",
+                    short_description="This is the price of each coin -- in full glory!",
+                    level=3), unsafe_allow_html=True)
+                plot_unk_chart(fig_price)
+            with st.expander("📊 Individual Crypto Performance"):
+                try:
+                    rows = st.columns(2)
+                    for i, asset in enumerate(selected_assets):
+                        col = rows[i % 2]
+                        with col:
+                            fig = px.line(data.loc[start_date:end_date], y=asset, title=f"{asset} Price History")
+                            st.plotly_chart(fig, use_container_width=True)
+                except Exception as e:
+                    st.error(f"⚠️ Error in historical charts: {e}")
+                    st.info("Try selecting a shorter date range or different assets.")
+        except Exception as e:
+            st.error(f"⚠️ Error in historical plots: {e}")
+
+        st.markdown("---")
+        if st.button("🔙 Portfolio Editor"):
+            st.switch_page("pages/1_Portfolio_Editor.py")
 
 else:
     st.warning("🔐 Please log in to view your portfolio.")
