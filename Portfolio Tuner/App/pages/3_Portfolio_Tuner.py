@@ -17,6 +17,7 @@ from utils.utils import downsample_results_dict
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods, get_backtest_settings
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
 
 # --- Page Setup ---
 st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
@@ -91,8 +92,8 @@ with col2:
 
 # ------------------- BACKTESTING SECTION -------------------
 # Step 2: Define Backtest Period
-st.markdown("## Step 2: 🧪 Backtest Your Portfolio")
-
+section_heading("Step 2: 🧪 Backtest Your Portfolio", short_description="'Past performance is not an indication of future returns'..but it doesn't hurt knowing", level=3)
+ 
 st.markdown("### 📅 Step 2.1: Select Backtest Date Range")
 col1, col2 = st.columns(2)
 
@@ -110,7 +111,8 @@ if start_date >= end_date:
     st.stop()
 
 # Step 2.2: Choose Strategy Types
-st.markdown("### 🧠 Step 2.2: Choose Strategies to Backtest")
+section_heading("🧠 Step 2.2: Choose Strategies to Backtest", short_description="Oooh this is the technical stuff, Mean variance is optimal in the past, while HRB tries to find the structure and spread your risk mathematically..hard to chose I love looking at them all :p", level=3)
+
 with st.expander("ℹ️ Strategy Descriptions", expanded=False):
     st.markdown("""
     - **Equal Weight**: Equal investment in each asset.
@@ -127,7 +129,9 @@ selected_methods = st.multiselect(
 )
 
 # Step 2.3: Configure Advanced Settings
-st.markdown("### ⚙️ Step 2.3: Advanced Settings (Optional)")
+section_heading("⚙️ Step 2.3: Advanced Settings (Optional)", short_description="""This is the real geeky stuff..don't say I didn't warn ya! Rebalance frequency is how often you want to
+ recalculate the strategy, lookback is how nearsighted (looking back) you want the strategy to optimize for, and not allowing short selling means you only buy (rather than sell) as part of a strategy""", level=3)
+
 with st.expander("🔧 Show Advanced Settings", expanded=False):
     rebalance_days = st.slider("🔁 Rebalance Frequency (days)", 7, 90, 30, step=7)
     lookback_days = st.slider("📊 Lookback Period (days)", 30, 365, 90, step=30)
@@ -177,16 +181,50 @@ if "downsampled" in st.session_state:
     st.markdown("## 📊 Backtest Results")
     downsampled = st.session_state.downsampled
     selected_methods = st.session_state.selected_methods
-    st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative"), use_container_width=True)
-    st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
-    st.altair_chart(add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown"), use_container_width=True)
-
-    for method in selected_methods:
-        with st.expander(f"{method} Allocations Over Time"):
+    #st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative"), use_container_width=True)
+    #st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
+    #st.altair_chart(add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown"), use_container_width=True)
+    chart_with_tooltip(
+        title="📈 Cumulative Returns",
+        short_desc="Tracks the portfolio value over time relative to its starting point.",
+        chart_func=plot_cumulative_returns,
+        term="Cumulative Return",
+        glossary_url="#cumulative-return",
+        interactive=True,
+        x_field="date",
+        y_field="cumulative",
+        data=downsampled  # pass as keyword argument
+    )
+    chart_with_tooltip(
+        title="📈 Rolling Sharpe Ratio",
+        short_desc="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
+        chart_func=plot_rolling_sharpe,
+        term="Rolling Sharpe Ratio",
+        glossary_url="#rolling-sharpe-ratio",
+        interactive=True,
+        x_field="date",
+        y_field="rolling_sharpe",
+        data=downsampled
+    )
+    chart_with_tooltip(
+        title="📉 Drawdowns",
+        short_desc="Maximum dips from previous highs — a measure of worst-case losses.",
+        chart_func=plot_drawdowns,
+        term="Max Drawdown",
+        glossary_url="#max-drawdown",
+        interactive=True,
+        x_field="date",
+        y_field="drawdown",
+        data=downsampled
+    )
+    
+    with st.expander(f"{method} Allocations Over Time"):
+        for method in selected_methods:
             st.altair_chart(
                 add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
                 use_container_width=True
             )
+    section_heading("Summary Chart", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3)
 
     st.dataframe(generate_styled_summary_table(downsampled), use_container_width=True)
 
@@ -328,9 +366,22 @@ if run_mc:
                     correlation_strategy=corr_mode
                 )
 
-            st.plotly_chart(mc_result["chart"], use_container_width=True)
-            st.markdown("### 📊 Strategy Risk Metrics")
-            st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
+            #st.plotly_chart(mc_result["chart"], use_container_width=True)
+            chart_with_tooltip(
+                title="🎲 Monte Carlo Projection",
+                short_desc="Simulates thousands of future price paths based on asset statistics and strategy weights.",
+                chart_func=lambda: mc_result["chart"],
+            )
+
+            #st.markdown("### 📊 Strategy Risk Metrics")
+            #st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
+            chart_with_tooltip(
+                title="📊 Strategy Risk Metrics",
+                short_desc="Shows volatility, Sharpe ratio, and drawdowns across simulations.",
+                chart_func=lambda: mc_result["metric_plot"],
+                term="Sharpe Ratio",
+                glossary_url="#sharpe-ratio"
+            )
 
             summary_df = pd.DataFrame(mc_result["summary"]).T[
                 ["sharpe", "volatility", "max_drawdown"]

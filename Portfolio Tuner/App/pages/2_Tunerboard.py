@@ -195,7 +195,7 @@ if authentication_status:
         st.stop()
 
     #st.markdown("### 📊 Portfolio Performance")
-    section_heading("📊 Portfolio Performance", short_description="This is it! How our portfolio has been doing this past while $$$", level=3)
+    section_heading("📊 Portfolio Performance", short_description="This is it! How our portfolio has been doing this past while", level=3)
  
     try:
         value_fig = plot_portfolio_absolute_value(data, selected_assets, start_date, end_date, portfolio_df)

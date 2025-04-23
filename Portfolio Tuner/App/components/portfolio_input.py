@@ -4,7 +4,7 @@ import os
 from utils.plots import plot_portfolio_allocation_3d
 from io import StringIO
 import plotly.express as px
-
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
 def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     import os
     import pandas as pd
@@ -52,8 +52,8 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     total_value = df["Value"].sum()
     df["Percent"] = df["Value"] / total_value * 100 if total_value > 0 else 0
 
-    st.markdown("### 📊 Your Portfolio Overview")
-
+    section_heading("📊 Your Portfolio Overview", short_description="The left chart shows us how much of each coin we have, and the right shows us the exact percentage of the total value of our portfolio is in each coin. Easy as pie!", level=3)
+ 
     col_table, col_chart = st.columns([1, 1.2])
 
     with col_table:
