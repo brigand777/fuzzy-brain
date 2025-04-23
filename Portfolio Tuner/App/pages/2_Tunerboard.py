@@ -73,6 +73,39 @@ st.markdown("""
     .metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
 </style>
 """, unsafe_allow_html=True)
+st.markdown("""
+<style>
+/* Bump up normal text font size */
+.stMarkdown p, .stMarkdown div, p {
+    font-size: 18px !important;
+    line-height: 1.5;
+}
+
+/* Restore proper sizes for headers */
+h1 {
+    font-size: 36px !important;
+    font-weight: 700;
+}
+h2 {
+    font-size: 28px !important;
+    font-weight: 600;
+}
+h3 {
+    font-size: 22px !important;
+    font-weight: 600;
+}
+
+/* Preserve table/chart styling */
+.stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
+    font-size: inherit !important;
+}
+
+/* Optional: Larger narrative box text */
+.narrative-box {
+    font-size: 20px !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 authenticator, authentication_status, username = login_and_get_status()
 st.title("📈 Crypto Portfolio Dashboard")
