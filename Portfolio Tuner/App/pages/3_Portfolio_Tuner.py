@@ -17,7 +17,7 @@ from utils.utils import downsample_results_dict
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods, get_backtest_settings
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,set_global_font_style
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,set_global_font_style, plot_unk_chart
 
 # --- Page Setup ---
 st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
@@ -209,41 +209,30 @@ if "downsampled" in st.session_state:
     st.markdown("## 📊 Backtest Results")
     downsampled = st.session_state.downsampled
     selected_methods = st.session_state.selected_methods
-    #cum_fig = add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative")
-    #sha_fig = add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe")
-    #dra_fig = add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown")
-    chart_with_tooltip(
+    st.markdown(section_heading(
         title="📈 Cumulative Returns",
-        short_desc="Tracks the portfolio value over time relative to its starting point.",
-        chart_func=lambda: plot_cumulative_returns(downsampled),
-        term="Cumulative Return",
-        interactive=True,
-        x_field="date",
-        y_field="cumulative"
-    )
-
-
-    chart_with_tooltip(
+        short_description="Tracks the portfolio value over time relative to its starting point.",
+        level=3), unsafe_allow_html=True)
+    cum_fig = add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative")
+    st.markdown(section_heading(
         title="📈 Rolling Sharpe Ratio",
-        short_desc="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
-        chart_func=lambda: plot_rolling_sharpe(downsampled),
-        term="Rolling Sharpe Ratio",
-        interactive=True,
-        x_field="date",
-        y_field="rolling_sharpe",
-    )
-    chart_with_tooltip(
+        short_description="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
+        level=3), unsafe_allow_html=True)
+    sha_fig = add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe")
+    st.markdown(section_heading(
         title="📉 Drawdowns",
-        short_desc="Maximum dips from previous highs — a measure of worst-case losses.",
-        chart_func=lambda: plot_drawdowns(downsampled),
-        term="Max Drawdown",
-        interactive=True,
-        x_field="date",
-        y_field="drawdown",
-    )
+        short_description="Maximum dips from previous highs — a measure of worst-case losses.",
+        level=3), unsafe_allow_html=True)
+    dra_fig = add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown")
+      
     
     with st.expander(f"Strategy Allocations Over Time"):
+        st.markdown(section_heading(
+        title="Allocations",
+        short_description="Here's where you see what you would have done had you rebalanced each strategy periodically. Checkout how the allocations evolve, each strategy behaves quite differently!",
+        level=3), unsafe_allow_html=True)
         for method in selected_methods:
+            
             st.altair_chart(
                 add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
                 use_container_width=True
@@ -392,21 +381,19 @@ if run_mc:
                 )
 
             #st.plotly_chart(mc_result["chart"], use_container_width=True)
-            chart_with_tooltip(
+            st.markdown(section_heading(
                 title="🎲 Monte Carlo Projection",
-                short_desc="Simulates thousands of future price paths based on asset statistics and strategy weights.",
+                short_description="Simulates thousands of future price paths based on asset statistics and strategy weights.",
                 chart_func=lambda: mc_result["chart"],
             )
 
             #st.markdown("### 📊 Strategy Risk Metrics")
-            #st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
-            chart_with_tooltip(
+            st.markdown(section_heading(
                 title="📊 Strategy Risk Metrics",
-                short_desc="Shows volatility, Sharpe ratio, and drawdowns across simulations.",
-                chart_func=lambda: mc_result["metric_plot"],
-                term="Sharpe Ratio",
-                glossary_url="#sharpe-ratio"
-            )
+                short_description="Shows volatility, Sharpe ratio, and drawdowns across simulations.",
+                level=3), unsafe_allow_html=True)
+            st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
+            
 
             summary_df = pd.DataFrame(mc_result["summary"]).T[
                 ["sharpe", "volatility", "max_drawdown"]
