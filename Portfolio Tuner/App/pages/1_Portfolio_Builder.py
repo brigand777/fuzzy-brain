@@ -35,6 +35,30 @@ authenticator, authentication_status, username = login_and_get_status()
 
 st.title("📝 Portfolio Builder")
 
+# --- Mascot Introduction Section ---
+left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
+
+with left:
+    st.image("Portfolio Tuner/App/assets/Tuner_boy_tech2.png", width=250)
+
+with right:
+    st.markdown(f"""
+        <div style="
+            background-color: #FAF3D3;
+            border: 1px solid #D6C899;
+            padding: 20px 24px;
+            border-radius: 12px;
+            box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1rem;
+            line-height: 1.6;
+            font-family: 'Merriweather', serif;
+            color: #1A1A1A;
+        ">
+            Here's where you get to building! You can use the edit features to add or remove a crypto, but I really just like watching the charts move.<br><br>
+            If it all looks a bit overwhelming, switch to lite mode :)
+        </div>
+        """, unsafe_allow_html=True)
+
 # --- Load asset data ---
 @st.cache_data
 def load_data():
