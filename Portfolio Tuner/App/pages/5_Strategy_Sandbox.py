@@ -237,37 +237,37 @@ with st.expander("🔮 Monte Carlo Future Simulator", expanded=False):
     horizon_days = st.slider("⏳ Forecast horizon (days)", 30, 365, 180, step=30)
     n_sims = st.slider("🎲 Number of simulations", 50, 500, 100, step=50)
 
-    if st.button("🚀 Run Monte Carlo Simulation"):
-        if len(weights) < 2:
-            st.warning("Add more assets for meaningful simulation.")
-        else:
-            result = run_smart_monte_carlo_simulation(
-                weights,
-                data[playground_assets],
-                horizon_days=horizon_days,
-                n_sims=n_sims,
-                correlation_strategy=correlation_strategy.split(" ")[0]
-            )
-            #st.plotly_chart(result["chart"], use_container_width=True)
-            chart_with_tooltip(
-                title="🎲 Monte Carlo Projection",
-                short_desc="This is how the portfolio you made could evolve over many different futures based on the statistical properties of the past..call me Marty Mcfly!",
-                chart_func=lambda: result["chart"],
-            )
-            #st.markdown("### 📊 Forecast Summary")
-            section_heading("📊 Forecast Summary", short_description="""This summarizes the extremes that came out of the simulations, treat these as possible what-ifs""", level=4)
+if st.button("🚀 Run Monte Carlo Simulation"):
+    if len(weights) < 2:
+        st.warning("Add more assets for meaningful simulation.")
+    else:
+        result = run_smart_monte_carlo_simulation(
+            weights,
+            data[playground_assets],
+            horizon_days=horizon_days,
+            n_sims=n_sims,
+            correlation_strategy=correlation_strategy.split(" ")[0]
+        )
+        #st.plotly_chart(result["chart"], use_container_width=True)
+        chart_with_tooltip(
+            title="🎲 Monte Carlo Projection",
+            short_desc="This is how the portfolio you made could evolve over many different futures based on the statistical properties of the past..call me Marty Mcfly!",
+            chart_func=lambda: result["chart"],
+        )
+        #st.markdown("### 📊 Forecast Summary")
+        section_heading("📊 Forecast Summary", short_description="""This summarizes the extremes that came out of the simulations, treat these as possible what-ifs""", level=4)
 
-            st.markdown(f"""
-            - **Median 6-Month Return:** {(result['ci_high'] + result['ci_low']) / 2:.1%}  
-            - **Best Case Path:** {result['max']:.1%}  
-            - **Worst Case Path:** {result['min']:.1%}  
-            - **Distributions Used:**
-            """)
+        st.markdown(f"""
+        - **Median 6-Month Return:** {(result['ci_high'] + result['ci_low']) / 2:.1%}  
+        - **Best Case Path:** {result['max']:.1%}  
+        - **Worst Case Path:** {result['min']:.1%}  
+        - **Distributions Used:**
+        """)
 
-            for asset, dist in result["distribution_used_per_asset"].items():
-                st.markdown(f"`{asset}` → **{dist}**")
+        for asset, dist in result["distribution_used_per_asset"].items():
+            st.markdown(f"`{asset}` → **{dist}**")
 
-            st.info(f"Simulated using `{result['correlation_strategy']}` correlation strategy.")
+        st.info(f"Simulated using `{result['correlation_strategy']}` correlation strategy.")
 
 # --- Footer ---
 st.markdown("---")
