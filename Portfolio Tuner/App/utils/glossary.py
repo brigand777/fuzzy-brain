@@ -424,6 +424,11 @@ def schart_with_tooltip(
     else:
         st.altair_chart(chart, use_container_width=True)
 
+import base64
+
+def image_to_base64(path: str) -> str:
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
 def chart_with_tooltip(
     title: str,
@@ -435,14 +440,15 @@ def chart_with_tooltip(
     x_field: str = None,
     y_field: str = None,
     mascot_path: str = "Portfolio Tuner/App/assets/headshot.png",
+    mascot_size: int = 28,
+    mascot_opacity: float = 1,
     *args, **kwargs
-    ):
+):
     import streamlit as st
     import streamlit.components.v1 as components
 
     mascot_b64 = image_to_base64(mascot_path)
 
-    # Build tooltip HTML
     if term:
         tooltip_html = f"<strong>{term}</strong><br>{short_desc}"
     else:
@@ -451,7 +457,7 @@ def chart_with_tooltip(
     if glossary_url:
         tooltip_html += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    # Render heading + tooltip as HTML
+    # Tooltip and heading HTML
     header_html = f"""
     <style>
     .info-tooltip {{
@@ -474,7 +480,7 @@ def chart_with_tooltip(
         color: #1A1A1A;
         border: 1px solid #D6C899;
         border-radius: 8px;
-        padding: 10px 10px 24px 10px;
+        padding: 10px 10px {mascot_size + 6}px 10px;
         position: absolute;
         z-index: 9999;
         bottom: 125%;
@@ -498,9 +504,9 @@ def chart_with_tooltip(
         position: absolute;
         bottom: 6px;
         right: 6px;
-        width: 28px;
-        height: 28px;
-        opacity: 1;
+        width: {mascot_size}px;
+        height: {mascot_size}px;
+        opacity: {mascot_opacity};
     }}
     </style>
 
@@ -515,10 +521,10 @@ def chart_with_tooltip(
     </div>
     """
 
-    # Render inline HTML heading
+    # Render tooltip + title
     components.html(header_html, height=80)
 
-    # Render the chart
+    # Render chart
     chart = chart_func(*args, **kwargs)
 
     if interactive and x_field and y_field:
