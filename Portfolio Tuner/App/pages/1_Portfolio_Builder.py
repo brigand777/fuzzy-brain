@@ -59,7 +59,7 @@ else:
 
 # --- Portfolio Input UI ---
 st.markdown("### 📌 Add or Adjust Assets")
-portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_status)
+portfolio_df = edit_portfolio(available_assets, data, persistent=authentication_status, litemode = st.session_state.lite_mode)
 
 # --- Navigation Link to Dashboard ---
 st.markdown("---")
