@@ -18,11 +18,12 @@ from utils.plots import (
 from utils.simulation import run_smart_monte_carlo_simulation
 from optimizer import run_optimizers
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css, set_global_font_style
 
 # --- Config ---
 st.set_page_config(page_title="Portfolio Tuner: Getting Started Guide", layout="wide")
 inject_tooltip_css()
+set_global_font_style()
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>

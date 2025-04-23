@@ -61,7 +61,8 @@ def image_to_base64(path):
     with open(path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
-def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
+def sadd_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
+    
     import base64
     mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")  # adjust as needed
 
@@ -73,6 +74,25 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
 
     # SINGLE-LINE return: no leading/trailing newlines or indentation
     return f'<span class="info-tooltip" style="position: relative;"><span class="info-tooltip-icon">ℹ️</span><div class="info-tooltip-box">{tooltip}{img_tag}</div></span>'
+
+def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
+    import base64
+    mascot_b64 = image_to_base64("path/to/raccoon-head.png")
+
+    tooltip = f"<strong>{term}</strong><br>{short_description}" if term else short_description
+    if glossary_url:
+        tooltip += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
+
+    return f'''
+    <span class="info-tooltip" style="position: relative;">
+        <span class="info-tooltip-icon">ℹ️</span>
+        <div class="info-tooltip-box" style="position: relative;">
+            {tooltip}
+            <img src="data:image/png;base64,{mascot_b64}" width="25" height="25"
+                 style="position: absolute; bottom: 4px; right: 6px; opacity: 0.6;" />
+        </div>
+    </span>
+    '''
 
 def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
