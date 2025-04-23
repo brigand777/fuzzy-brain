@@ -10,7 +10,7 @@ from utils.plots import (
     plot_portfolio_dashboard,
     plot_gauge_charts
 )
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,set_global_font_style
 
 # --- Plot Functions ---
 def plot_asset_cumulative_returns(price_data: pd.DataFrame,
@@ -66,6 +66,7 @@ def plot_portfolio_absolute_value(data, selected_assets, start, end, portfolio_d
 # --- Page Setup ---
 st.set_page_config(page_title="Crypto Portfolio Dashboard", layout="wide")
 inject_tooltip_css()
+set_global_font_style()
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>
