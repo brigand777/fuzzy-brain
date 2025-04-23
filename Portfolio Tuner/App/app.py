@@ -49,8 +49,9 @@ try:
     display_video("Portfolio Tuner/App/assets/homepage_video.mp4", height=600)
 except:
     st.warning("⚠️ Unable to load the intro video. Make sure the file exists.")
+
 '''
-# --- Why This Exists ---
+ --- Why This Exists ---
 st.markdown("## 🤔 Why Portfolio Tuner?")
 st.markdown("""
 **Existing portfolio management tools are built for traditional investments.**  
@@ -65,11 +66,12 @@ Portfolio Tuner gives you:
 - 🎓 **Education-first UX** to guide your investing decisions
 """)
 '''
+
 # --- Mascot Introduction Section ---
 left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
 
 with left:
-    st.image("Portfolio Tuner/App/assets/Tuner_boy2.png", width=250)
+    st.image("Portfolio Tuner/App/assets/Tuner_boy3.png", width=250)
 
 with right:
     st.markdown(f"""
