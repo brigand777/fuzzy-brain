@@ -261,7 +261,7 @@ def section_heading(title, short_description, term=None, glossary_url=None, leve
     cursor: pointer;
     font-size: 1rem;
     opacity: 1;
-    margin-left: 1px;
+    margin-left: 0;
     vertical-align: middle;
 }}
 
@@ -300,7 +300,7 @@ def section_heading(title, short_description, term=None, glossary_url=None, leve
 }}
 </style>
 
-<div style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+<div style="display: inline-flex; align-items: center; gap: 4px;">
     <{tag} style="margin: 0;">{title}</{tag}>
     <span class="info-tooltip">
         <span class="info-tooltip-icon">ℹ️</span>
