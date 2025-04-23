@@ -50,6 +50,21 @@ try:
 except:
     st.warning("⚠️ Unable to load the intro video. Make sure the file exists.")
 
+# --- Overview ---
+st.markdown("## 👋 What You Can Do")
+
+st.markdown("""
+Whether you're a curious beginner or a seasoned investor, Portfolio Tuner helps you:
+- ✅ Build and adjust a custom crypto portfolio
+- 📊 Analyze historical and real-time performance
+- 🎯 Compare with automated allocation strategies (HRB, MVO, Equal Weight)
+- ⏳ Run Monte Carlo simulations to model future outcomes
+- 🔍 Backtest your strategy against market history
+
+No spreadsheets. No subscriptions. Just smarter investing.
+""")
+
+
 
 # --- Mascot Introduction Section ---
 left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
@@ -72,25 +87,14 @@ with right:
     ">
         <h4 style="margin-top: 0;">Hey I'm Tuner Boy!</h4>
         I'm here to be your support buddy as you naviagte <strong>Portfolio Tuner</strong> – your personalized crypto strategy assistant.<br><br>
-        I’m here to help you explore, experiment, and optimize your investments without stress.<br><br>
+        <br><br>
         I've been arond the block a few times so I'll try my best to guida ya through the nerd talk. Ready to tune things up?! Meet me in the Tuner Tour section, I'll see ya there!
+        
+        P.S. I’ve left some notes across the app with my two cents on what’s goin’ down. Just... maybe don’t tell the folks in charge I’m the one spillin’ the secrets.
     </div>
     """, unsafe_allow_html=True)
 
 
-# --- Overview ---
-st.markdown("## 👋 What You Can Do")
-
-st.markdown("""
-Whether you're a curious beginner or a seasoned investor, Portfolio Tuner helps you:
-- ✅ Build and adjust a custom crypto portfolio
-- 📊 Analyze historical and real-time performance
-- 🎯 Compare with automated allocation strategies (HRB, MVO, Equal Weight)
-- ⏳ Run Monte Carlo simulations to model future outcomes
-- 🔍 Backtest your strategy against market history
-
-No spreadsheets. No subscriptions. Just smarter investing.
-""")
 
 # --- Navigation Cards ---
 st.markdown("## 🔧 What would you like to do today?")
