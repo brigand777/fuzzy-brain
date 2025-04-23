@@ -268,12 +268,12 @@ if st.button("🚀 Run Monte Carlo Simulation"):
             n_sims=n_sims,
             correlation_strategy=correlation_strategy.split(" ")[0]
         )
-        #st.plotly_chart(result["chart"], use_container_width=True)
-        chart_with_tooltip(
+        st.markdown(section_heading(
             title="🎲 Monte Carlo Projection",
-            short_desc="This is how the portfolio you made could evolve over many different futures based on the statistical properties of the past..call me Marty Mcfly!",
-            chart_func=lambda: result["chart"],
-        )
+            short_description="This is how the portfolio you made could evolve over many different futures based on the statistical properties of the past..call me Marty Mcfly!",
+            level=3), unsafe_allow_html=True)
+        st.plotly_chart(result["chart"], use_container_width=True)
+        
         #st.markdown("### 📊 Forecast Summary")
         st.markdown(section_heading("📊 Forecast Summary", short_description="""This summarizes the extremes that came out of the simulations, treat these as possible what-ifs""", level=4), unsafe_allow_html=True)
 
