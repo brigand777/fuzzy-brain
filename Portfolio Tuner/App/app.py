@@ -89,11 +89,11 @@ with right:
             box-sizing: border-box;
         ">
             <h4 style="margin-top: 0;">Hey I'm Tuner Boy!</h4>
-            <p>I'm here to be your support buddy as you navigate <strong>Portfolio Tuner</strong> – your personalized crypto strategy assistant.</p>
+            <p>I'm here to be your support buddy as you navigate <strong>Portfolio Tuner<strong> – your personalized crypto strategy assistant.</p>
 
             <p>I've been around the block a few times, so I'll try my best to guida ya through the nerd talk. Ready to tune things up?! Meet me in the Tuner Tour section, I'll see ya there!</p>
 
-            <p><em>P.S. I've dropped some notes throughout the app that give you my perspective on what's goin' on, but don't tell the guys in charge I'm the one helpin' ya through this.</em></p>
+            <p><em> PS I've dropped some notes throughout the app that give you my perspective on what's goin' on, but don't tell the guys in charge I'm the one helpin' ya through this.</em></p>
         </div>
         """, unsafe_allow_html=True)
 
