@@ -55,6 +55,24 @@ def inject_tooltip_css():
     </style>
     """
     st.markdown(tooltip_css, unsafe_allow_html=True)
+def set_global_font_style():
+    st.markdown("""
+    <style>
+    html, body, .stApp {
+        font-size: 16px !important;
+        font-family: 'Inter', sans-serif;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-tooltip-box {
+        font-size: 0.85em !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 
 def image_to_base64(path):
@@ -77,7 +95,7 @@ def sadd_info_icon(term: str, short_description: str, glossary_url: str = None) 
 
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
     import base64
-    mascot_b64 = image_to_base64("path/to/raccoon-head.png")
+    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
 
     tooltip = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
