@@ -260,8 +260,8 @@ def section_heading(title, short_description, term=None, glossary_url=None, leve
 .info-tooltip-icon {{
     cursor: pointer;
     font-size: 1rem;
-    opacity: 0.6;
-    margin-left: 4px;
+    opacity: 1;
+    margin-left: 1px;
     vertical-align: middle;
 }}
 
