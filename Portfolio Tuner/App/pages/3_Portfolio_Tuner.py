@@ -181,26 +181,25 @@ if "downsampled" in st.session_state:
     st.markdown("## 📊 Backtest Results")
     downsampled = st.session_state.downsampled
     selected_methods = st.session_state.selected_methods
-    cum_fig = add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative")
-    sha_fig = add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe")
-    dra_fig = add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown")
+    #cum_fig = add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative")
+    #sha_fig = add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe")
+    #dra_fig = add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown")
     chart_with_tooltip(
         title="📈 Cumulative Returns",
         short_desc="Tracks the portfolio value over time relative to its starting point.",
-        chart_func=lambda: cum_fig,
+        chart_func=lambda: plot_cumulative_returns(downsampled),
         term="Cumulative Return",
-        glossary_url="#cumulative-return",
         interactive=True,
         x_field="date",
         y_field="cumulative"
     )
 
+
     chart_with_tooltip(
         title="📈 Rolling Sharpe Ratio",
         short_desc="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
-        chart_func=plot_rolling_sharpe,
+        chart_func=lambda: plot_rolling_sharpe(downsampled)
         term="Rolling Sharpe Ratio",
-        glossary_url="#rolling-sharpe-ratio",
         interactive=True,
         x_field="date",
         y_field="rolling_sharpe",
@@ -209,9 +208,8 @@ if "downsampled" in st.session_state:
     chart_with_tooltip(
         title="📉 Drawdowns",
         short_desc="Maximum dips from previous highs — a measure of worst-case losses.",
-        chart_func=plot_drawdowns,
+        chart_func=lambda: plot_drawdowns(downsampled)
         term="Max Drawdown",
-        glossary_url="#max-drawdown",
         interactive=True,
         x_field="date",
         y_field="drawdown",
