@@ -173,7 +173,10 @@ if not st.session_state.lite_mode:
         rebalance_days = st.slider("🔁 Rebalance Frequency (days)", 7, 90, 30, step=7)
         lookback_days = st.slider("📊 Lookback Period (days)", 30, 365, 90, step=30)
         nonnegative_toggle = st.toggle("📉 Disallow short-selling?", value=True)
-
+else:
+    rebalance_days = 30
+    lookback_days = 90
+    nonnegative_toggle = True
 
 simulation_data = data.loc[start_date:end_date, [col for col in portfolio_df['Asset'] if col in data.columns]]
 
@@ -376,6 +379,11 @@ with st.expander("🛠️ Simulation Settings"):
         
         dynamic_rebal_toggle = st.toggle("Enable Rebalancing in MC Simulation", value=False)
         rebalance_interval_mc = st.slider("🔁 Rebalance Interval (days)", 10, 90, 30, step=10, disabled=not dynamic_rebal_toggle)
+    else:
+        n_sims = 500
+        corr_mode =  "historical"
+        dynamic_rebal_toggle = False
+        rebalance_interval_mc = 30
 
 run_mc = st.button("Run Monte Carlo Simulation")
 
