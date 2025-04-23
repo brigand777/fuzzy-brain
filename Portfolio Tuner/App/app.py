@@ -65,6 +65,33 @@ Portfolio Tuner gives you:
 - 🎓 **Education-first UX** to guide your investing decisions
 """)
 
+# --- Mascot Introduction Section ---
+left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
+
+with left:
+    st.image("Portfolio Tuner/App/assets/Tuner_boy2.png", width=250)
+
+with right:
+    st.markdown(f"""
+    <div style="
+        background-color: #FAF3D3;
+        border: 1px solid #D6C899;
+        padding: 20px 24px;
+        border-radius: 12px;
+        box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+        font-size: 1rem;
+        line-height: 1.6;
+        font-family: 'Merriweather', serif;
+        color: #1A1A1A;
+    ">
+        <h4 style="margin-top: 0;">Hey I'm Tuner Boy!</h4>
+        Welcome to <strong>Portfolio Tuner</strong> – your personalized crypto strategy assistant.<br><br>
+        I’m here to help you explore, experiment, and optimize your investments without stress.<br><br>
+        Think of me as your <em>data-driven sidekick</em> — guiding you through building a smart, resilient crypto portfolio. Ready to tune things up?
+    </div>
+    """, unsafe_allow_html=True)
+
+
 # --- Overview ---
 st.markdown("## 👋 What You Can Do")
 
