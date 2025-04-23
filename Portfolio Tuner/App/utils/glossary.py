@@ -80,29 +80,35 @@ import streamlit as st
 import streamlit.components.v1 as components
 import base64
 
+import streamlit as st
+import streamlit.components.v1 as components
+import base64
+
 def image_to_base64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
 def add_info_icon(title, short_description, term="", glossary_url=None, left_icon_path=None):
     mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
-    left_icon_html = ""
+    icon_html = ""
 
     if left_icon_path:
-        icon_b64 = image_to_base64(left_icon_path)
-        left_icon_html = f'<img src="data:image/png;base64,{icon_b64}" width="24" style="margin-right: 8px; vertical-align: middle;" />'
+        left_icon_b64 = image_to_base64(left_icon_path)
+        icon_html = f'<img src="data:image/png;base64,{left_icon_b64}" width="28" style="vertical-align: middle; margin-right: 6px;" />'
 
-    tooltip_html = f"<strong>{term}</strong><br>{short_description}" if term else short_description
+    tooltip_content = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
-        tooltip_html += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
+        tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    full_html = f"""
+    html = f"""
     <style>
-    .info-wrap {{
+    .info-container {{
         display: flex;
         align-items: center;
         gap: 8px;
         font-family: 'Inter', sans-serif;
+        font-size: 1.3rem;
+        color: #F5F5F5;
     }}
 
     .info-tooltip {{
@@ -113,8 +119,7 @@ def add_info_icon(title, short_description, term="", glossary_url=None, left_ico
     .info-tooltip-icon {{
         cursor: pointer;
         font-size: 1rem;
-        opacity: 0.6;
-        padding: 0 4px;
+        opacity: 0.7;
     }}
 
     .info-tooltip-box {{
@@ -153,22 +158,20 @@ def add_info_icon(title, short_description, term="", glossary_url=None, left_ico
     }}
     </style>
 
-    <div class="info-wrap">
-        {left_icon_html}
-        <h3 style="margin: 0;">{title}</h3>
+    <div class="info-container">
+        {icon_html}
+        <span style="font-weight: 600;">{title}</span>
         <span class="info-tooltip">
             <span class="info-tooltip-icon">ℹ️</span>
             <div class="info-tooltip-box">
-                {tooltip_html}
+                {tooltip_content}
                 <img src="data:image/png;base64,{mascot_b64}" alt="icon"/>
             </div>
         </span>
     </div>
     """
 
-    components.html(full_html, height=80)
-
-
+    components.html(html, height=70)
 
 import streamlit as st
 import streamlit.components.v1 as components
