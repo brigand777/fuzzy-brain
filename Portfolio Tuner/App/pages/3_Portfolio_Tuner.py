@@ -198,7 +198,7 @@ if "downsampled" in st.session_state:
     chart_with_tooltip(
         title="📈 Rolling Sharpe Ratio",
         short_desc="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
-        chart_func=lambda: plot_rolling_sharpe(downsampled)
+        chart_func=lambda: plot_rolling_sharpe(downsampled),
         term="Rolling Sharpe Ratio",
         interactive=True,
         x_field="date",
@@ -207,7 +207,7 @@ if "downsampled" in st.session_state:
     chart_with_tooltip(
         title="📉 Drawdowns",
         short_desc="Maximum dips from previous highs — a measure of worst-case losses.",
-        chart_func=lambda: plot_drawdowns(downsampled)
+        chart_func=lambda: plot_drawdowns(downsampled),
         term="Max Drawdown",
         interactive=True,
         x_field="date",
