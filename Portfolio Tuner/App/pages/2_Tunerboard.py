@@ -140,7 +140,7 @@ if authentication_status:
         st.warning("⚠️ Add more coins for better diversification.")
 
     #st.markdown("### 📅 Date Range & Benchmark")
-    section_heading("📅 Date Range & Benchmark", short_description="Mother always said comparison is the thief of joy, but in finance benchmarks help us contextualize our investments! Here we can pick ours", glossary_url="/Glossary#Bechmark-Portfolio", level=3)
+    section_heading("📅 Date Range & Benchmark", short_description="Mother always said comparison is the thief of joy, but in finance benchmarks help us contextualize our investments! Here we can pick ours", level=3)
  
     col1, col2 = st.columns([1, 1])
     with col1:
