@@ -52,7 +52,7 @@ def edit_portfolio(available_assets, prices: pd.DataFrame, persistent=True):
     total_value = df["Value"].sum()
     df["Percent"] = df["Value"] / total_value * 100 if total_value > 0 else 0
 
-    section_heading("📊 Your Portfolio Overview", short_description="The left chart shows us how much of each coin we have, and the right shows us the exact percentage of the total value of our portfolio is in each coin. Easy as pie!", level=3)
+    st.markdown(section_heading("📊 Your Portfolio Overview", short_description="The left chart shows us how much of each coin we have, and the right shows us the exact percentage of the total value of our portfolio is in each coin. Easy as pie!", level=3),unsafe_allow_html=True)
  
     col_table, col_chart = st.columns([1, 1.2])
 
