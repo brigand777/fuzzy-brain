@@ -265,7 +265,14 @@ if authentication_status:
             for col in cumulative.columns:
                 fig_cum.add_trace(go.Scatter(x=cumulative.index[::downsample_interval], y=cumulative[col].iloc[::downsample_interval], mode='lines', name=col, line=dict(dash='dash') if col == "Portfolio" else dict()))
             fig_cum.update_layout(title="Cumulative Returns", xaxis_title="Date", yaxis_title="Return", hovermode="x unified")
-            st.plotly_chart(fig_cum, use_container_width=True)
+            #st.plotly_chart(fig_cum, use_container_width=True)
+            chart_with_tooltip(
+                title="Portfolio Allocation",
+                term="Your Crypto Mix",
+                short_desc="This is where the eggs go into the baskets!",
+                glossary_url="/Glossary#allocation",
+                chart_func=lambda: fig_cum
+            )
 
         with col2:
             fig_ret = go.Figure()
