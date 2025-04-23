@@ -173,20 +173,6 @@ def add_info_icon(title, short_description, term="", glossary_url=None, left_ico
 
     components.html(html, height=70)
 
-import base64
-import streamlit.components.v1 as components
-
-def image_to_base64(path: str) -> str:
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
-import base64
-import streamlit.components.v1 as components
-
-def image_to_base64(path: str) -> str:
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
-
-import streamlit.components.v1 as components
 
 # This is your info icon (uploaded) as base64
 info_icon_b64 = "iVBORw0KGgoAAAANSUhEUgAAAA8AAAAQCAYAAAC0tH7LAAA..."
@@ -264,25 +250,15 @@ def render_final_tooltip_heading(title: str, short_description: str, term: str =
 
     components.html(html, height=100)
 
-
-
-
-import streamlit as st
-import streamlit.components.v1 as components
-def section_heading(title, short_description, term="", glossary_url=None, level=2, left_icon=None):
+def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
-
-    icon_html = f'<img src="{left_icon}" width="24" style="margin-right: 6px; vertical-align: middle;" />' if left_icon else ""
-    
     html = f"""
-    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
-        {icon_html}
-        <{tag} style="margin: 0; color: #F0F0F0; font-weight: 600;">{title}</{tag}>
+    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
+        <{tag} style="margin: 0;">{title}</{tag}>
         {add_info_icon(term, short_description, glossary_url)}
     </div>
     """
-    st.components.v1.html(html, height=60)
-
+    st.markdown(html, unsafe_allow_html=True)
 
 def vintage_dropdown(title: str, content: str):
     """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
