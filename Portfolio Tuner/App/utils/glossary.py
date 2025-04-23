@@ -120,12 +120,12 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     if glossary_url:
         tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    # Optional: update path to where you're storing this image
-    mascot_url = "Portfolio Tuner/App/assets/headshot.png"  # or use st.image() to host via Streamlit Static Files
-    
+    # Replace with your real image path or a base64-encoded image if needed
+    mascot_url = "Portfolio Tuner/App/assets/headshot.png"
+
     tooltip_content += f"""
         <div style="position:absolute; bottom:4px; right:6px; opacity:0.5;">
-            <img src="{mascot_url}" width="18" height="18" style="border-radius: 50%;" />
+            <img src="{mascot_url}" width="16" height="16" style="border-radius: 50%;" />
         </div>
     """
 
@@ -139,16 +139,17 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     """
 
 
+
 def section_heading(
     title: str,
     short_description: str,
     term: str = "",
     glossary_url: str = None,
     level: int = 2
-    ):
+):
     tag = f"h{level}"
-    html = f"<{tag}>{title} {add_info_icon(term, short_description, glossary_url)}</{tag}>"
-    st.markdown(html, unsafe_allow_html=True)
+    st.markdown(f"<{tag} style='display: inline;'>{title}</{tag}>", unsafe_allow_html=True)
+    st.markdown(f"{add_info_icon(term, short_description, glossary_url)}", unsafe_allow_html=True)
 
 def vintage_dropdown(title: str, content: str):
     """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
