@@ -4,6 +4,9 @@ import os
 import pytz
 from datetime import datetime
 
+# --- Must be first ---
+st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
+
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
 from optimizer import run_optimizers
@@ -19,37 +22,41 @@ from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods, get_backtest_settings
 from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,set_global_font_style, plot_unk_chart
 
-# --- Page Setup ---
-st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
+# --- Lite Mode Toggle ---
+st.sidebar.markdown("### 🧪 Experimental")
+st.session_state.lite_mode = st.sidebar.toggle("Lite Mode", value=st.session_state.get("lite_mode", False))
+
+# --- Styling and CSS ---
 inject_tooltip_css()
 set_global_font_style()
+
 st.markdown("""
 <style>
-/* Bump up normal text font size */
 .stMarkdown p, .stMarkdown div, p {
     font-size: 18px !important;
     line-height: 1.5;
 }
-
-/* Preserve table/chart styling */
 .stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
     font-size: inherit !important;
 }
-
-/* Optional: Larger narrative box text */
 .narrative-box {
     font-size: 18px !important;
 }
 </style>
 """, unsafe_allow_html=True)
-authenticator, authentication_status, username = login_and_get_status()
-st.title("💼 Portfolio Tuner")
+
 st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>
-    .metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
+.metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
 </style>
 """, unsafe_allow_html=True)
+
+# Remaining logic unchanged. You can now wrap non-amateur content like this:
+# if not st.session_state.lite_mode:
+#     st.markdown("## Advanced Settings")
+#     ...
+
 # --- Style Helper ---
 def narrative(text, color="#1F77B4"):
     st.markdown(
@@ -155,15 +162,15 @@ selected_methods = st.multiselect(
     options=default_methods,
     default=default_methods
 )
+if not st.session_state.lite_mode:
+    # Step 2.3: Configure Advanced Settings
+    st.markdown(section_heading("⚙️ Step 2.3: Advanced Settings (Optional)", short_description="""This is the real geeky stuff..don't say I didn't warn ya! Rebalance frequency is how often you want to
+     recalculate the strategy, lookback is how nearsighted (looking back) you want the strategy to optimize for, and not allowing short selling means you only buy (rather than sell) as part of a strategy""", level=3), unsafe_allow_html=True)
 
-# Step 2.3: Configure Advanced Settings
-st.markdown(section_heading("⚙️ Step 2.3: Advanced Settings (Optional)", short_description="""This is the real geeky stuff..don't say I didn't warn ya! Rebalance frequency is how often you want to
- recalculate the strategy, lookback is how nearsighted (looking back) you want the strategy to optimize for, and not allowing short selling means you only buy (rather than sell) as part of a strategy""", level=3), unsafe_allow_html=True)
-
-with st.expander("🔧 Show Advanced Settings", expanded=False):
-    rebalance_days = st.slider("🔁 Rebalance Frequency (days)", 7, 90, 30, step=7)
-    lookback_days = st.slider("📊 Lookback Period (days)", 30, 365, 90, step=30)
-    nonnegative_toggle = st.toggle("📉 Disallow short-selling?", value=True)
+    with st.expander("🔧 Show Advanced Settings", expanded=False):
+        rebalance_days = st.slider("🔁 Rebalance Frequency (days)", 7, 90, 30, step=7)
+        lookback_days = st.slider("📊 Lookback Period (days)", 30, 365, 90, step=30)
+        nonnegative_toggle = st.toggle("📉 Disallow short-selling?", value=True)
 
 
 simulation_data = data.loc[start_date:end_date, [col for col in portfolio_df['Asset'] if col in data.columns]]
@@ -219,30 +226,32 @@ if "downsampled" in st.session_state:
         level=3), unsafe_allow_html=True)
     
     plot_unk_chart(cum_fig)
-    st.markdown(section_heading(
-        title="📈 Rolling Sharpe Ratio",
-        short_description="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
-        level=3), unsafe_allow_html=True)
-    plot_unk_chart(sha_fig)
     
-    st.markdown(section_heading(
-        title="📉 Drawdowns",
-        short_description="Maximum dips from previous highs — a measure of worst-case losses.",
-        level=3), unsafe_allow_html=True)
-    
-    plot_unk_chart(dra_fig)
-    
-    with st.expander(f"Strategy Allocations Over Time"):
+    if not st.session_state.lite_mode:
         st.markdown(section_heading(
-        title="Allocations",
-        short_description="Here's where you see what you would have done had you rebalanced each strategy periodically. Checkout how the allocations evolve, each strategy behaves quite differently!",
-        level=3), unsafe_allow_html=True)
-        for method in selected_methods:
-            
-            st.altair_chart(
-                add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
-                use_container_width=True
-            )
+            title="📈 Rolling Sharpe Ratio",
+            short_description="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
+            level=3), unsafe_allow_html=True)
+        plot_unk_chart(sha_fig)
+        
+        st.markdown(section_heading(
+            title="📉 Drawdowns",
+            short_description="Maximum dips from previous highs — a measure of worst-case losses.",
+            level=3), unsafe_allow_html=True)
+        
+        plot_unk_chart(dra_fig)
+    if not st.session_state.lite_mode:
+        with st.expander(f"Strategy Allocations Over Time"):
+            st.markdown(section_heading(
+            title="Allocations",
+            short_description="Here's where you see what you would have done had you rebalanced each strategy periodically. Checkout how the allocations evolve, each strategy behaves quite differently!",
+            level=3), unsafe_allow_html=True)
+            for method in selected_methods:
+                
+                st.altair_chart(
+                    add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
+                    use_container_width=True
+                )
     st.markdown(section_heading("📋 Summary Chart", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown
     is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3), unsafe_allow_html=True)
 
@@ -296,8 +305,11 @@ if "optimizer_allocations" in st.session_state:
     asset_color_map = {asset: palette[i % len(palette)] for i, asset in enumerate(asset_list)}
 
     # --- Toggle ---
-    chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
-
+    if st.session_state.lite_mode:
+        chart_type = "🥧 Pie Charts"
+    if not st.session_state.lite_mode:
+        chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
+    
     if chart_type == "🥧 Pie Charts":
         #st.markdown("### 🥧 Investment Mix by Strategy")
         st.markdown(section_heading(
@@ -350,11 +362,12 @@ narrative("Simulate future portfolio performance under random market conditions.
 
 with st.expander("🛠️ Simulation Settings"):
     horizon_days = st.slider("⏳ Forecast Horizon (days)", 30, 365, 180, step=30)
-    n_sims = st.slider("🎯 Number of Simulations", 100, 2000, 500, step=100)
-    corr_mode = st.selectbox("📊 Correlation Assumption", ["shrinkage", "historical", "independent"], index=0)
-    
-    dynamic_rebal_toggle = st.toggle("Enable Rebalancing in MC Simulation", value=False)
-    rebalance_interval_mc = st.slider("🔁 Rebalance Interval (days)", 10, 90, 30, step=10, disabled=not dynamic_rebal_toggle)
+    if not st.session_state.lite_mode:
+        n_sims = st.slider("🎯 Number of Simulations", 100, 2000, 500, step=100)
+        corr_mode = st.selectbox("📊 Correlation Assumption", ["shrinkage", "historical", "independent"], index=0)
+        
+        dynamic_rebal_toggle = st.toggle("Enable Rebalancing in MC Simulation", value=False)
+        rebalance_interval_mc = st.slider("🔁 Rebalance Interval (days)", 10, 90, 30, step=10, disabled=not dynamic_rebal_toggle)
 
 run_mc = st.button("Run Monte Carlo Simulation")
 
@@ -399,13 +412,13 @@ if run_mc:
                 level=3), unsafe_allow_html=True)
             st.plotly_chart(mc_result["chart"], use_container_width=True)
             
-
-            #st.markdown("### 📊 Strategy Risk Metrics")
-            st.markdown(section_heading(
-                title="📊 Strategy Risk Metrics",
-                short_description="Shows volatility, Sharpe ratio, and drawdowns across simulations.",
-                level=3), unsafe_allow_html=True)
-            st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
+            if not st.session_state.lite_mode:
+                #st.markdown("### 📊 Strategy Risk Metrics")
+                st.markdown(section_heading(
+                    title="📊 Strategy Risk Metrics",
+                    short_description="Shows volatility, Sharpe ratio, and drawdowns across simulations.",
+                    level=3), unsafe_allow_html=True)
+                st.plotly_chart(mc_result["metric_plot"], use_container_width=True)
             
 
             summary_df = pd.DataFrame(mc_result["summary"]).T[
