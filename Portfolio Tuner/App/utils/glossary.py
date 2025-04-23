@@ -301,8 +301,7 @@ def section_heading(title, short_description, term=None, glossary_url=None, leve
 </style>
 
 <div style="display: inline-flex; align-items: center; gap: 0;">
-    <{tag} style="margin: 0;">{title}</{tag}>
-    <span class="info-tooltip">
+    <{tag} style="margin: 0;">{title}</{tag}><span class="info-tooltip">
         <span class="info-tooltip-icon">ℹ️</span>
         <div class="info-tooltip-box">
             {tooltip_html}
