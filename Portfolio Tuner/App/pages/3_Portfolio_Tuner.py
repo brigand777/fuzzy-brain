@@ -299,7 +299,11 @@ if "optimizer_allocations" in st.session_state:
     chart_type = st.radio("Choose how to visualize allocations:", ["🥧 Pie Charts", "📈 Bar Charts"], horizontal=True)
 
     if chart_type == "🥧 Pie Charts":
-        st.markdown("### 🥧 Investment Mix by Strategy")
+        #st.markdown("### 🥧 Investment Mix by Strategy")
+        st.markdown(section_heading(
+        title="🥧 Investment Mix by Strategy",
+        short_description="This is how you should allocate today according to each streategy's math! You can pick which display style you want, I prefer the bars..",
+        level=3), unsafe_allow_html=True)
         pie_cols = st.columns(len(strategies))
         for i, method in enumerate(strategies):
             weights = all_allocations[method]
@@ -313,7 +317,11 @@ if "optimizer_allocations" in st.session_state:
                 st.plotly_chart(fig, use_container_width=True)
 
     elif chart_type == "📈 Bar Charts":
-        st.markdown("### 📈 Allocation Comparison by Strategy")
+        #st.markdown("### 📈 Allocation Comparison by Strategy")
+        st.markdown(section_heading(
+        title="📈 Allocation Comparison by Strategy",
+        short_description="This is how you should allocate today according to each streategy's math! You can pick which display style you want, I prefer the bars..",
+        level=3), unsafe_allow_html=True)
         bar_cols = st.columns(2)
 
         # Shared Y-axis and asset order
