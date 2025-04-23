@@ -54,7 +54,9 @@ with st.spinner("Loading price data..."):
         st.stop()
 
 # --- Step 1: Portfolio Setup ---
-st.markdown("## Step 1: 📁 Select Portfolio")
+#st.markdown("## Step 1: 📁 Select Portfolio")
+section_heading("Step 1: 📁 Select Portfolio", short_description="We can either pick what we built in Portfolio Builder or make something entirely new..yippie!", level=2)
+
 input_mode = st.radio("Where is your portfolio coming from?", ["Use My Saved Portfolio", "Build Portfolio Now"])
 portfolio_df = None
 persistent = False
@@ -226,7 +228,7 @@ if "downsampled" in st.session_state:
                 add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
                 use_container_width=True
             )
-    section_heading("Summary Chart", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3)
+    section_heading("📋 Summary Chart", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3)
 
     st.dataframe(generate_styled_summary_table(downsampled), use_container_width=True)
 
@@ -416,7 +418,9 @@ if run_mc:
                 .apply(lambda row: [color_text(row[col], col) for col in summary_df.columns], axis=1)\
                 .format("{:.2f}")  # ✅ Round display values
 
-            st.markdown("### 📋 Simulation Summary (Median Sharpe, Volatility, Drawdown)")
+            #st.markdown("### 📋 Simulation Summary (Median Sharpe, Volatility, Drawdown)")
+            section_heading("📋 Simulation Summary", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3)
+
             st.dataframe(styled_df, use_container_width=True)
 
 

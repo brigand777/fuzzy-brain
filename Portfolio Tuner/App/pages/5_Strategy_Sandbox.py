@@ -11,6 +11,13 @@ from utils.simulation import run_smart_monte_carlo_simulation
 
 # --- Page Setup ---
 st.set_page_config(page_title="Playground", layout="wide")
+inject_tooltip_css()
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+    .metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
+</style>
+""", unsafe_allow_html=True)
 st.title("🎮 Strategy Sandbox")
 
 st.markdown(
@@ -45,7 +52,8 @@ data = load_data()
 available_assets = data.columns.tolist()
 
 # --- Step 1: Choose Assets ---
-st.markdown("## Step 1: 🧠 Choose Your Assets")
+#st.markdown("## Step 1: 🧠 Choose Your Assets")
+section_heading("Step 1: 🧠 Choose Your Assets", short_description="We're in the sandbox and these are our building blocks! Grab stuff you haven't before, see where it goes", level=2)
 
 with st.expander("💼 Try a Sample Crypto Portfolio"):
     preset = st.radio(
@@ -77,7 +85,9 @@ playground_assets = selected_assets
 latest_prices = data.iloc[-1]
 
 # --- Step 2: 🎚️ Adjust Your Hypothetical Portfolio ---
-st.markdown("## Step 2: 🎚️ Adjust Your Hypothetical Portfolio")
+#st.markdown("## Step 2: 🎚️ Adjust Your Hypothetical Portfolio")
+section_heading("Step 2: 🎚️ Adjust Your Hypothetical Portfolio", short_description="""Use these sliders to adjust the percentage of the total you want to invest of each coin,
+ if you auto normalize the percentages are treated as relative, otherwise you can simulate a portfolio with over 100% which would imply leverage trading (borrow money to amplify profits/losses)!""", level=2)
 
 slider_col, chart_col = st.columns([1, 2], gap="medium")
 
@@ -163,7 +173,8 @@ risk_score = sum((v * np.std(data[k].pct_change())) for k, v in weights.items())
 
 # --- Chart Column ---
 with chart_col:
-    st.markdown("#### 📈 1-Year Cumulative Return")
+    #st.markdown("#### 📈 1-Year Cumulative Return")
+    section_heading("📈 1-Year Cumulative Return", short_description="""Here's how this strategy would have performed per dollar input a year ago! This updates whenever you change a slider, pretty cool huh?""", level=4)
 
     chart = plot_cumulative_returns({
         "Playground Portfolio": {
@@ -237,9 +248,15 @@ with st.expander("🔮 Monte Carlo Future Simulator", expanded=False):
                 n_sims=n_sims,
                 correlation_strategy=correlation_strategy.split(" ")[0]
             )
-            st.plotly_chart(result["chart"], use_container_width=True)
+            #st.plotly_chart(result["chart"], use_container_width=True)
+            chart_with_tooltip(
+                title="🎲 Monte Carlo Projection",
+                short_desc="This is how the portfolio you made could evolve over many different futures based on the statistical properties of the past..call me Marty Mcfly!",
+                chart_func=lambda: result["chart"],
+            )
+            #st.markdown("### 📊 Forecast Summary")
+            section_heading("📊 Forecast Summary", short_description="""This summarizes the extremes that came out of the simulations, treat these as possible what-ifs""", level=4)
 
-            st.markdown("### 📊 Forecast Summary")
             st.markdown(f"""
             - **Median 6-Month Return:** {(result['ci_high'] + result['ci_low']) / 2:.1%}  
             - **Best Case Path:** {result['max']:.1%}  
