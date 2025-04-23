@@ -74,13 +74,33 @@ def set_global_font_style():
     </style>
     """, unsafe_allow_html=True)
 
+    st.markdown("""
+    <style>
+    html, body, .stApp {
+        font-size: 16px !important;
+        font-family: 'Inter', sans-serif;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+    }
+
+    .info-tooltip-box {
+        font-size: 0.85em !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 
     with open(path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
 import base64
 
-def image_to_base64(path):
+import base64
+
+def image_to_base64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
