@@ -4,58 +4,6 @@ from utils.plots import add_interactivity
 
 import base64
 
-def image_to_base64(path):
-    with open(path, "rb") as f:
-        data = f.read()
-    return base64.b64encode(data).decode()
-
-
-def sinject_tooltip_css():
-    tooltip_css = """
-    <style>
-    .info-tooltip {
-      display: inline-block;
-      position: relative;
-      vertical-align: super;
-      margin-left: 6px;
-      font-size: 0.75em;
-      font-family: inherit;
-      color: inherit;
-    }
-    .info-tooltip-icon {
-      cursor: help;
-      font-weight: bold;
-      font-size: 0.8em;
-      line-height: 1;
-      color: inherit;
-    }
-    .info-tooltip-box {
-      visibility: hidden;
-      opacity: 0;
-      width: 220px;
-      background-color: #333;
-      color: #fff;
-      text-align: left;
-      border-radius: 6px;
-      padding: 6px 8px;
-      font-size: 0.7em;
-      position: absolute;
-      z-index: 10;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: auto;
-      transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s;
-    }
-    .info-tooltip:hover .info-tooltip-box {
-      visibility: visible;
-      opacity: 1;
-      transition-delay: 0s, 0s;
-    }
-    </style>
-    """
-    st.markdown(tooltip_css, unsafe_allow_html=True)
-
 def inject_tooltip_css():
     tooltip_css = """
     <style>
@@ -108,37 +56,27 @@ def inject_tooltip_css():
     """
     st.markdown(tooltip_css, unsafe_allow_html=True)
 
+
+def image_to_base64(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
-    return """
-    <span class="info-tooltip">
-        <span class="info-tooltip-icon">ℹ️</span>
-        <div class="info-tooltip-box">
-            <strong>Benchmark</strong><br>
-            Used to compare portfolio performance.
-            <br>
-            <img src="data:Portfolio Tuner/App/assets/headshot/png;base64,..." width="18" />
-        </div>
-    </span>
-    """
-
-
-def sadd_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
-    tooltip_content = f"<strong>{term}</strong><br>{short_description}" if term else short_description
+    tooltip = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
-        tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
+        tooltip += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    # Base64 encode the local image
-    b64_img = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
-
-    tooltip_content += f"""
-        <img src="data:image/png;base64,{b64_img}" width="18" height="18" style="opacity:0.6; display:block; margin-top:6px;" />
-    """
+    # Embed raccoon as base64
+    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
+    img_tag = f'<img src="data:image/png;base64,{mascot_b64}" width="18" height="18" style="opacity: 0.6; margin-top: 6px;" />'
 
     return f"""
     <span class="info-tooltip" style="position: relative;">
         <span class="info-tooltip-icon">ℹ️</span>
         <div class="info-tooltip-box">
-            {tooltip_content}
+            {tooltip}
+            {img_tag}
         </div>
     </span>
     """
@@ -152,11 +90,12 @@ def section_heading(
 ):
     tag = f"h{level}"
     st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 8px;">
             <{tag} style="margin: 0;">{title}</{tag}>
             {add_info_icon(term, short_description, glossary_url)}
         </div>
     """, unsafe_allow_html=True)
+
 
 
 
