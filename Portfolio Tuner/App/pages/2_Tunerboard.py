@@ -139,7 +139,9 @@ if authentication_status:
     if len(portfolio_df) < 3:
         st.warning("⚠️ Add more coins for better diversification.")
 
-    st.markdown("### 📅 Date Range & Benchmark")
+    #st.markdown("### 📅 Date Range & Benchmark")
+    section_heading("📅 Date Range & Benchmark", short_description="Mother always said comparison is the thief of joy, but in finance benchmarks help us contextualize our investments! Here we can pick ours", glossary_url="/Glossary#Bechmark-Portfolio", level=3)
+ 
     col1, col2 = st.columns([1, 1])
     with col1:
         preset_range = st.selectbox("Quick Date Range", ["Last 30 days", "Last 90 days", "Last 1 year", "Custom"], index=1, key="preset_range")
@@ -192,7 +194,9 @@ if authentication_status:
         st.error(f"⚠️ Error in dashboard: {e}")
         st.stop()
 
-    st.markdown("### 📊 Portfolio Performance")
+    #st.markdown("### 📊 Portfolio Performance")
+    section_heading("📊 Portfolio Performance", short_description="This is it! How our portfolio has been doing this past while $$$", level=3)
+ 
     try:
         value_fig = plot_portfolio_absolute_value(data, selected_assets, start_date, end_date, portfolio_df)
         returns_fig = plot_asset_cumulative_returns(data, selected_assets, portfolio_df, benchmark, start_date, end_date)
@@ -267,10 +271,8 @@ if authentication_status:
             fig_cum.update_layout(title="Cumulative Returns", xaxis_title="Date", yaxis_title="Return", hovermode="x unified")
             #st.plotly_chart(fig_cum, use_container_width=True)
             chart_with_tooltip(
-                title="Portfolio Allocation",
-                term="Your Crypto Mix",
-                short_desc="This is where the eggs go into the baskets!",
-                glossary_url="/Glossary#allocation",
+                title="Cumulative Returns",
+                short_desc="If you invested $1 at the beginning of selected period into each coin? This is where we see who's pulling their own weight!",
                 chart_func=lambda: fig_cum
             )
 
@@ -279,7 +281,12 @@ if authentication_status:
             for col in returns.columns:
                 fig_ret.add_trace(go.Scatter(x=returns.index[::downsample_interval], y=returns[col].iloc[::downsample_interval]*100, mode='lines', name=col))
             fig_ret.update_layout(title="Daily Returns", xaxis_title="Date", yaxis_title="Return (%)", hovermode="x unified")
-            st.plotly_chart(fig_ret, use_container_width=True)
+            #st.plotly_chart(fig_ret, use_container_width=True)
+            chart_with_tooltip(
+                title="Daily Returns",
+                short_desc="Here we see the daily action of each coin!",
+                chart_func=lambda: fig_ret
+            )
 
         col3, col4 = st.columns(2)
         with col3:
@@ -287,7 +294,12 @@ if authentication_status:
             for col in combined_data.columns:
                 fig_price.add_trace(go.Scatter(x=combined_data.index[::downsample_interval], y=combined_data[col].iloc[::downsample_interval], mode='lines', name=col))
             fig_price.update_layout(title="Raw Prices", xaxis_title="Date", yaxis_title="Price", hovermode="x unified")
-            st.plotly_chart(fig_price, use_container_width=True)
+            #st.plotly_chart(fig_price, use_container_width=True)
+            chart_with_tooltip(
+                title="Raw Prices",
+                short_desc="This is the price of each coin -- in full glory!",
+                chart_func=lambda: fig_price
+            )
         with st.expander("📊 Individual Crypto Performance"):
             try:
                 rows = st.columns(2)

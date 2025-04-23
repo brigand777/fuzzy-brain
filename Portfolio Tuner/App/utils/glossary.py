@@ -106,7 +106,7 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     <span class="info-tooltip">
       <span class="info-tooltip-icon">ℹ️</span>
       <div class="info-tooltip-box">
-        <strong>{term}</strong><br>{short_description}
+        <strong>{f"<strong>{term}</strong><br>" if term else ""}</strong><br>{short_description}
         {'<br><a href="' + glossary_url + '" target="_blank" style="color:#1F77B4;">Read more</a>' if glossary_url else ''}
       </div>
     </span>
@@ -114,8 +114,8 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
 
 def section_heading(
     title: str,
-    term: str,
     short_description: str,
+    term: str = None,
     glossary_url: str = None,
     level: int = 2
     ):
@@ -324,5 +324,16 @@ It ensures risk exposure stays consistent but may incur transaction costs.
 High positive correlation means assets move together; low or negative values suggest diversification potential.
 
 🔗 [Seaborn – Correlation Heatmaps](https://investor.vanguard.com/investor-resources-education/portfolio-management/rebalancing-your-portfolio)"""
-    }
+    },
+    {
+    "term": "Benchmark Portfolio",
+    "short": "Reference portfolio used for performance comparison.",
+    "long": """A benchmark portfolio is a predefined set of assets used to evaluate the performance of an investment strategy or portfolio. 
+In crypto, common benchmarks include BTC, ETH, or a market-cap weighted index of top coins.
+
+Comparing to a benchmark helps assess whether active strategies are adding value or underperforming a passive approach.
+
+🔗 [Investopedia – Benchmark Definition](https://www.investopedia.com/terms/b/benchmark.asp)"""
+}
+
 ]
