@@ -17,7 +17,7 @@ from utils.utils import downsample_results_dict
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods, get_backtest_settings
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,render_final_tooltip_heading
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,
 
 # --- Page Setup ---
 st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
@@ -55,12 +55,8 @@ with st.spinner("Loading price data..."):
 
 # --- Step 1: Portfolio Setup ---
 #st.markdown("## Step 1: 📁 Select Portfolio")
-#st.markdown(section_heading("Step 1: 📁 Select Portfolio", short_description = "We can either pick what we built in Portfolio Builder or make something entirely new..yippie!", level=2), unsafe_allow_html=True)
-st.markdown(section_heading(
-    "📆 Step 2: Select Your Date Range",
-    short_description="Adjusting which time period you want to understand more about is going to be an ongoing thing...hindsight is great!",
-    level=2
-), unsafe_allow_html=True)
+st.markdown(section_heading("Step 1: 📁 Select Portfolio", short_description = "We can either pick what we built in Portfolio Builder or make something entirely new..yippie!", level=2), unsafe_allow_html=True)
+
 input_mode = st.radio("Where is your portfolio coming from?", ["Use My Saved Portfolio", "Build Portfolio Now"])
 portfolio_df = None
 persistent = False
@@ -123,7 +119,7 @@ if start_date >= end_date:
     st.stop()
 
 # Step 2.2: Choose Strategy Types
-st.markdown(section_heading("🧠 Step 2.2: Choose Strategies to Backtest", short_description="Oooh this is the technical stuff, Mean variance is optimal in the past, while HRB tries to find the structure and spread your risk mathematically..hard to chose I love looking at them all :p", level=3)
+st.markdown(section_heading("🧠 Step 2.2: Choose Strategies to Backtest", short_description="Oooh this is the technical stuff, Mean variance is optimal in the past, while HRB tries to find the structure and spread your risk mathematically..hard to chose I love looking at them all :p", level=3), unsafe_allow_html=True)
 
 with st.expander("ℹ️ Strategy Descriptions", expanded=False):
     st.markdown("""
