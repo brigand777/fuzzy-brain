@@ -38,7 +38,7 @@ st.markdown("""
 
 /* Optional: Larger narrative box text */
 .narrative-box {
-    font-size: 20px !important;
+    font-size: 18px !important;
 }
 </style>
 """, unsafe_allow_html=True)
