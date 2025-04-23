@@ -84,98 +84,77 @@ import streamlit as st
 import streamlit.components.v1 as components
 import base64
 
+import base64
+
 def image_to_base64(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-def add_info_icon(title, short_description, term="", glossary_url=None, left_icon_path=None):
-    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
-    icon_html = ""
-
-    if left_icon_path:
-        left_icon_b64 = image_to_base64(left_icon_path)
-        icon_html = f'<img src="data:image/png;base64,{left_icon_b64}" width="28" style="vertical-align: middle; margin-right: 6px;" />'
+def add_info_icon(term: str, short_description: str, glossary_url: str = None, mascot_path: str = "Portfolio Tuner/App/assets/headshot.png") -> str:
+    mascot_b64 = image_to_base64(mascot_path)
 
     tooltip_content = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
         tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    html = f"""
-    <style>
-    .info-container {{
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-family: 'Inter', sans-serif;
-        font-size: 1.3rem;
-        color: #F5F5F5;
-    }}
+    return f"""
+<style>
+.info-tooltip {{
+    position: relative;
+    display: inline-block;
+}}
+.info-tooltip-icon {{
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0.7;
+    margin-left: 4px;
+    vertical-align: middle;
+}}
+.info-tooltip-box {{
+    visibility: hidden;
+    background-color: #FAF3D3;
+    color: #1A1A1A;
+    border: 1px solid #D6C899;
+    border-radius: 8px;
+    padding: 10px 10px 24px 10px;
+    position: absolute;
+    z-index: 9999;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.85rem;
+    min-width: 220px;
+    max-width: 300px;
+    box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    white-space: normal;
+}}
+.info-tooltip:hover .info-tooltip-box {{
+    visibility: visible;
+    opacity: 1;
+}}
+.info-tooltip-box img {{
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.4;
+}}
+</style>
 
-    .info-tooltip {{
-        position: relative;
-        display: inline-block;
-    }}
-
-    .info-tooltip-icon {{
-        cursor: pointer;
-        font-size: 1rem;
-        opacity: 0.7;
-    }}
-
-    .info-tooltip-box {{
-        visibility: hidden;
-        background-color: #FAF3D3;
-        color: #1A1A1A;
-        border: 1px solid #D6C899;
-        border-radius: 8px;
-        padding: 10px 10px 24px 10px;
-        position: absolute;
-        z-index: 9999;
-        bottom: 120%;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.85rem;
-        min-width: 220px;
-        max-width: 300px;
-        box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        white-space: normal;
-    }}
-
-    .info-tooltip:hover .info-tooltip-box {{
-        visibility: visible;
-        opacity: 1;
-    }}
-
-    .info-tooltip-box img {{
-        position: absolute;
-        bottom: 6px;
-        right: 6px;
-        width: 18px;
-        height: 18px;
-        opacity: 0.4;
-    }}
-    </style>
-
-    <div class="info-container">
-        {icon_html}
-        <span style="font-weight: 600;">{title}</span>
-        <span class="info-tooltip">
-            <span class="info-tooltip-icon">ℹ️</span>
-            <div class="info-tooltip-box">
-                {tooltip_content}
-                <img src="data:image/png;base64,{mascot_b64}" alt="icon"/>
-            </div>
-        </span>
+<span class="info-tooltip">
+    <span class="info-tooltip-icon">ℹ️</span>
+    <div class="info-tooltip-box">
+        {tooltip_content}
+        <img src="data:image/png;base64,{mascot_b64}" alt="icon" />
     </div>
-    """
-
-    components.html(html, height=70)
-
+</span>
+"""
 
 # This is your info icon (uploaded) as base64
-info_icon_b64 = "iVBORw0KGgoAAAANSUhEUgAAAA8AAAAQCAYAAAC0tH7LAAA..."
+#info_icon_b64 = "iVBORw0KGgoAAAANSUhEUgAAAA8AAAAQCAYAAAC0tH7LAAA..."
 
 def render_final_tooltip_heading(title: str, short_description: str, term: str = "", glossary_url: str = None):
     tooltip_html = f"<strong>{term}</strong><br>{short_description}" if term else short_description
@@ -253,12 +232,13 @@ def render_final_tooltip_heading(title: str, short_description: str, term: str =
 def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
     html = f"""
-    <div style="display: inline-flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
+    <div style="display: inline-flex; align-items: center; gap: 6px;">
         <{tag} style="margin: 0;">{title}</{tag}>
         {add_info_icon(term, short_description, glossary_url)}
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
+
 
 def vintage_dropdown(title: str, content: str):
     """Displays a dropdown styled like a vintage tooltip: yellow background, italic serif font."""
