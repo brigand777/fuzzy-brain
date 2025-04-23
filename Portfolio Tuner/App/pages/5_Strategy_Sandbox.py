@@ -14,6 +14,25 @@ st.set_page_config(page_title="Playground", layout="wide")
 inject_tooltip_css()
 set_global_font_style()
 st.markdown("""
+<style>
+/* Bump up normal text font size */
+.stMarkdown p, .stMarkdown div, p {
+    font-size: 18px !important;
+    line-height: 1.5;
+}
+
+/* Preserve table/chart styling */
+.stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
+    font-size: inherit !important;
+}
+
+/* Optional: Larger narrative box text */
+.narrative-box {
+    font-size: 20px !important;
+}
+</style>
+""", unsafe_allow_html=True)
+st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 <style>
     .metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}

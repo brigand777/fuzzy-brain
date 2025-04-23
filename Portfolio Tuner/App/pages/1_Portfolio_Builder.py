@@ -10,6 +10,25 @@ from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, i
 st.set_page_config(page_title="My Portfolio", layout="wide")
 inject_tooltip_css()
 set_global_font_style()
+st.markdown("""
+<style>
+/* Bump up normal text font size */
+.stMarkdown p, .stMarkdown div, p {
+    font-size: 18px !important;
+    line-height: 1.5;
+}
+
+/* Preserve table/chart styling */
+.stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
+    font-size: inherit !important;
+}
+
+/* Optional: Larger narrative box text */
+.narrative-box {
+    font-size: 20px !important;
+}
+</style>
+""", unsafe_allow_html=True)
 authenticator, authentication_status, username = login_and_get_status()
 
 st.title("📝 Portfolio Builder")

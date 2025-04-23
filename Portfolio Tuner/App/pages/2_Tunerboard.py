@@ -81,10 +81,6 @@ st.markdown("""
     line-height: 1.5;
 }
 
-h3 {
-    font-size: 22px !important;
-    font-weight: 600;
-}
 /* Preserve table/chart styling */
 .stDataFrame, .stTable, .stPlotlyChart, .stAltairChart {
     font-size: inherit !important;
