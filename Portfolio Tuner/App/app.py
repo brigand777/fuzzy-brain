@@ -88,7 +88,7 @@ with right:
             <h4 style="margin-top: 0;">👋 Hi, I'm Tuni!</h4>
             Welcome to <strong>Portfolio Tuner</strong> – your personalized crypto strategy assistant.<br><br>
             I’m here to help you explore, experiment, and optimize your investments without stress.<br><br>
-            Think of me as your data-driven sidekick— guiding you through building a smart, resilient crypto portfolio. Ready to tune things up?
+            P.S. I've dropped some notes throughout the app that give you my perspective on what's goin' on, but don't tell the guys in charge I'm the one helpin' ya through this.
         </div>
         """, unsafe_allow_html=True)
 
