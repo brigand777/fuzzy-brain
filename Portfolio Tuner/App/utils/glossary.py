@@ -108,21 +108,6 @@ def inject_tooltip_css():
     """
     st.markdown(tooltip_css, unsafe_allow_html=True)
 
-
-def sadd_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
-    tooltip_content = f"<strong>{term}</strong><br>{short_description}" if term else short_description
-    if glossary_url:
-        tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
-
-    return f"""
-    <span class="info-tooltip">
-      <span class="info-tooltip-icon">ℹ️</span>
-      <div class="info-tooltip-box">
-        {tooltip_content}
-      </div>
-    </span>
-    """
-
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
     return """
     <span class="info-tooltip">
