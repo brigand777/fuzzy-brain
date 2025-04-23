@@ -131,7 +131,7 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
             <strong>Benchmark</strong><br>
             Used to compare portfolio performance.
             <br>
-            <img src="data:image/png;base64,..." width="18" />
+            <img src="data:Portfolio Tuner/App/assets/headshot/png;base64,..." width="18" />
         </div>
     </span>
     """
