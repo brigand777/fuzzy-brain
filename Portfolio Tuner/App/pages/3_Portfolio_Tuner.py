@@ -4,8 +4,6 @@ import os
 import pytz
 from datetime import datetime
 
-# --- Must be first ---
-st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
 
 from auth import login_and_get_status
 from utils.api_client import call_fastapi_optimizer
@@ -21,7 +19,9 @@ from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfoli
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods, get_backtest_settings
 from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,set_global_font_style, plot_unk_chart
-
+# --- Must be first ---
+st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
+authenticator, authentication_status, username = login_and_get_status()
 # --- Lite Mode Toggle ---
 st.sidebar.markdown("### 🧪 Experimental")
 st.session_state.lite_mode = st.sidebar.toggle("Lite Mode", value=st.session_state.get("lite_mode", False))
