@@ -100,7 +100,7 @@ with col2:
 
 # ------------------- BACKTESTING SECTION -------------------
 # Step 2: Define Backtest Period
-section_heading("Step 2: 🧪 Backtest Your Portfolio", short_description="'Past performance is not an indication of future returns'..but it doesn't hurt knowing", level=3)
+st.markdown(section_heading("Step 2: 🧪 Backtest Your Portfolio", short_description="'Past performance is not an indication of future returns'..but it doesn't hurt knowing", level=3), unsafe_allow_html=True)
  
 st.markdown("### 📅 Step 2.1: Select Backtest Date Range")
 col1, col2 = st.columns(2)
@@ -119,7 +119,7 @@ if start_date >= end_date:
     st.stop()
 
 # Step 2.2: Choose Strategy Types
-section_heading("🧠 Step 2.2: Choose Strategies to Backtest", short_description="Oooh this is the technical stuff, Mean variance is optimal in the past, while HRB tries to find the structure and spread your risk mathematically..hard to chose I love looking at them all :p", level=3)
+st.markdown(section_heading("🧠 Step 2.2: Choose Strategies to Backtest", short_description="Oooh this is the technical stuff, Mean variance is optimal in the past, while HRB tries to find the structure and spread your risk mathematically..hard to chose I love looking at them all :p", level=3)
 
 with st.expander("ℹ️ Strategy Descriptions", expanded=False):
     st.markdown("""
@@ -137,8 +137,8 @@ selected_methods = st.multiselect(
 )
 
 # Step 2.3: Configure Advanced Settings
-section_heading("⚙️ Step 2.3: Advanced Settings (Optional)", short_description="""This is the real geeky stuff..don't say I didn't warn ya! Rebalance frequency is how often you want to
- recalculate the strategy, lookback is how nearsighted (looking back) you want the strategy to optimize for, and not allowing short selling means you only buy (rather than sell) as part of a strategy""", level=3)
+st.markdown(section_heading("⚙️ Step 2.3: Advanced Settings (Optional)", short_description="""This is the real geeky stuff..don't say I didn't warn ya! Rebalance frequency is how often you want to
+ recalculate the strategy, lookback is how nearsighted (looking back) you want the strategy to optimize for, and not allowing short selling means you only buy (rather than sell) as part of a strategy""", level=3), unsafe_allow_html=True)
 
 with st.expander("🔧 Show Advanced Settings", expanded=False):
     rebalance_days = st.slider("🔁 Rebalance Frequency (days)", 7, 90, 30, step=7)
@@ -228,7 +228,8 @@ if "downsampled" in st.session_state:
                 add_interactivity(plot_allocations_per_method(downsampled[method]["allocations"], method), x_field="date", y_field="Allocation"),
                 use_container_width=True
             )
-    section_heading("📋 Summary Chart", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3)
+    st.markdown(section_heading("📋 Summary Chart", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown
+    is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3), unsafe_allow_html=True)
 
     st.dataframe(generate_styled_summary_table(downsampled), use_container_width=True)
 
@@ -419,7 +420,9 @@ if run_mc:
                 .format("{:.2f}")  # ✅ Round display values
 
             #st.markdown("### 📋 Simulation Summary (Median Sharpe, Volatility, Drawdown)")
-            section_heading("📋 Simulation Summary", short_description="""Check out which strategies performed best (green) and worst (red). If you want to leverage trade max drawdown is critical, if you are risk averse prioritize volatility, if you want to HODL prioritize sharpe.""", level=3)
+            st.markdown(section_heading("📋 Simulation Summary", short_description="""Check out which strategies performed best
+            (green) and worst (red). If you want to leverage trade max drawdown is critical, if you are risk averse prioritize volatility,
+            if you want to HODL prioritize sharpe.""", level=3), unsafe_allow_html=True)
 
             st.dataframe(styled_df, use_container_width=True)
 

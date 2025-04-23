@@ -53,7 +53,7 @@ available_assets = data.columns.tolist()
 
 # --- Step 1: Choose Assets ---
 #st.markdown("## Step 1: 🧠 Choose Your Assets")
-section_heading("Step 1: 🧠 Choose Your Assets", short_description="We're in the sandbox and these are our building blocks! Grab stuff you haven't before, see where it goes", level=2)
+st.markdown(section_heading("Step 1: 🧠 Choose Your Assets", short_description="We're in the sandbox and these are our building blocks! Grab stuff you haven't before, see where it goes", level=2), unsafe_allow_html=True)
 
 with st.expander("💼 Try a Sample Crypto Portfolio"):
     preset = st.radio(
@@ -86,8 +86,8 @@ latest_prices = data.iloc[-1]
 
 # --- Step 2: 🎚️ Adjust Your Hypothetical Portfolio ---
 #st.markdown("## Step 2: 🎚️ Adjust Your Hypothetical Portfolio")
-section_heading("Step 2: 🎚️ Adjust Your Hypothetical Portfolio", short_description="""Use these sliders to adjust the percentage of the total you want to invest of each coin,
- if you auto normalize the percentages are treated as relative, otherwise you can simulate a portfolio with over 100% which would imply leverage trading (borrow money to amplify profits/losses)!""", level=2)
+st.markdown(section_heading("Step 2: 🎚️ Adjust Your Hypothetical Portfolio", short_description="""Use these sliders to adjust the percentage of the total you want to invest of each coin,
+ if you auto normalize the percentages are treated as relative, otherwise you can simulate a portfolio with over 100% which would imply leverage trading (borrow money to amplify profits/losses)!""", level=2), unsafe_allow_html=True)
 
 slider_col, chart_col = st.columns([1, 2], gap="medium")
 
@@ -174,7 +174,7 @@ risk_score = sum((v * np.std(data[k].pct_change())) for k, v in weights.items())
 # --- Chart Column ---
 with chart_col:
     #st.markdown("#### 📈 1-Year Cumulative Return")
-    section_heading("📈 1-Year Cumulative Return", short_description="""Here's how this strategy would have performed per dollar input a year ago! This updates whenever you change a slider, pretty cool huh?""", level=4)
+    st.markdown(section_heading("📈 1-Year Cumulative Return", short_description="""Here's how this strategy would have performed per dollar input a year ago! This updates whenever you change a slider, pretty cool huh?""", level=4), unsafe_allow_html=True)
 
     chart = plot_cumulative_returns({
         "Playground Portfolio": {
@@ -255,7 +255,7 @@ if st.button("🚀 Run Monte Carlo Simulation"):
             chart_func=lambda: result["chart"],
         )
         #st.markdown("### 📊 Forecast Summary")
-        section_heading("📊 Forecast Summary", short_description="""This summarizes the extremes that came out of the simulations, treat these as possible what-ifs""", level=4)
+        st.markdown(section_heading("📊 Forecast Summary", short_description="""This summarizes the extremes that came out of the simulations, treat these as possible what-ifs""", level=4), unsafe_allow_html=True)
 
         st.markdown(f"""
         - **Median 6-Month Return:** {(result['ci_high'] + result['ci_low']) / 2:.1%}  

@@ -140,7 +140,7 @@ if authentication_status:
         st.warning("⚠️ Add more coins for better diversification.")
 
     #st.markdown("### 📅 Date Range & Benchmark")
-    section_heading("📅 Date Range & Benchmark", short_description="Mother always said comparison is the thief of joy, but in finance benchmarks help us contextualize our investments! Here we can pick ours", level=3)
+    st.markdown(section_heading("📅 Date Range & Benchmark", short_description="Mother always said comparison is the thief of joy, but in finance benchmarks help us contextualize our investments! Here we can pick ours", level=3), unsafe_allow_html=True)
  
     col1, col2 = st.columns([1, 1])
     with col1:
@@ -195,7 +195,7 @@ if authentication_status:
         st.stop()
 
     #st.markdown("### 📊 Portfolio Performance")
-    section_heading("📊 Portfolio Performance", short_description="This is it! How our portfolio has been doing this past while", level=3)
+    st.markdown(section_heading("📊 Portfolio Performance", short_description="This is it! How our portfolio has been doing this past while", level=3), unsafe_allow_html=True)
  
     try:
         value_fig = plot_portfolio_absolute_value(data, selected_assets, start_date, end_date, portfolio_df)
@@ -206,7 +206,7 @@ if authentication_status:
         st.error(f"⚠️ Error in performance charts: {e}")
         st.info("Try selecting a shorter date range or verifying your assets.")
 
-    section_heading("🧫 Key Metrics", term="Understand Your Portfolio", short_description="We want to know how much risk we are taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).", glossary_url="/Glossary#sharpe-ratio", level=3)
+    st.markdown(section_heading("🧫 Key Metrics", term="Understand Your Portfolio", short_description="We want to know how much risk we are taking (volatility), what's our reward (returns), and what's the bang for buck (Sharpe).", glossary_url="/Glossary#sharpe-ratio", level=3), unsafe_allow_html=True)
     #st.info("ℹ️ Sharpe Ratio: Higher means better returns for the risk taken.")
 
     if metrics_fig and len(metrics_fig) >= 3:
