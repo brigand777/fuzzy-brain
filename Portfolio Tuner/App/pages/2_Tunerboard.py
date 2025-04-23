@@ -252,9 +252,7 @@ if authentication_status:
             short_description="""— well, this is the basket! Higher correlations
             mean the baskets are more similar, negative correlations mean they move oppositely, and close to 0 means they're truly distinct!""",
             level=3), unsafe_allow_html=True)
-         
- 
-        st.altair_chart(heatmap_fig, use_container_width=True)
+        plot_unk_chart(heatmap_fig)
     with col2:
         pie_data = portfolio_df.set_index("Asset")["Value ($)"].reindex(selected_assets).fillna(0)
         fig = px.pie(values=pie_data.values, names=pie_data.index, title="Portfolio Allocation", color_discrete_sequence=qualitative.Safe)
@@ -263,7 +261,7 @@ if authentication_status:
             term="Your Crypto Mix",
             short_description="This is where the eggs go into the baskets!",
             level=3), unsafe_allow_html=True)
-        st.plotly_chart(fig, use_container_width=True)
+        plot_unk_chart(fig)
     # --- Full Historical Data Plots in 2-column format ---
     st.markdown("### 📊 Historical Trends")
     try:
