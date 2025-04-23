@@ -49,7 +49,7 @@ try:
     display_video("Portfolio Tuner/App/assets/homepage_video.mp4", height=600)
 except:
     st.warning("⚠️ Unable to load the intro video. Make sure the file exists.")
-
+'''
 # --- Why This Exists ---
 st.markdown("## 🤔 Why Portfolio Tuner?")
 st.markdown("""
@@ -64,7 +64,7 @@ Portfolio Tuner gives you:
 - 🧠 **Risk and return metrics tailored to crypto volatility**
 - 🎓 **Education-first UX** to guide your investing decisions
 """)
-
+'''
 # --- Mascot Introduction Section ---
 left, right = st.columns([1, 2])  # 1:2 ratio for mascot + message
 
@@ -85,9 +85,9 @@ with right:
         color: #1A1A1A;
     ">
         <h4 style="margin-top: 0;">Hey I'm Tuner Boy!</h4>
-        Welcome to <strong>Portfolio Tuner</strong> – your personalized crypto strategy assistant.<br><br>
+        I'm here to be your support buddy as you naviagte <strong>Portfolio Tuner</strong> – your personalized crypto strategy assistant.<br><br>
         I’m here to help you explore, experiment, and optimize your investments without stress.<br><br>
-        Think of me as your <em>data-driven sidekick</em> — guiding you through building a smart, resilient crypto portfolio. Ready to tune things up?
+        I've been arond the block a few times so I'll try my best to guida ya through the nerd talk. Ready to tune things up?! Meet me in the Tuner Tour section, I'll see ya there!
     </div>
     """, unsafe_allow_html=True)
 
