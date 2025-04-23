@@ -333,7 +333,7 @@ def vintage_dropdown(title: str, content: str):
         st.markdown(styled_html, unsafe_allow_html=True)
 
 
-def chart_with_tooltip(
+def schart_with_tooltip(
     title: str,
     short_desc: str,
     chart_func,
@@ -423,6 +423,113 @@ def chart_with_tooltip(
         st.plotly_chart(chart, use_container_width=True)
     else:
         st.altair_chart(chart, use_container_width=True)
+
+
+def chart_with_tooltip(
+    title: str,
+    short_desc: str,
+    chart_func,
+    term: str = "",
+    glossary_url: str = None,
+    interactive: bool = False,
+    x_field: str = None,
+    y_field: str = None,
+    mascot_path: str = "Portfolio Tuner/App/assets/headshot.png",
+    *args, **kwargs
+    ):
+    import streamlit as st
+    import streamlit.components.v1 as components
+
+    mascot_b64 = image_to_base64(mascot_path)
+
+    # Build tooltip HTML
+    if term:
+        tooltip_html = f"<strong>{term}</strong><br>{short_desc}"
+    else:
+        tooltip_html = short_desc
+
+    if glossary_url:
+        tooltip_html += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
+
+    # Render heading + tooltip as HTML
+    header_html = f"""
+    <style>
+    .info-tooltip {{
+        position: relative;
+        display: inline-block;
+        line-height: 1;
+    }}
+
+    .info-tooltip-icon {{
+        cursor: pointer;
+        font-size: 1rem;
+        opacity: 0.6;
+        vertical-align: middle;
+        margin-left: 0;
+    }}
+
+    .info-tooltip-box {{
+        visibility: hidden;
+        background-color: #FAF3D3;
+        color: #1A1A1A;
+        border: 1px solid #D6C899;
+        border-radius: 8px;
+        padding: 10px 10px 24px 10px;
+        position: absolute;
+        z-index: 9999;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        min-width: 220px;
+        max-width: 300px;
+        box-shadow: 2px 4px 12px rgba(0,0,0,0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        white-space: normal;
+    }}
+
+    .info-tooltip:hover .info-tooltip-box {{
+        visibility: visible;
+        opacity: 1;
+    }}
+
+    .info-tooltip-box img {{
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        width: 28px;
+        height: 28px;
+        opacity: 1;
+    }}
+    </style>
+
+    <div style="display: inline-flex; align-items: center; gap: 4px;">
+        <h3 style="margin: 0;">{title}</h3><span class="info-tooltip">
+            <span class="info-tooltip-icon">ℹ️</span>
+            <div class="info-tooltip-box">
+                {tooltip_html}
+                <img src="data:image/png;base64,{mascot_b64}" alt="icon" />
+            </div>
+        </span>
+    </div>
+    """
+
+    # Render inline HTML heading
+    components.html(header_html, height=80)
+
+    # Render the chart
+    chart = chart_func(*args, **kwargs)
+
+    if interactive and x_field and y_field:
+        from utils.plots import add_interactivity
+        chart = add_interactivity(chart, x_field=x_field, y_field=y_field)
+
+    if "plotly" in str(type(chart)).lower():
+        st.plotly_chart(chart, use_container_width=True)
+    else:
+        st.altair_chart(chart, use_container_width=True)
+
 
 def add_glossary_term(term, short, long, show_more=True):
     """Displays a glossary term with an anchor link for navigation."""
