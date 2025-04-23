@@ -102,7 +102,7 @@ Welcome to **Portfolio Tuner**, the ultimate tool for crypto investors! Whether 
 
 # --- Step 1: Portfolio Setup ---
 #st.header("📥 Step 1: Set Up Your Portfolio")
-section_heading("📥 Step 1: Set Up Your Portfolio", short_description="Hey you're starting your journey! We've picked out some of the biggest crypto currencies for ya to start our guide, sit back, relax, and just crypto", level=2)
+st.markdown(section_heading("📥 Step 1: Set Up Your Portfolio", short_description="Hey you're starting your journey! We've picked out some of the biggest crypto currencies for ya to start our guide, sit back, relax, and just crypto", level=2), unsafe_allow_html=True)
 
 narrative("Portfolio Tuner lets you input your crypto holdings to analyze their performance. For this guide, we'll use a predefined portfolio with Bitcoin (BTC), Ethereum (ETH), Solana (SOL), and Binance Coin (BNB).", color="#1F77B4")
 

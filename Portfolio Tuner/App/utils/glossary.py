@@ -75,42 +75,76 @@ def set_global_font_style():
     """, unsafe_allow_html=True)
 
 
-def image_to_base64(path):
     with open(path, "rb") as f:
         data = f.read()
     return base64.b64encode(data).decode()
-def sadd_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
-    
-    import base64
-    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")  # adjust as needed
+import base64
 
-    tooltip = f"<strong>{term}</strong><br>{short_description}" if term else short_description
-    if glossary_url:
-        tooltip += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
-
-    img_tag = f'<img src="data:image/png;base64,{mascot_b64}" width="18" height="18" style="opacity:0.6; margin-top:6px;" />'
-
-    # SINGLE-LINE return: no leading/trailing newlines or indentation
-    return f'<span class="info-tooltip" style="position: relative;"><span class="info-tooltip-icon">ℹ️</span><div class="info-tooltip-box">{tooltip}{img_tag}</div></span>'
+def image_to_base64(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
 def add_info_icon(term: str, short_description: str, glossary_url: str = None) -> str:
-    import base64
-    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
-
+    mascot_b64 = image_to_base64("Portfolio Tuner/App/assets/headshot.png")  # Adjust path as needed
     tooltip = f"<strong>{term}</strong><br>{short_description}" if term else short_description
     if glossary_url:
         tooltip += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
     return f'''
-    <span class="info-tooltip" style="position: relative;">
-        <span class="info-tooltip-icon">ℹ️</span>
-        <div class="info-tooltip-box" style="position: relative;">
-            {tooltip}
-            <img src="data:image/png;base64,{mascot_b64}" width="25" height="25"
-                 style="position: absolute; bottom: 4px; right: 6px; opacity: 0.6;" />
-        </div>
-    </span>
-    '''
+<style>
+.info-tooltip {{
+    position: relative;
+    display: inline-block;
+}}
+
+.info-tooltip-icon {{
+    cursor: pointer;
+}}
+
+.info-tooltip-box {{
+    visibility: hidden;
+    background-color: white;
+    color: black;
+    text-align: left;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 10px 10px 24px 10px;
+    position: absolute;
+    z-index: 1000;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.9rem;
+    min-width: 220px;
+    max-width: 300px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}}
+
+.info-tooltip:hover .info-tooltip-box {{
+    visibility: visible;
+    opacity: 1;
+}}
+
+.info-tooltip-box img {{
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    opacity: 0.5;
+}}
+</style>
+
+<span class="info-tooltip">
+    <span class="info-tooltip-icon">ℹ️</span>
+    <div class="info-tooltip-box">
+        {tooltip}
+        <img src="data:image/png;base64,{mascot_b64}" />
+    </div>
+</span>
+'''
 
 def section_heading(title, short_description, term="", glossary_url=None, level=2):
     tag = f"h{level}"
