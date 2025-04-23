@@ -181,20 +181,20 @@ if "downsampled" in st.session_state:
     st.markdown("## 📊 Backtest Results")
     downsampled = st.session_state.downsampled
     selected_methods = st.session_state.selected_methods
-    #st.altair_chart(add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative"), use_container_width=True)
-    #st.altair_chart(add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe"), use_container_width=True)
-    #st.altair_chart(add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown"), use_container_width=True)
+    cum_fig = add_interactivity(plot_cumulative_returns(downsampled), x_field="date", y_field="cumulative")
+    sha_fig = add_interactivity(plot_rolling_sharpe(downsampled), x_field="date", y_field="rolling_sharpe")
+    dra_fig = add_interactivity(plot_drawdowns(downsampled), x_field="date", y_field="drawdown")
     chart_with_tooltip(
         title="📈 Cumulative Returns",
         short_desc="Tracks the portfolio value over time relative to its starting point.",
-        chart_func=plot_cumulative_returns,
+        chart_func=lambda: cum_fig,
         term="Cumulative Return",
         glossary_url="#cumulative-return",
         interactive=True,
         x_field="date",
-        y_field="cumulative",
-        data=downsampled  # pass as keyword argument
+        y_field="cumulative"
     )
+
     chart_with_tooltip(
         title="📈 Rolling Sharpe Ratio",
         short_desc="Sharpe Ratio over a moving window. Shows changing risk-adjusted performance.",
