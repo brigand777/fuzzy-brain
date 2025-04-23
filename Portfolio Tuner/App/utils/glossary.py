@@ -2,6 +2,14 @@ import streamlit as st
 import streamlit.components.v1 as components
 from utils.plots import add_interactivity
 
+import base64
+
+def image_to_base64(path):
+    with open(path, "rb") as f:
+        data = f.read()
+    return base64.b64encode(data).decode()
+
+
 def sinject_tooltip_css():
     tooltip_css = """
     <style>
@@ -120,13 +128,11 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     if glossary_url:
         tooltip_content += f'<br><a href="{glossary_url}" target="_blank" style="color:#1F77B4;">Read more</a>'
 
-    mascot_url = "Portfolio Tuner/App/assets/headshot.png"
+    # Base64 encode the local image
+    b64_img = image_to_base64("Portfolio Tuner/App/assets/headshot.png")
 
-    # Add mascot into the main box content, inline at bottom-right
     tooltip_content += f"""
-        <div style="text-align: right; margin-top: 4px;">
-            <img src="{mascot_url}" width="18" height="18" style="opacity: 0.6;" />
-        </div>
+        <img src="data:image/png;base64,{b64_img}" width="18" height="18" style="opacity:0.6; display:block; margin-top:6px;" />
     """
 
     return f"""
@@ -138,7 +144,6 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
     </span>
     """
 
-
 def section_heading(
     title: str,
     short_description: str,
@@ -148,11 +153,12 @@ def section_heading(
 ):
     tag = f"h{level}"
     st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 0.5rem;">
             <{tag} style="margin: 0;">{title}</{tag}>
             {add_info_icon(term, short_description, glossary_url)}
         </div>
     """, unsafe_allow_html=True)
+
 
 
 def vintage_dropdown(title: str, content: str):
