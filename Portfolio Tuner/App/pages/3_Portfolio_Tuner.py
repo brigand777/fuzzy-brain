@@ -17,7 +17,7 @@ from utils.utils import downsample_results_dict
 from utils.backtest import dynamic_backtest_portfolio, dynamic_backtest_portfolio_user_fixed_shares
 from components.portfolio_input import edit_portfolio
 from user_input import get_optimization_methods, get_backtest_settings
-from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css
+from utils.glossary import chart_with_tooltip, add_info_icon, section_heading, inject_tooltip_css,render_final_tooltip_heading
 
 # --- Page Setup ---
 st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
