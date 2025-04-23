@@ -379,13 +379,12 @@ if run_mc:
                     n_sims=n_sims,
                     correlation_strategy=corr_mode
                 )
-
-            #st.plotly_chart(mc_result["chart"], use_container_width=True)
             st.markdown(section_heading(
                 title="🎲 Monte Carlo Projection",
                 short_description="Simulates thousands of future price paths based on asset statistics and strategy weights.",
-                chart_func=lambda: mc_result["chart"],
-            )
+                level=3), unsafe_allow_html=True)
+            st.plotly_chart(mc_result["chart"], use_container_width=True)
+            
 
             #st.markdown("### 📊 Strategy Risk Metrics")
             st.markdown(section_heading(
