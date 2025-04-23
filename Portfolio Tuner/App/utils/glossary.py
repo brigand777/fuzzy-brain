@@ -115,7 +115,7 @@ def add_info_icon(term: str, short_description: str, glossary_url: str = None) -
 def section_heading(
     title: str,
     short_description: str,
-    term: str = None,
+    term: str = "",
     glossary_url: str = None,
     level: int = 2
     ):
