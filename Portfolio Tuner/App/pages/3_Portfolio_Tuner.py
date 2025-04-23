@@ -24,7 +24,12 @@ st.set_page_config(page_title="All-in-One Portfolio Tool", layout="wide")
 inject_tooltip_css()
 authenticator, authentication_status, username = login_and_get_status()
 st.title("💼 Portfolio Tuner")
-
+st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+    .metric-card {background-color: #f0f2f6; padding: 10px; border-radius: 5px;}
+</style>
+""", unsafe_allow_html=True)
 # --- Style Helper ---
 def narrative(text, color="#1F77B4"):
     st.markdown(
