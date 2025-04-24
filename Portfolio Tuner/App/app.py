@@ -101,11 +101,9 @@ with col1:
 with col2:
     st.markdown("""
     <div style='
-        background-color: #FAF3D3;
-        border: 1px solid #D6C899;
+        background-color: rgba(0, 0, 0, 0);  /* transparent background */
         padding: 20px 24px;
         border-radius: 12px;
-        box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.05);
         font-size: 1.1rem;
         line-height: 1.6;
         font-family: "Merriweather", serif;
@@ -117,8 +115,6 @@ with col2:
         <strong>Toggle it anytime from the sidebar. →</strong>
     </div>
     """, unsafe_allow_html=True)
-
-
 
 
 # --- Navigation Cards ---
