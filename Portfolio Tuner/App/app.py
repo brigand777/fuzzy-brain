@@ -100,15 +100,24 @@ with col1:
 
 with col2:
     st.markdown("""
-    <div style='background-color: #FAF3D3; border: 1px solid #D6C899; padding: 20px 24px; border-radius: 12px;
-                box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.05); font-size: 1.1rem; line-height: 1.6; color: #1A1A1A;
-                font-family: "Merriweather", serif;'>
-        <h4 style='margin-top: 0;'>Meet Lite Mode 🪶</h4>
+    <div style='
+        background-color: #F5F5F0;  /* soft off-white parchment */
+        border: 1px solid #DAD7CD;
+        padding: 20px 24px;
+        border-radius: 12px;
+        box-shadow: 1px 2px 6px rgba(0, 0, 0, 0.05);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        font-family: "Merriweather", serif;
+        color: #1F1F1F;
+    '>
+        <h4 style='margin-top: 0; font-size: 1.2rem;'>🪶 Introducing Lite Mode</h4>
         Want a simpler view of your crypto strategy journey? Lite Mode trims the complexity and gives you only what matters.
-        It's perfect if you're just getting started or just want to keep things tidy.<br><br>
+        It’s perfect if you're just getting started or prefer a streamlined experience.<br><br>
         <strong>Toggle it anytime from the sidebar. →</strong>
     </div>
     """, unsafe_allow_html=True)
+
 
 
 # --- Navigation Cards ---
