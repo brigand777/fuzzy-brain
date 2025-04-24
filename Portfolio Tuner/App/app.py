@@ -21,7 +21,9 @@ st.markdown("""
 # --- Authenticator ---
 authenticator = get_authenticator()
 name, authentication_status, username = authenticator.login("Login", "sidebar")
-
+# --- Lite Mode Toggle ---
+st.sidebar.markdown("### 🧪 Experimental")
+st.session_state.lite_mode = st.sidebar.toggle("Lite Mode", value=st.session_state.get("lite_mode", False))
 # --- Welcome Header ---
 st.title("📈 Portfolio Tuner")
 st.markdown("<h3 style='color:#A9A9B3; font-style:italic;'>Optimize your crypto, maximize your gains.</h3>", unsafe_allow_html=True)
