@@ -93,12 +93,12 @@ with right:
         """, unsafe_allow_html=True)
 
 # --- Litemode Introduction Section ---
-col1, col2 = st.columns([1, 4])  # 1:4 ratio for mascot + message
-
-with col1:
-    st.image("Portfolio Tuner/App/assets/Lite_mode_button.png", width=250)
+col1, col2 = st.columns([4, 1])  # 1:4 ratio for mascot + message
 
 with col2:
+    st.image("Portfolio Tuner/App/assets/Lite_mode_button.png", width=250)
+
+with col1:
     st.markdown("""
     <div style='
         background-color: rgba(0, 0, 0, 0);  /* transparent background */
