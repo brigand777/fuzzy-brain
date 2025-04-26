@@ -97,9 +97,6 @@ with right:
 # --- Litemode Introduction Section ---
 col1, col2 = st.columns([4, 1])  # 1:4 ratio for mascot + message
 
-with col2:
-    st.image("Portfolio Tuner/App/assets/Lite_mode_button.png", width=250)
-
 with col1:
     st.markdown("""
     <div style='
@@ -117,6 +114,9 @@ with col1:
         <strong>Toggle it anytime from the sidebar. →</strong>
     </div>
     """, unsafe_allow_html=True)
+
+with col2:
+    st.image("Portfolio Tuner/App/assets/Lite_mode_button.png", width=250)
 
 
 # --- Navigation Cards ---
